@@ -1,0 +1,24 @@
+<div class="app-selector-container">
+  <!-- Botão do menu -->
+  <div class="icon-button" (click)="toggleSearch()">
+    <i class='bx bxs-grid menu-icon'></i>
+  </div>
+
+  <!-- Menu expansível -->
+  <div class="app-menu" [class.expanded]="isSearchActive" *ngIf="isSearchActive">
+    <!-- Campo de busca -->
+    <div class="search-box">
+      <input type="text" [(ngModel)]="searchQuery" placeholder="Buscar app..." (focus)="isSearchActive = true">
+    </div>
+
+    <!-- Listagem de apps -->
+    <div *ngIf="isSearchActive" class="app-grid">
+      <ng-container *ngFor="let app of searchResults()">
+        <div class="app-card" (click)="navigate(app.path); isSearchActive = false">
+          <i [class]="app.icon"></i>
+          <span>{{ app.title }}</span>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</div>

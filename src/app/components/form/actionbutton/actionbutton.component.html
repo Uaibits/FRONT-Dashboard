@@ -1,0 +1,21 @@
+<ub-base-input>
+  <div class="action-button-container">
+    <button [class]="buttonClass" [disabled]="loading || disabled" (click)="toggleActions()">
+      <i *ngIf="icon" class="bx {{ icon }}"></i>
+      <span *ngIf="loading" class="loading-spinner"></span>
+      <ng-content></ng-content>
+      <i class="bx bxs-chevron-down dropdown-icon"></i>
+    </button>
+
+    <div class="actions-menu" *ngIf="isOpen">
+      <div
+        *ngFor="let action of actions"
+        class="action-item"
+        (click)="handleAction(action)"
+      >
+        <i *ngIf="action.icon" class="bx {{ action.icon }}"></i>
+        <span>{{ action.label }}</span>
+      </div>
+    </div>
+  </div>
+</ub-base-input>

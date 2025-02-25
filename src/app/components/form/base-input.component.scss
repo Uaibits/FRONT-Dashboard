@@ -1,0 +1,429 @@
+// Mixins reutilizáveis
+@mixin input-focus {
+  border-color: var(--input-focus-border-color);
+  box-shadow: 0 0 8px rgba(var(--secondary-color), 0.3);
+  outline: none;
+}
+
+@mixin input-error {
+  border-color: var(--error-color);
+  box-shadow: 0 0 8px rgba(var(--error-color), 0.3);
+}
+
+@mixin input-success {
+  border-color: var(--success-color);
+  box-shadow: 0 0 8px rgba(var(--success-color), 0.3);
+}
+
+.input-container {
+  display: flex;
+  flex-direction: column;
+
+  label {
+    margin-bottom: var(--spacing-small);
+    font-size: var(--font-size-base);
+    font-weight: var(--font-weight-bold);
+    color: var(--primary-color);
+  }
+
+  input,
+  select,
+  textarea{
+    padding: var(--spacing-medium);
+    border: 2px solid var(--input-border-color);
+    border-radius: var(--border-radius);
+    font-size: var(--font-size-base);
+    transition: all var(--transition-speed) ease-in-out;
+    outline: none;
+    background-color: #fff;
+    color: var(--text-color);
+
+    &:focus {
+      @include input-focus;
+    }
+
+    &:hover {
+      border-color: var(--secondary-color);
+      background-color: #f8f9fa;
+    }
+
+    &.error {
+      @include input-error;
+    }
+
+    &.success {
+      @include input-success;
+    }
+  }
+
+  textarea {
+    &[resize="none"] {
+      resize: none;
+    }
+
+    &[resize="both"] {
+      resize: both;
+    }
+
+    &[resize="horizontal"] {
+      resize: horizontal;
+    }
+
+    &[resize="vertical"] {
+      resize: vertical;
+    }
+  }
+
+  .character-counter {
+    margin-top: var(--spacing-small);
+    font-size: var(--font-size-small);
+    color: var(--text-color);
+    text-align: right;
+  }
+
+  small {
+    margin-top: var(--spacing-small);
+    font-size: var(--font-size-small);
+    color: var(--primary-color);
+
+    &.warning {
+      color: var(--secondary-color);
+    }
+
+    &.error {
+      color: var(--error-color);
+    }
+
+    &.success {
+      color: var(--success-color);
+    }
+  }
+}
+
+// Estilos do dropdown incorporados
+.dropdown-container {
+  position: relative;
+  width: 100%;
+}
+
+.dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-medium);
+  border: 2px solid var(--input-border-color);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  background-color: #fff;
+  transition: all var(--transition-speed) ease-in-out;
+  font-size: var(--font-size-base);
+  color: var(--text-color);
+
+  &:hover {
+    border-color: var(--secondary-color);
+    background-color: #f8f9fa;
+  }
+
+  .dropdown-icon {
+    font-size: 1rem;
+    color: var(--secondary-color);
+    transition: transform var(--transition-speed);
+    margin-left: 8px;
+  }
+
+  &.open .dropdown-icon {
+    transform: rotate(180deg);
+  }
+}
+
+.dropdown-content {
+  position: absolute;
+  top: calc(100% + var(--spacing-small));
+  left: 0;
+  right: 0;
+  border: 2px solid var(--input-border-color);
+  border-radius: var(--border-radius);
+  background-color: #fff;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  overflow: hidden;
+  min-width: 200px;
+}
+
+.filter-container {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-medium);
+  padding: var(--spacing-medium);
+  border-bottom: 1px solid var(--input-border-color);
+  background-color: #f8f9fa;
+}
+
+.filter-input {
+  width: calc(100% - 16px); // Subtrai o padding e a margem para evitar overflow
+  padding: var(--spacing-medium);
+  border: 2px solid var(--input-border-color);
+  margin: 8px; // Mantém a margem, mas ajusta o width para compensar
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
+  outline: none;
+  background-color: #f8f9fa;
+  transition: all var(--transition-speed) ease-in-out;
+  box-sizing: border-box; // Garante que o padding e a borda sejam incluídos no width
+
+  &:focus {
+    border-color: var(--primary-color);
+    background-color: #fff;
+  }
+}
+
+.options-list {
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.option {
+  padding: var(--spacing-medium);
+  cursor: pointer;
+  font-size: var(--font-size-base);
+  transition: all var(--transition-speed) ease-in-out;
+
+  &:hover {
+    background-color: var(--secondary-color);
+    color: #fff;
+  }
+
+  &.selected {
+    background-color: var(--primary-color);
+    color: #fff;
+  }
+}
+
+
+.feedback {
+  margin-top: var(--spacing-small);
+  font-size: var(--font-size-small);
+  padding: var(--spacing-small);
+  border-radius: var(--border-radius);
+
+  &.error {
+    color: var(--error-color);
+    background-color: rgba(var(--error-color), 0.1);
+  }
+
+  &.success {
+    color: var(--success-color);
+    background-color: rgba(var(--success-color), 0.1);
+  }
+}
+
+// Mixins reutilizáveis
+@mixin input-focus {
+  border-color: var(--input-focus-border-color);
+  box-shadow: 0 0 8px rgba(var(--secondary-color), 0.3);
+  outline: none;
+}
+
+@mixin input-error {
+  border-color: var(--error-color);
+  box-shadow: 0 0 8px rgba(var(--error-color), 0.3);
+}
+
+@mixin input-success {
+  border-color: var(--success-color);
+  box-shadow: 0 0 8px rgba(var(--success-color), 0.3);
+}
+
+.multiselect-container {
+  position: relative;
+  width: 100%;
+
+  .multiselect-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-medium);
+    border: 2px solid var(--input-border-color);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    background-color: #fff;
+    transition: all var(--transition-speed) ease-in-out;
+    font-size: var(--font-size-base);
+    color: var(--text-color);
+
+    &:hover {
+      border-color: var(--secondary-color);
+      background-color: #f8f9fa;
+    }
+
+    .dropdown-icon {
+      font-size: 1rem;
+      color: var(--secondary-color);
+      transition: transform var(--transition-speed);
+      margin-left: 8px;
+    }
+
+    &.open .dropdown-icon {
+      transform: rotate(180deg);
+    }
+  }
+
+  .multiselect-content {
+    position: absolute;
+    top: calc(100% + var(--spacing-small));
+    left: 0;
+    right: 0;
+    border: 2px solid var(--input-border-color);
+    border-radius: var(--border-radius);
+    background-color: #fff;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    overflow: hidden;
+    min-width: 200px; // Define um tamanho mínimo para o conteúdo
+
+    .filter-container {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-medium);
+      padding: var(--spacing-medium);
+      border-bottom: 1px solid var(--input-border-color);
+      background-color: #f8f9fa;
+
+      .select-all-checkbox {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-small);
+        font-size: var(--font-size-base);
+        color: var(--text-color);
+        cursor: pointer;
+
+        input {
+          position: absolute;
+          opacity: 0;
+          cursor: pointer;
+        }
+
+        .checkmark {
+          position: relative;
+          height: 16px;
+          width: 16px;
+          background-color: #fff;
+          border: 2px solid var(--input-border-color);
+          border-radius: 4px;
+          transition: all var(--transition-speed) ease-in-out;
+
+          &:after {
+            content: '';
+            position: absolute;
+            display: none;
+            left: 4px;
+            top: 1px;
+            width: 4px;
+            height: 8px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+          }
+        }
+
+        input:checked ~ .checkmark {
+          background-color: var(--secondary-color);
+          border-color: var(--secondary-color);
+
+          &:after {
+            display: block;
+          }
+        }
+
+        &:hover .checkmark {
+          border-color: var(--secondary-color);
+        }
+      }
+
+      .filter-input {
+        flex: 1;
+        padding: var(--spacing-medium);
+        border: 2px solid var(--input-border-color);
+        border-radius: var(--border-radius);
+        font-size: var(--font-size-base);
+        outline: none;
+        background-color: #f8f9fa;
+        transition: all var(--transition-speed) ease-in-out;
+
+        &:focus {
+          border-color: var(--primary-color);
+          background-color: #fff;
+        }
+      }
+    }
+
+    .options-list {
+      max-height: 250px;
+      overflow-y: auto;
+      padding: var(--spacing-small);
+
+      .option {
+        display: flex;
+        align-items: center;
+        padding: var(--spacing-medium);
+        cursor: pointer;
+        font-size: var(--font-size-base);
+        color: var(--text-color);
+        transition: all var(--transition-speed) ease-in-out;
+
+        &:hover {
+          background-color: var(--secondary-color);
+          color: #fff;
+        }
+
+        .checkbox-container {
+          display: flex;
+          align-items: center;
+          gap: var(--spacing-small);
+
+          input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+          }
+
+          .checkmark {
+            position: relative;
+            height: 16px;
+            width: 16px;
+            background-color: #fff;
+            border: 2px solid var(--input-border-color);
+            border-radius: 4px;
+            transition: all var(--transition-speed) ease-in-out;
+
+            &:after {
+              content: '';
+              position: absolute;
+              display: none;
+              left: 4px;
+              top: 1px;
+              width: 4px;
+              height: 8px;
+              border: solid white;
+              border-width: 0 2px 2px 0;
+              transform: rotate(45deg);
+            }
+          }
+
+          input:checked ~ .checkmark {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+
+            &:after {
+              display: block;
+            }
+          }
+
+          &:hover .checkmark {
+            border-color: var(--secondary-color);
+          }
+        }
+      }
+    }
+  }
+}

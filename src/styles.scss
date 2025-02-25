@@ -1,1 +1,124 @@
-/* You can add global styles to this file, and also import other style files */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+@import "primeflex/primeflex.min.css";
+@import url("boxicons/css/boxicons.min.css");
+
+// Reset básico
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+// Estilos globais
+body {
+  font-family: 'Inter', sans-serif;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  line-height: 1.6;
+  font-size: var(--font-size-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+:root {
+  /* Cores */
+  --primary-color: #262626; /* Cinza escuro (primária) */
+  --primary-color-dark: #1a1a1a; /* Cinza escuro (primária) */
+  --secondary-color: #f7c212; /* Amarelo (secundária) */
+  --secondary-color-dark: #f5b90f; /* Amarelo escuro (secundária) */
+  --danger-color: #ff4647; /* Vermelho */
+  --danger-color-dark: #df1115; /* Vermelho escuro */
+  --error-color: #ff7675; /* Vermelho suave */
+  --success-color: #00b894; /* Verde suave */
+  --success-color-dark: #009c7a; /* Verde escuro */
+  --warning-color: #f1c40f; /* Amarelo suave */
+  --warning-color-dark: #d4ac0d; /* Amarelo escuro */
+  --info-color: #26a0ff; /* Azul suave */
+  --info-color-dark: #0c89ff; /* Azul escuro */
+  --background-color: #f8f9fa; /* Cinza claro (fundo) */
+  --text-color: #262626; /* Cinza escuro (texto) */
+  --input-border-color: #ddd; /* Cor de borda suave */
+  --input-focus-border-color: var(--secondary-color); /* Cor de borda ao focar (amarelo) */
+
+  /* Bordas */
+  --border-radius: 8px; /* Bordas mais arredondadas */
+
+  /* Transições */
+  --transition-speed: 0.2s; /* Transição mais rápida */
+
+  /* Fontes */
+  --font-size-base: 14px; /* Fonte menor e mais moderna */
+  --font-size-small: 12px; /* Fonte pequena para textos secundários */
+  --font-weight-bold: 500; /* Peso da fonte para labels */
+
+  /* Espaçamentos */
+  --spacing-small: 0.25rem;
+  --spacing-medium: 0.5rem;
+  --spacing-large: 1rem;
+}
+
+
+// Links
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: color var(--transition-speed);
+
+  &:hover {
+    color: var(--secondary-color);
+  }
+}
+
+// Botões
+button {
+  background-color: var(--primary-color);
+  color: #fff;
+  border: none;
+  padding: var(--spacing-small) var(--spacing-medium);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  transition: background-color var(--transition-speed);
+
+  &:hover {
+    border-color: var(--input-border-color);
+    filter: brightness(85%); // Reduz a luminosidade para escurecer a cor
+  }
+
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(var(--secondary-color), 0.5);
+  }
+}
+
+// Títulos
+h1, h2, h3, h4, h5, h6 {
+  color: var(--primary-color);
+  margin-bottom: var(--spacing-medium);
+  font-weight: 600;
+}
+
+h1 {
+  font-size: 2rem;
+}
+
+h2 {
+  font-size: 1.75rem;
+}
+
+h3 {
+  font-size: 1.5rem;
+}
+
+h4 {
+  font-size: 1.25rem;
+}
+
+h5 {
+  font-size: 1rem;
+}
+
+h6 {
+  font-size: 0.875rem;
+}

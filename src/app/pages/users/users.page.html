@@ -1,0 +1,10 @@
+<ub-content title="Usuários" [showBackButton]="true">
+  <ub-table
+    [data]="data"
+    [config]="tableConfig"
+    (addEvent)="onAdd()"
+    (editEvent)="onEdit($event)"
+    (deleteEvent)="onDelete($event)"
+    (selectEvent)="onSelect($event)"
+  ></ub-table>
+</ub-content>

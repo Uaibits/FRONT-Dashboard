@@ -1,0 +1,66 @@
+<div class="app-container">
+  <!-- Navegação -->
+  <div class="tab-navigation">
+    <div class="nav-bar">
+      <div class="left">
+        <span class="logo" routerLink="/home">UaiBits</span>
+      </div>
+
+      <!-- Tabs (Visíveis no Desktop, Somem no Mobile) -->
+      <div class="tabs">
+        <ng-container *ngFor="let tab of layoutService.getOpenTabs()">
+          <button (click)="router.navigate([tab.path])"
+                  class="tab-item"
+                  [ngClass]="{'active': tab.path === layoutService.getCurrentRoute()}">
+            <span>{{ tab.title }}</span>
+            <button (click)="closeTab(tab.id, $event)" class="icon-button">
+              <i class="bx bx-x"></i>
+            </button>
+          </button>
+        </ng-container>
+      </div>
+
+      <div class="right">
+
+        <ub-dropdown [options]="auth.getDepartments()" [value]="auth.getCurrentDepartment()?.slug ?? ''" optionLabel="name" optionValue="slug" placeholder="Departamentos"></ub-dropdown>
+
+        <search-screen></search-screen>
+
+        <button class="icon-button" routerLink="/perfil">
+          <i class='bx bxs-user-circle' ></i>
+        </button>
+
+        <button class="icon-button" (click)="auth.logout()">
+          <i class='bx bx-log-out' ></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Container onde os componentes das rotas serão renderizados -->
+  <div class="content-container">
+    <router-outlet></router-outlet>
+  </div>
+</div>
+
+<!-- Dialog para Tabs (Aparece só no Mobile) -->
+<div *ngIf="isTabsDialogOpen" class="dialog-overlay">
+  <div class="dialog-content">
+    <div class="dialog-header">
+      <h3>Tabs Abertas</h3>
+      <button (click)="isTabsDialogOpen = false" class="close-button">
+        <i class="bx bx-x"></i>
+      </button>
+    </div>
+    <div class="tabs-list">
+      <ng-container *ngFor="let tab of layoutService.getOpenTabs()">
+        <button (click)="router.navigate([tab.path]); isTabsDialogOpen = false" class="tab-item">
+          <span>{{ tab.title }}</span>
+          <button (click)="closeTab(tab.id, $event)" class="icon-button">
+            <i class="bx bx-x"></i>
+          </button>
+        </button>
+      </ng-container>
+    </div>
+  </div>
+</div>

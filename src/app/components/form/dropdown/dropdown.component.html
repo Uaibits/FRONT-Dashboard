@@ -1,0 +1,38 @@
+<ub-base-input
+  [label]="label"
+  [helpText]="helpText"
+  [error]="error"
+  [success]="success"
+>
+  <div class="dropdown-container">
+    <div
+      class="dropdown-header"
+      [class.open]="isOpen"
+      (click)="toggleDropdown()"
+    >
+      <span *ngIf="!selectedOptionLabel">{{ placeholder }}</span>
+      <span *ngIf="selectedOptionLabel">{{ selectedOptionLabel }}</span>
+      <i class='bx bxs-chevron-down dropdown-icon'></i>
+    </div>
+    <div class="dropdown-content" *ngIf="isOpen">
+      <input
+        *ngIf="filter"
+        type="text"
+        class="filter-input"
+        placeholder="Filtrar..."
+        [(ngModel)]="filterText"
+        (input)="onFilterChange()"
+      />
+      <div class="options-list">
+        <div
+          *ngFor="let option of filteredOptions"
+          class="option"
+          (click)="selectOption(option)"
+          [class.selected]="option[optionValue] === value"
+        >
+          {{ option[optionLabel] }}
+        </div>
+      </div>
+    </div>
+  </div>
+</ub-base-input>

@@ -1,0 +1,19 @@
+<div class="toast-container">
+  <div
+    *ngFor="let toast of toastService.toasts$ | async"
+    [ngClass]="getToastClass(toast)"
+    (mouseenter)="pauseToast(toast)"
+    (mouseleave)="resumeToast(toast)"
+  >
+    <i
+      class="bx toast-icon"
+      [ngClass]="{
+        'bx-check-circle': toast.type === 'success',
+        'bx-error-circle': toast.type === 'error',
+        'bx-error': toast.type === 'warning',
+        'bx-info-circle': toast.type === 'info'
+      }"
+    ></i>
+    {{ toast.message }}
+  </div>
+</div>

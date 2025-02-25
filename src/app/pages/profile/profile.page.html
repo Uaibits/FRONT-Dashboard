@@ -1,0 +1,29 @@
+<ub-content title="Perfil">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div class="p-fluid p-formgrid grid">
+      <div class="col-12 md:col-6">
+        <ub-input label="Nome" placeholder="Digite seu nome"
+                  formControlName="name"
+                  [error]="FormErrorHandlerService.getError('name', errors)"></ub-input>
+      </div>
+      <div class="col-12 md:col-6">
+        <ub-input label="E-mail" placeholder="Digite seu email"
+                  formControlName="email"
+                  [error]="FormErrorHandlerService.getError('email', errors)"></ub-input>
+      </div>
+      <div class="col-12 md:col-6">
+        <ub-password label="Nova senha" placeholder="Digite sua nova senha"
+                     formControlName="password"
+                     [error]="FormErrorHandlerService.getError('password', errors)"></ub-password>
+      </div>
+      <div class="col-12 md:col-6">
+        <ub-password label="Confirme a senha" placeholder="Confirme sua nova senha"
+                     formControlName="confirm_password"
+                     [error]="FormErrorHandlerService.getError('confirm_password', errors)"></ub-password>
+      </div>
+    </div>
+    <div class="flex justify-content-end">
+      <ub-button type="submit" [disabled]="form.invalid" [loading]="loading">Salvar</ub-button>
+    </div>
+  </form>
+</ub-content>

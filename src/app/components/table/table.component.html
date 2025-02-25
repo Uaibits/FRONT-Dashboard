@@ -1,0 +1,100 @@
+<div class="table-container">
+  <!-- Barra de ferramentas -->
+  <div class="toolbar">
+    <div class="actions">
+      <ub-multiselect [options]="config.cols" optionLabel="name" optionValue="path"
+                      placeholder="Selecionar colunas" [(value)]="selectedColumns"
+                      (valueChange)="console.log($event)"></ub-multiselect>
+    </div>
+    <div class="actions">
+      <ub-button *ngIf="config.showAddButton" (click)="create()" icon="bx bx-plus" severity="success">Adicionar</ub-button>
+      <ub-button icon="bx bx-refresh" (click)="reloadEvent.emit()">Recarregar</ub-button>
+      <ub-button *ngIf="config.showFilterButton" icon="bx bx-filter-alt">Filtrar</ub-button>
+      <ub-actionbutton *ngIf="config.showExportButton ?? true" [actions]="actionsExport" icon="bx bx-export">Exportar</ub-actionbutton>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+    <tr>
+      <!-- Coluna de seleção -->
+      <th *ngIf="config.selectable">
+        <label class="checkbox-container">
+          <input
+            type="checkbox"
+            [checked]="selectedItems.length === data.length"
+            (change)="toggleSelectAll($event)"
+          />
+          <span class="checkmark"></span>
+        </label>
+      </th>
+
+      <!-- Cabeçalho das colunas -->
+      <ng-container *ngFor="let col of config.cols">
+        <th *ngIf="selectedColumns.includes(col.path)" class="sortable">
+          <div class="header-content">
+            {{ col.name }}
+            <i
+              class="bx bx-filter filter-icon"
+              (click)="openFilterPopup(col)"
+            ></i>
+          </div>
+        </th>
+      </ng-container>
+
+      <!-- Coluna de ações -->
+      <th *ngIf="config.showEditButton || config.showDeleteButton">Ações</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    <tr *ngFor="let item of filteredData; let i = index">
+      <!-- Checkbox de seleção -->
+      <td *ngIf="config.selectable">
+        <label class="checkbox-container">
+          <input
+            type="checkbox"
+            [checked]="isSelected(item)"
+            (change)="toggleSelect(item)"
+          />
+          <span class="checkmark"></span>
+        </label>
+      </td>
+
+      <!-- Dados das colunas -->
+      <ng-container *ngFor="let col of config.cols">
+        <td *ngIf="selectedColumns.includes(col.path)">
+          {{ getNestedValue(item, col.path) }}
+        </td>
+      </ng-container>
+
+      <!-- Coluna de ações -->
+      <td *ngIf="config.showEditButton || config.showDeleteButton" class="actions">
+        <button *ngIf="config.showEditButton" class="action-button edit" (click)="edit(item)">
+          <i class="bx bxs-edit"></i>
+        </button>
+        <button *ngIf="config.showDeleteButton" class="action-button delete" (click)="delete(item)">
+          <i class="bx bxs-trash"></i>
+        </button>
+      </td>
+    </tr>
+    </tbody>
+    <tfoot>
+    <tr>
+      <td colspan="100%">
+
+      </td>
+    </tfoot>
+  </table>
+
+  <div class="filter-popup" *ngIf="filterPopupVisible">
+    <div class="filter-content">
+      <h4>Filtrar por {{ selectedFilterColumn?.name }}</h4>
+      <ub-input type="text" [(ngModel)]="filterValue" placeholder="Digite para filtrar..."></ub-input>
+      <div class="filter-actions">
+        <ub-button (click)="applyFilter()" icon="bx bx-check">Aplicar</ub-button>
+        <ub-button (click)="closeFilterPopup()" icon="bx bx-x" severity="danger">Fechar</ub-button>
+      </div>
+    </div>
+  </div>
+</div>

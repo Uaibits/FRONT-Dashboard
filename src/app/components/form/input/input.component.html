@@ -1,0 +1,17 @@
+<ub-base-input
+  [label]="label"
+  [helpText]="helpText"
+  [error]="error"
+  [success]="success"
+>
+  <input
+    [type]="type"
+    [placeholder]="placeholder"
+    [value]="value"
+    (blur)="onBlur($event)"
+    (input)="onInput($event)"
+    (change)="onChangeEvent($event)"
+    (click)="onClick($event)"
+    [class.error]="error"
+  />
+</ub-base-input>

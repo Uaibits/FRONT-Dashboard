@@ -1,0 +1,40 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <h2>Registro</h2>
+    <form [formGroup]="registerForm" (ngSubmit)="onRegisterSubmit()">
+      <ub-input
+        label="Nome"
+        placeholder="Digite seu nome"
+        formControlName="name"
+        [error]="FormErrorHandlerService.getError('name', errors)"
+      ></ub-input>
+
+      <ub-input
+        label="Email"
+        type="email"
+        placeholder="Digite seu email"
+        formControlName="email"
+        [error]="FormErrorHandlerService.getError('email', errors)"
+      ></ub-input>
+
+      <ub-password
+        label="Senha"
+        placeholder="Digite sua senha"
+        formControlName="password"
+        [error]="FormErrorHandlerService.getError('password', errors)"
+      ></ub-password>
+
+      <ub-password
+        label="Confirmar Senha"
+        placeholder="Confirme sua senha"
+        formControlName="confirm_password"
+        [error]="FormErrorHandlerService.getError('confirm_password', errors)"
+      ></ub-password>
+
+      <ub-button type="submit" [disabled]="registerForm.invalid" [loading]="loading">Entrar</ub-button>
+    </form>
+    <div class="auth-toggle">
+      Já possui uma conta? <a routerLink="/auth/logar">Faça login</a>
+    </div>
+  </div>
+</div>

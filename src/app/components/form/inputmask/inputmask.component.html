@@ -1,0 +1,18 @@
+<ub-base-input
+  [label]="label"
+  [helpText]="helpText"
+  [error]="error"
+  [success]="success"
+>
+  <input
+    [type]="type"
+    [placeholder]="placeholder"
+    [value]="maskedValue"
+    (input)="onInput($event)"
+    (change)="onChangeEvent($event)"
+    (click)="onClick($event)"
+    [class.error]="error"
+    [ubMask]="mask"
+    [showMaskTyped]="true"
+  />
+</ub-base-input>

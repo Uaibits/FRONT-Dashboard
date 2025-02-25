@@ -1,0 +1,149 @@
+/* Container principal */
+.app-selector-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Botão do menu */
+.icon-button {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 32px;
+  color: #555;
+  padding: var(--spacing-small) var(--spacing-medium);
+}
+
+.icon-button:hover {
+  color: #222;
+}
+
+/* Menu expansível */
+.app-menu {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  background: white;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  padding: 15px;
+  width: 360px;
+  max-height: 80vh;
+  overflow-y: auto;
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+
+  &.expanded {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+/* Campo de busca */
+.search-box {
+  width: 100%;
+  padding-bottom: 10px;
+  display: flex;
+  justify-content: center;
+
+  input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    transition: border 0.3s ease, box-shadow 0.3s ease;
+
+    &:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 10px var(--primary-color-dark);;
+    }
+  }
+}
+
+/* Grid de aplicativos */
+.app-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 10px;
+  padding: 10px;
+  justify-content: center;
+}
+
+/* Estilo dos cartões de aplicativos */
+.app-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  background: #f7f7f7;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.3s ease;
+
+  &:hover {
+    transform: translateY(-3px);
+    background: #ffffff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  i {
+    font-size: 26px;
+    color: var(--primary-color);
+    margin-bottom: 6px;
+  }
+
+  span {
+    font-size: 13px;
+    color: #333;
+    text-align: center;
+    font-weight: 500;
+  }
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .app-menu {
+    width: 90%;
+    max-width: 400px;
+    max-height: 85vh;
+    padding: 15px;
+  }
+
+  .app-grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-menu {
+    width: 95%;
+    max-width: 360px;
+    max-height: 90vh;
+    padding: 15px;
+  }
+
+  .app-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  }
+
+  .app-card {
+    padding: 8px;
+
+    i {
+      font-size: 22px;
+    }
+
+    span {
+      font-size: 11px;
+    }
+  }
+}

@@ -1,0 +1,34 @@
+<ub-base-input
+  [label]="label"
+  [helpText]="helpText"
+  [error]="error"
+  [success]="success"
+>
+  <textarea
+    [placeholder]="placeholder"
+    [value]="value"
+    (input)="onInput($event)"
+    (change)="onChangeEvent($event)"
+    (click)="onClick($event)"
+    [class.error]="error"
+    [maxLength]="maxlength"
+    [minLength]="minLength"
+    [style.resize]="resize"
+    [rows]="rows"
+  ></textarea>
+
+  <!-- Contador de caracteres -->
+  <div *ngIf="maxlength" class="character-counter">
+    {{ characterCount }} / {{ maxlength }}
+  </div>
+
+  <!-- Mensagem de erro para minLength -->
+  <div *ngIf="minLength && !isMinLengthValid" class="error-message">
+    O texto deve ter pelo menos {{ minLength }} caracteres.
+  </div>
+
+  <!-- Mensagem de erro para maxlength -->
+  <div *ngIf="maxlength && !isMaxLengthValid" class="error-message">
+    O texto não pode exceder {{ maxlength }} caracteres.
+  </div>
+</ub-base-input>

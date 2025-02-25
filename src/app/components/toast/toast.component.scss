@@ -1,0 +1,82 @@
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toast {
+  padding: 12px 20px;
+  border-radius: 12px; // Bordas bem arredondadas
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #ffffff; // Fundo claro
+  border: 1px solid #e0e0e0; // Borda escura
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); // Sombra suave
+  animation: slideInRight 0.3s ease-in-out, fadeOut 0.3s ease-in-out 2.7s; // Animação de entrada e saída
+
+  &-success {
+    border-color: #28a745; // Verde
+    color: #28a745;
+
+    .toast-icon {
+      color: #28a745;
+    }
+  }
+
+  &-error {
+    border-color: #dc3545; // Vermelho
+    color: #dc3545;
+
+    .toast-icon {
+      color: #dc3545;
+    }
+  }
+
+  &-warning {
+    border-color: #ffc107; // Amarelo
+    color: #ffc107;
+
+    .toast-icon {
+      color: #ffc107;
+    }
+  }
+
+  &-info {
+    border-color: #17a2b8; // Azul
+    color: #17a2b8;
+
+    .toast-icon {
+      color: #17a2b8;
+    }
+  }
+}
+
+.toast-icon {
+  font-size: 20px;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
