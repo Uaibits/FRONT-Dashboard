@@ -23,6 +23,7 @@ body {
 :root {
   /* Cores */
   --primary-color: #262626; /* Cinza escuro (primária) */
+  --primary-color-light: #333; /* Cinza claro (primária) */
   --primary-color-dark: #1a1a1a; /* Cinza escuro (primária) */
   --secondary-color: #f7c212; /* Amarelo (secundária) */
   --secondary-color-dark: #f5b90f; /* Amarelo escuro (secundária) */
@@ -55,6 +56,9 @@ body {
   --spacing-small: 0.25rem;
   --spacing-medium: 0.5rem;
   --spacing-large: 1rem;
+
+  /* Sombra */
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1); /* Sombra mais suave */
 }
 
 

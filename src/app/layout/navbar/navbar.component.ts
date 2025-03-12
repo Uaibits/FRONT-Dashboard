@@ -72,17 +72,6 @@ export class NavbarComponent implements OnInit, AfterViewInit {
     this.layoutService.closeTab(id);
   }
 
-  getTabIcon(type: string): string {
-    switch (type) {
-      case 'department':
-        return 'bx bx-building';
-      case 'user':
-        return 'bx bx-user';
-      default:
-        return 'bx bx-window';
-    }
-  }
-
   private checkTabsOverflow(): void {
     if (!this.tabsScroll) return;
 

@@ -7,7 +7,6 @@ interface Tab {
   path: string;
   icon?: string;
   description?: string;
-  type?: string;
 }
 
 export interface TabOpen extends Tab {
@@ -23,13 +22,11 @@ export class LayoutService {
       title: 'Blog',
       path: '/blogs',
       icon: 'bx bx-news',
-      type: 'blog'
     },
     {
       title: "Serviços",
       path: "/servicos",
       icon: "bx bx-cog",
-      type: "services",
     }
   ];
   private open_tabs: TabOpen[] = [];
@@ -87,7 +84,8 @@ export class LayoutService {
    */
   addTab(path: string, title: string, navigate: boolean = true): void {
     if (!this.open_tabs.some((tab) => tab.path === path)) {
-      this.open_tabs.push({ id: this.generateUniqueId(), path, title });
+      const tab = this.availableRoutes.find((route) => route.path === path);
+      this.open_tabs.push({ id: this.generateUniqueId(), ...tab! });
       localStorage.setItem('open_tabs', JSON.stringify(this.open_tabs));
     }
 

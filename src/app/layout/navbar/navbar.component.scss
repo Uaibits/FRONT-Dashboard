@@ -1,48 +1,24 @@
-/* Variáveis */
-:root {
-  --primary-color: #2196f3;
-  --primary-dark: #1976d2;
-  --text-primary: #2c3e50;
-  --text-secondary: #64748b;
-  --border-color: #e2e8f0;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --transition: all 0.3s ease;
-}
-
-.main-nav {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background: var(--background-color) !important; // Header transparente no topo
-  box-shadow: none;
-  z-index: 1000;
-  transition: background 0.3s ease, box-shadow 0.3s ease;
-
-  &.scrolled {
-    background: var(--background-color); // Fundo ao rolar
-    box-shadow: var(--shadow-sm);
-    border-bottom: 1px solid var(--border-color);
-  }
-}
 
 /* Container principal da aplicação */
 .app-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  max-width: 1600px;
+  margin: 24px auto;
 }
 
 /* Barra de navegação fixa no topo */
 .main-nav {
-  position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  box-shadow: var(--shadow-sm);
   z-index: 1000;
-  border-bottom: 1px solid var(--border-color);
+  background-color: #ffffff;
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin: 16px 0;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
 
   .nav-content {
     max-width: 1600px;
@@ -51,6 +27,12 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+  }
+
+  &.scrolled {
+    background: var(--background-color); // Fundo ao rolar
+    box-shadow: var(--shadow-sm);
+    border-bottom: 1px solid var(--border-color);
   }
 }
 
@@ -186,7 +168,7 @@
   top: 100%;
   right: 0;
   margin-top: 0.5rem;
-  background: var(--bg-primary);
+  background: var(--background-color);
   border-radius: 0.5rem;
   box-shadow: var(--shadow-md);
   min-width: 200px;
@@ -221,14 +203,15 @@
 
 /* Sistema de Tabs */
 .tabs-container {
-  position: relative;
-  background: var(--bg-primary);
-  border-bottom: 1px solid var(--border-color);
-  z-index: 998;
+  flex: 1;
+  overflow: hidden;
+  margin: 0 1rem;
+  padding: 0 24px;
 
   .tabs-wrapper {
     display: flex;
-    overflow: hidden;
+    align-items: center;
+    position: relative;
   }
 
   .tabs-scroll {
@@ -240,6 +223,30 @@
 
     &::-webkit-scrollbar {
       display: none;
+    }
+  }
+
+  .tabs-controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: 0.5rem;
+
+    .tab-scroll-button {
+      background: var(--bg-secondary);
+      border: none;
+      padding: 0.5rem;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      transition: var(--transition);
+
+      &:hover {
+        background: var(--bg-tertiary);
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
     }
   }
 }
@@ -301,8 +308,7 @@
     left: 0;
     right: 0;
     height: 2px;
-    background: var(--primary-color);
-    transform: scaleX(0);
+    background: #cfcaca;
     transition: var(--transition);
   }
 
@@ -331,15 +337,13 @@
     }
 
     .tab-indicator {
-      transform: scaleX(1);
+      background: var(--primary-color);
     }
   }
 }
 
 /* Container Principal */
 .content-container {
-  margin-top: 8rem;
-  padding: 1.5rem;
   flex: 1;
 }
 
@@ -540,8 +544,13 @@
     display: none;
   }
 
+  .main-nav {
+    .nav-content {
+      padding: 0.75rem 1rem;
+    }
+  }
+
   .content-container {
-    margin-top: 4rem;
     padding: 1rem;
   }
 }

@@ -1,7 +1,7 @@
 .content-container {
   position: relative;
   background-color: #ffffff;
-  border-radius: 8px;
+  border-radius: var(--border-radius);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   padding: 16px;
   transition: opacity 0.3s ease;
