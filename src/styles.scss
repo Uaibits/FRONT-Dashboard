@@ -69,29 +69,6 @@ a {
   }
 }
 
-// Botões
-button {
-  background-color: var(--primary-color);
-  color: #fff;
-  border: none;
-  padding: var(--spacing-small) var(--spacing-medium);
-  border-radius: var(--border-radius);
-  font-size: var(--font-size-base);
-  cursor: pointer;
-  transition: background-color var(--transition-speed);
-
-  &:hover {
-    border-color: var(--input-border-color);
-    filter: brightness(85%); // Reduz a luminosidade para escurecer a cor
-  }
-
-
-  &:focus {
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(var(--secondary-color), 0.5);
-  }
-}
-
 // Títulos
 h1, h2, h3, h4, h5, h6 {
   color: var(--primary-color);

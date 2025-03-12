@@ -25,6 +25,12 @@ export class LayoutService {
       icon: 'bx bx-news',
       type: 'blog'
     },
+    {
+      title: "Serviços",
+      path: "/servicos",
+      icon: "bx bx-cog",
+      type: "services",
+    }
   ];
   private open_tabs: TabOpen[] = [];
   private currentRoute: string = '';

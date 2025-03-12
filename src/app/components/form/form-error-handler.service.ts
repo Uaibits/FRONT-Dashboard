@@ -21,8 +21,6 @@ export class FormErrorHandlerService {
   ): { [key: string]: string } {
     const errors: { [key: string]: string } = {};
 
-    console.log('form', form);
-
     // Função para coletar erros de um controle
     const collectErrors = (control: AbstractControl, path: string = '') => {
       if (control instanceof FormGroup) {

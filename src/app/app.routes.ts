@@ -7,6 +7,8 @@ import {AuthGuard} from './security/auth.guard';
 import {NavbarComponent} from './layout/navbar/navbar.component';
 import {BlogsPage} from './pages/blogs/blogs.page';
 import {ManageBlogPage} from './pages/blogs/manage/manage-blog.page';
+import {ServicesPage} from './pages/services/services.page';
+import {ManageServicePage} from './pages/services/manage/manage-service.page';
 
 export const routes: Routes = [
   {
@@ -54,6 +56,23 @@ export const routes: Routes = [
           {
             path: "gerenciar/:id",
             component: ManageBlogPage
+          }
+        ]
+      },
+      {
+        path: 'servicos',
+        children: [
+          {
+            path: "",
+            component: ServicesPage
+          },
+          {
+            path: "gerenciar",
+            component: ManageServicePage
+          },
+          {
+            path: "gerenciar/:id",
+            component: ManageServicePage
           }
         ]
       }

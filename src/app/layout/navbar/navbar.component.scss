@@ -221,19 +221,14 @@
 
 /* Sistema de Tabs */
 .tabs-container {
-  position: fixed;
-  top: 4rem;
-  left: 0;
-  right: 0;
+  position: relative;
   background: var(--bg-primary);
   border-bottom: 1px solid var(--border-color);
-  z-index: 999;
+  z-index: 998;
 
   .tabs-wrapper {
-    max-width: 1600px;
-    margin: 0 auto;
-    padding: 0 1.5rem;
-    position: relative;
+    display: flex;
+    overflow: hidden;
   }
 
   .tabs-scroll {

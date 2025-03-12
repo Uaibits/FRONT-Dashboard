@@ -1,0 +1,22 @@
+<div class="tabs-container">
+  <!-- Cabeçalho das abas -->
+  <div class="tab-header-container">
+
+    <!-- Lista de abas -->
+    <div class="tab-header-scroll">
+      <button *ngFor="let tab of tabs; let i = index" type="button" class="tab-header"
+        [class.active]="tab.active"
+        (click)="selectTab(tab)"
+        [attr.aria-selected]="tab.active"
+        [attr.tabindex]="tab.active ? '0' : '-1'"
+      >
+        {{ tab.label }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Conteúdo das abas -->
+  <div class="tab-content-container">
+    <ng-content></ng-content>
+  </div>
+</div>

@@ -80,7 +80,7 @@ export class AuthService {
     this.removeTokens();
     this.removeUser();
     this.isAuthenticatedSubject.next(false);
-    this.http.post(`${environment.api}/auth/logout`, {});
+    this.http.post(`${environment.api}/auth/logout`, {}).subscribe(); // Envia a requisição de logout
     this.router.navigate(['/auth/logar']);
     this.layoutService.setOpenTabs([]); // Limpa as abas abertas ao fazer logout
   }
@@ -93,7 +93,6 @@ export class AuthService {
       return throwError(() => new Error('No refresh token available'));
     }
 
-    console.log("AuthService -> refreshToken -> refreshToken", refreshToken)
     return this.http.post(`${environment.api}/auth/refresh`, {}, {
       headers: {
         Token: refreshToken
@@ -103,7 +102,7 @@ export class AuthService {
         this.storeTokens(response.access_token, response.refresh_token, response.access_token_expires_in);
       }),
       catchError((error) => {
-        this.logout();
+        this.logout(); // Faz logout em caso de erro
         return throwError(() => error);
       })
     );

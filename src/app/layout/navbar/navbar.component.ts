@@ -1,9 +1,8 @@
 import { Component, OnInit, ViewChild, ElementRef, HostListener, AfterViewInit } from '@angular/core';
-import {CommonModule, NgOptimizedImage} from '@angular/common';
+import {CommonModule} from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { LayoutService } from '../layout.service';
 import { AuthService } from '../../security/auth.service';
-import { DropdownComponent } from '../../components/form/dropdown/dropdown.component';
 import { SearchScreenComponent } from '../search-screen/search-screen.component';
 
 @Component({
@@ -11,7 +10,7 @@ import { SearchScreenComponent } from '../search-screen/search-screen.component'
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.scss'],
   standalone: true,
-  imports: [CommonModule, RouterModule, DropdownComponent, SearchScreenComponent, NgOptimizedImage]
+  imports: [CommonModule, RouterModule, SearchScreenComponent]
 })
 export class NavbarComponent implements OnInit, AfterViewInit {
   isMobile: boolean = false;

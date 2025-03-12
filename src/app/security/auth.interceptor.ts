@@ -11,6 +11,8 @@ import { AuthService } from './auth.service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
+  private isRefreshing = false; // Flag para evitar múltiplas tentativas de renovação
+
   constructor(private authService: AuthService) {}
 
   intercept(
@@ -29,11 +31,12 @@ export class AuthInterceptor implements HttpInterceptor {
     return next.handle(req).pipe(
       catchError((error) => {
         // Verifica se o erro é 401 (não autorizado) e se há um refresh token
-        console.log("AuthInterceptor -> intercept -> error", error)
-        if (error.status === 401 && this.authService.getRefreshToken()) {
-          console.log("AuthInterceptor -> intercept -> error", this.authService.getRefreshToken())
+        if (error.status === 401 && this.authService.getRefreshToken() && !this.isRefreshing) {
+          this.isRefreshing = true; // Marca que está tentando renovar o token
+
           return this.authService.refreshToken().pipe(
             switchMap(() => {
+              this.isRefreshing = false; // Reseta a flag após a renovação
               const newToken = this.authService.getToken();
 
               // Se o novo token foi obtido, clona a requisição com o novo token
@@ -51,6 +54,7 @@ export class AuthInterceptor implements HttpInterceptor {
               }
             }),
             catchError((refreshError) => {
+              this.isRefreshing = false; // Reseta a flag em caso de erro
               this.authService.logout();
               return throwError(() => refreshError);
             })

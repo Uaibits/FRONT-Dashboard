@@ -14,6 +14,7 @@ import {BaseInputComponent} from '../base-input.component';
 })
 export class ButtonComponent {
 
+  @Input() type: 'button' | 'submit' | 'reset' = 'button';
   @Input() severity: 'primary' | 'danger' | 'success' | 'warning' | 'info' = 'primary';
   @Input() loading: boolean = false;
   @Input() disabled: boolean = false;

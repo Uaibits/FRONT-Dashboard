@@ -1,13 +1,14 @@
 import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import ApexCharts from 'apexcharts';
+import {ContentComponent} from '../../components/content/content.component';
 
 @Component({
   selector: 'app-home',
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss'],
   standalone: true,
-  imports: [CommonModule]
+  imports: [CommonModule, ContentComponent]
 })
 export class HomePage implements OnInit, AfterViewInit {
   @ViewChild('chartCategories') chartCategories!: ElementRef;
