@@ -34,11 +34,25 @@
                *ngIf="hasChildren(item)"></i>
           </div>
 
-          <div class="folder-checkbox" *ngIf="selectable">
-            <input type="checkbox"
-                   [checked]="isSelected(item)"
-                   (click)="$event.stopPropagation()"
-                   (change)="toggleSelection(item, $event)">
+          <div class="folder-selector" *ngIf="selectable">
+            <ng-container [ngSwitch]="folderConfig.selectionType">
+              <!-- Checkbox padrão -->
+              <div *ngSwitchCase="'checkbox'" class="folder-checkbox">
+                <input type="checkbox"
+                       [checked]="isSelected(item)"
+                       (click)="$event.stopPropagation()"
+                       (change)="toggleSelection(item, $event)">
+              </div>
+
+              <!-- Toggle switch alternativo -->
+              <div *ngSwitchCase="'toggle'" class="folder-toggle">
+                <ub-toggle-switch
+                  [value]="isSelected(item)"
+                  (click)="$event.stopPropagation()"
+                  (valueChange)="toggleSelection(item, null, $event)">
+                </ub-toggle-switch>
+              </div>
+            </ng-container>
           </div>
 
           <div class="folder-icon">
@@ -63,11 +77,25 @@
             <div class="child-indent"
                  [style.margin-left.px]="getIndentLevel(child) * 12"></div>
 
-            <div class="child-checkbox" *ngIf="selectable">
-              <input type="checkbox"
-                     [checked]="isSelected(child)"
-                     (click)="$event.stopPropagation()"
-                     (change)="toggleSelection(child, $event)">
+            <div class="child-selector" *ngIf="selectable">
+              <ng-container [ngSwitch]="folderConfig.selectionType">
+                <!-- Checkbox padrão -->
+                <div *ngSwitchCase="'checkbox'" class="child-checkbox">
+                  <input type="checkbox"
+                         [checked]="isSelected(child)"
+                         (click)="$event.stopPropagation()"
+                         (change)="toggleSelection(child, $event)">
+                </div>
+
+                <!-- Toggle switch alternativo -->
+                <div *ngSwitchCase="'toggle'" class="child-toggle">
+                  <ub-toggle-switch
+                    [value]="isSelected(child)"
+                    (click)="$event.stopPropagation()"
+                    (valueChange)="toggleSelection(child, null, $event)">
+                  </ub-toggle-switch>
+                </div>
+              </ng-container>
             </div>
 
             <div class="child-icon">

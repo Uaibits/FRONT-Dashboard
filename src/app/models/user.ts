@@ -7,7 +7,7 @@ export interface User {
   status: string;
   is_super_admin: boolean;
   last_login: string | null;
-  group: PermissionGroup;
+  group: PermissionGroup | null;
   permissions: Permission[];
 }
 

@@ -40,7 +40,7 @@ export class DropdownComponent implements ControlValueAccessor, OnInit, OnChange
   @Input() clearable: boolean = false; // Habilita ou desabilita a opção de limpar seleção
   @Input() error: string = '';
   @Input() success: string = '';
-  @Input() value: string | null = null;
+  @Input() value: any | null = null;
   @Output() valueChange = new EventEmitter<string | null>();
   @Output() change = new EventEmitter<Event>();
   @Output() click = new EventEmitter<Event>();

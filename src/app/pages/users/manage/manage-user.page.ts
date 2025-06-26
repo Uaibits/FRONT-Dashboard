@@ -19,6 +19,7 @@ import {TabsComponent} from "../../../components/tabs/tabs.component";
 import {TabComponent} from '../../../components/tabs/tab/tab.component';
 import {UserAccessSettingsComponent} from '../user-access-settings/user-access-settings.component';
 import {NgIf} from '@angular/common';
+import {User} from '../../../models/user';
 
 @Component({
   imports: [
@@ -41,6 +42,7 @@ import {NgIf} from '@angular/common';
 })
 export class ManageUserPage {
   protected idUser: string | undefined = undefined;
+  protected user: User | null = null; // Objeto do usuário, se necessário
 
   form: FormGroup;
   errors: { [key: string]: string } = {};
@@ -80,6 +82,7 @@ export class ManageUserPage {
     try {
       if (this.idUser) {
         const userResponse = await this.userService.getUser(this.idUser);
+        this.user = userResponse;
         this.form.patchValue({
           ...userResponse
         });
@@ -138,4 +141,8 @@ export class ManageUserPage {
   }
 
   protected readonly FormErrorHandlerService = FormErrorHandlerService;
+
+  reloadPage() {
+    this.load();
+  }
 }

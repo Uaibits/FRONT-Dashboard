@@ -43,13 +43,14 @@ export class ManagePermissionGroupPage {
     itemName: 'description',
     folderIcon: 'bx-folder',
     itemIcon: 'bx-file',
+    selectionType: 'checkbox'
   };
   protected form = {
     description: "",
     name: "",
     company_id: null,
     access_level: null,
-    permissions: []
+    permissions: {}
   }
 
   constructor(
@@ -125,11 +126,16 @@ export class ManagePermissionGroupPage {
   async save() {
     const isUpdate = !!this.idGroup;
 
+    let form = {
+      ...this.form,
+      permissions: Object.keys(this.form.permissions)
+    }
+
     this.loadingAction = true;
     try {
       const response = isUpdate ?
-        await this.permissionService.updatePermissionGroup(this.idGroup!, this.form) :
-        await this.permissionService.createPermissionGroup(this.form);
+        await this.permissionService.updatePermissionGroup(this.idGroup!, form) :
+        await this.permissionService.createPermissionGroup(form);
 
       if (this.idGroup) window.location.reload();
       else await this.router.navigate([response.data.id], {relativeTo: this.route});

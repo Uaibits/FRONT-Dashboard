@@ -1,6 +1,7 @@
 import {Component, EventEmitter, Input, Output} from '@angular/core';
-import {NgForOf, NgIf} from '@angular/common';
+import {NgForOf, NgIf, NgSwitch, NgSwitchCase} from '@angular/common';
 import {FormsModule} from '@angular/forms';
+import {ToggleSwitchComponent} from '../form/toggle-switch/toggle-switch.component';
 
 /**
  * Interface que define a estrutura de um item na visualização em pasta
@@ -27,23 +28,24 @@ export interface FolderItem {
  */
 export interface FolderConfig {
   groupBy: string;               // Campo para agrupamento
-  folderName?: string;           // Campo para nome da pasta
+  folderName?: string | ((item: any) => string); // Campo para nome da pasta
   folderIcon?: string;           // Ícone para pastas
   itemIcon?: string;             // Ícone para itens
-  itemName?: string;             // Campo para nome do item
+  itemName?: string | ((item: any) => string);             // Campo para nome do item
   itemDescription?: string;      // Campo para descrição do item
   metaFields?: string[];         // Campos adicionais para exibição
+  selectionType?: 'checkbox' | 'toggle';
 }
 
 @Component({
   selector: 'ub-folder-view',
-  imports: [NgForOf, NgIf, FormsModule],
+  imports: [NgForOf, NgIf, FormsModule, NgSwitch, NgSwitchCase, ToggleSwitchComponent],
   templateUrl: './folder-view.component.html',
   standalone: true,
   styleUrl: './folder-view.component.scss'
 })
 export class FolderViewComponent {
-  private _selectedItems: (string | number)[] = [];
+  private _selectedItems: Record<string | number, boolean> = {};
   private _data: any[] = [];
 
   @Input() set data(items: any[]) {
@@ -61,7 +63,8 @@ export class FolderViewComponent {
     folderIcon: 'bx-folder',
     itemIcon: 'bx-file',
     itemName: 'name',
-    itemDescription: 'description'
+    itemDescription: 'description',
+    selectionType: 'checkbox',
   };
 
   @Input() placeholder: string = 'Buscar registros...';
@@ -69,17 +72,23 @@ export class FolderViewComponent {
   @Input() primaryKey: string = 'id';
 
   @Input()
-  get selectedItems(): (string | number)[] {
+  get selectedItems(): Record<string | number, boolean> {
     return this._selectedItems;
   }
 
-  set selectedItems(items: (string | number)[]) {
-    this._selectedItems = items || [];
+  set selectedItems(items: Record<string | number, boolean> | (string | number)[]) {
+    if (Array.isArray(items)) {
+      // Converte array para o formato de objeto (backward compatibility)
+      this._selectedItems = {};
+      items.forEach(id => this._selectedItems[id] = true);
+    } else {
+      this._selectedItems = items || {};
+    }
     this.syncSelectedItems();
   }
 
   @Output() itemSelected = new EventEmitter<any>();
-  @Output() selectedItemsChange = new EventEmitter<(string | number)[]>();
+  @Output() selectedItemsChange = new EventEmitter<Record<string | number, boolean>>();
 
   searchQuery = '';
   folderItems: FolderItem[] = [];
@@ -102,10 +111,15 @@ export class FolderViewComponent {
     this.folderItems = Object.keys(groups).map(groupName => {
       const groupItems = groups[groupName];
       const firstItem = groupItems[0];
+      const folderName = this.folderConfig.folderName ?
+        (typeof this.folderConfig.folderName === 'function' ?
+          this.folderConfig.folderName(firstItem) :
+          firstItem[this.folderConfig.folderName]) || groupName :
+        groupName;
 
       const groupItem: FolderItem = {
         id: `group-${groupName}`,
-        name: this.folderConfig.folderName ? firstItem[this.folderConfig.folderName] : groupName,
+        name: folderName,
         icon: this.folderConfig.folderIcon,
         expanded: false,
         highlight: false,
@@ -141,9 +155,16 @@ export class FolderViewComponent {
    * Cria um item filho na estrutura de pastas
    */
   private createChildItem(item: any, level: number, parent: FolderItem): FolderItem {
+
+    const name = this.folderConfig.itemName ?
+      (typeof this.folderConfig.itemName === 'function' ?
+        this.folderConfig.itemName(item) :
+        item[this.folderConfig.itemName]) || item.name :
+      item.name || 'Item Sem Nome';
+
     return {
       id: item[this.primaryKey],
-      name: item[this.folderConfig.itemName || 'name'],
+      name: name,
       description: item[this.folderConfig.itemDescription || 'description'],
       icon: this.folderConfig.itemIcon,
       expanded: false,
@@ -171,9 +192,7 @@ export class FolderViewComponent {
    * Sincroniza os itens selecionados com a estrutura de pastas
    */
   private syncSelectedItems(): void {
-    if (!this.folderItems.length || !this.selectedItems.length) return;
-
-    const selectedIds = new Set(this.selectedItems);
+    if (!this.folderItems.length || !Object.keys(this.selectedItems).length) return;
 
     const markSelected = (items: FolderItem[]) => {
       items.forEach(item => {
@@ -182,7 +201,8 @@ export class FolderViewComponent {
         }
 
         if (!item.isGroup && item.originalData) {
-          item.highlight = selectedIds.has(item.originalData[this.primaryKey]);
+          const itemId = item.originalData[this.primaryKey];
+          item.highlight = this.selectedItems[itemId] || false;
         }
       });
     };
@@ -339,79 +359,63 @@ export class FolderViewComponent {
     if (!item.originalData) return false;
     if (item.isGroup) {
       return item.children?.every(child =>
-        child.originalData && this.selectedItems.includes(child.originalData[this.primaryKey])
+        child.originalData && this.selectedItems[child.originalData[this.primaryKey]]
       ) || false;
     }
-    return this.selectedItems.includes(item.originalData[this.primaryKey]);
+    return this.selectedItems[item.originalData[this.primaryKey]] || false;
   }
 
   /**
    * Alterna seleção de um item ou grupo
    */
-  toggleSelection(item: FolderItem, event?: MouseEvent | Event): void {
-    event?.stopPropagation();
+  toggleSelection(item: FolderItem, event: MouseEvent | Event | null, newValue?: boolean): void {
+    if (event) event.stopPropagation();
 
     if (item.isGroup) {
-      this.toggleGroupSelection(item);
+      this.toggleGroupSelection(item, newValue);
     } else {
-      this.toggleSingleSelection(item);
+      this.toggleSingleSelection(item, newValue);
     }
 
-    this.selectedItemsChange.emit([...this.selectedItems]);
+    this.selectedItemsChange.emit({...this.selectedItems});
   }
 
   /**
    * Alterna seleção de um item individual
    */
-  private toggleSingleSelection(item: FolderItem): void {
+  private toggleSingleSelection(item: FolderItem, newValue?: boolean): void {
     if (!item.originalData || item.isGroup) return;
 
     const itemId = item.originalData[this.primaryKey];
-    const index = this.selectedItems.indexOf(itemId);
+    const currentValue = this.selectedItems[itemId] || false;
+    const value = newValue !== undefined ? newValue : !currentValue;
 
-    if (index > -1) {
-      this.selectedItems.splice(index, 1);
-    } else {
-      this.selectedItems.push(itemId);
-    }
-
-    // Atualiza visualização
-    item.highlight = !item.highlight;
+    this.selectedItems[itemId] = value;
+    item.highlight = value;
   }
 
   /**
    * Alterna seleção de todos os itens de um grupo
    */
-  private toggleGroupSelection(group: FolderItem): void {
+  private toggleGroupSelection(group: FolderItem, newValue?: boolean): void {
     if (!group.children || !group.originalData) return;
 
     const groupItemIds = group.children
       .filter(child => !child.isGroup && child.originalData)
       .map(child => child.originalData[this.primaryKey]);
 
-    const allSelected = groupItemIds.every(id =>
-      this.selectedItems.includes(id)
-    );
+    const allSelected = groupItemIds.every(id => this.selectedItems[id]);
 
-    if (allSelected) {
-      // Remove todos os itens do grupo
-      this.selectedItems = this.selectedItems.filter(
-        id => !groupItemIds.includes(id)
-      );
-    } else {
-      // Adiciona apenas os itens que não estão selecionados
-      const newItems = groupItemIds.filter(
-        id => !this.selectedItems.includes(id)
-      );
-      this.selectedItems.push(...newItems);
-    }
+    const value = newValue !== undefined ? newValue : !allSelected;
+
+    groupItemIds.forEach(id => {
+      this.selectedItems[id] = value;
+    });
 
     // Atualiza visualização
     group.children.forEach(child => {
       if (child.originalData) {
-        child.highlight = this.selectedItems.includes(
-          child.originalData[this.primaryKey]
-        );
+        child.highlight = this.selectedItems[child.originalData[this.primaryKey]] || false;
       }
     });
   }

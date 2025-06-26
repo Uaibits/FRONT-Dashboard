@@ -4,6 +4,7 @@ import {ToastService} from '../components/toast/toast.service';
 import {HttpClient} from '@angular/common/http';
 import {firstValueFrom} from 'rxjs';
 import {AuthService} from '../security/auth.service';
+import {User} from '../models/user';
 
 @Injectable(
   {providedIn: 'root'}
@@ -32,11 +33,11 @@ export class UserService {
   async getUser(id: string) {
     try {
       const response = await firstValueFrom(this.http.get<any>(`${this.API_URL}/user/${id}`));
-      return response.data;
+      return response.data as User;
     } catch (err: any) {
       const message = err.error.message || 'Erro ao buscar o usuário';
       this.toast.error(message);
-      return {};
+      return null;
     }
   }
 

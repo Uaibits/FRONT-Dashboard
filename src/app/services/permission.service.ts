@@ -96,7 +96,11 @@ export class PermissionService {
     }
   }
 
-  async assignPermissions(userId: string, permissions: string[]): Promise<any> {
+  async assignPermissions(userId: string | number, permissions: {name: string, value: boolean}[]): Promise<any> {
     return await firstValueFrom(this.http.post<any>(`${this.API_URL}/permission/assign-permissions/${userId}`, {permissions}));
+  }
+
+  async assignGroup(userId: string | number, groupId: string | number | null): Promise<any> {
+    return await firstValueFrom(this.http.post<any>(`${this.API_URL}/permission/group/assign-group/${userId}`, {group_id: groupId}));
   }
 }

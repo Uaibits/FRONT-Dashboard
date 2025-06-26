@@ -220,5 +220,14 @@
         margin: 0;
       }
     }
+
+    .folder-selector, .child-selector {
+      display: flex;
+      align-items: center;
+
+      .folder-toggle, .child-toggle {
+        transform: scale(0.7); // Reduz um pouco o tamanho do toggle
+      }
+    }
   }
 }
