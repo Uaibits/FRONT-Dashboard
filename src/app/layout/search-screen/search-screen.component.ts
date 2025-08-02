@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LayoutService } from '../layout.service';
 import { AuthService } from '../../security/auth.service';
+import {Utils} from '../../services/utils.service';
 
 interface SearchItem {
   path: string;
@@ -62,9 +63,11 @@ export class SearchScreenComponent implements OnInit {
       return;
     }
 
+    const searchQuery = Utils.prepareSearchQuery(this.searchQuery);
+
     this.filteredResults = this.layoutService.getAvailableRoutes()
       .filter(route =>
-        route.title.toLowerCase().includes(this.searchQuery.toLowerCase()) &&
+        Utils.prepareSearchQuery(route.title).includes(searchQuery) &&
         this.auth.hasPermission(route.permission || ''));
   }
 

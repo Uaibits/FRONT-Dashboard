@@ -82,4 +82,11 @@ export class Utils {
     return {}
   }
 
+  public static prepareSearchQuery(searchQuery: string) {
+    return searchQuery
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+      .toLowerCase() // Transforma em minúsculas
+      .trim(); // Remove espaços em branco no início e no fim
+  }
 }
