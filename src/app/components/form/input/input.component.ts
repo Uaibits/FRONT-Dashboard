@@ -32,6 +32,7 @@ export class InputComponent implements ControlValueAccessor, OnChanges {
   @Input() placeholder: string = '';
   @Input() type: string = 'text';
   @Input() value: string = '';
+  @Input() disabled: boolean = false;
   @Input() error: string = '';
   @Input() success: string = '';
   @Input() suggestions: string[] = []; // Lista de sugestões
@@ -44,9 +45,10 @@ export class InputComponent implements ControlValueAccessor, OnChanges {
   @ViewChild('inputElement') inputElement!: ElementRef; // Acessa o elemento input
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['suggestions']) {
-      console.log('Sugestões atualizadas:', this.suggestions);
-
+    if (changes['disabled']) {
+      if (this.inputElement && this.inputElement.nativeElement) {
+        this.inputElement.nativeElement.disabled = this.disabled;
+      }
     }
   }
 

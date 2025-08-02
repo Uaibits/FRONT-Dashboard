@@ -227,21 +227,10 @@ export class FolderViewComponent {
    */
   selectItem(item: FolderItem): void {
     this.clearHighlights();
-    item.highlight = true;
 
     if (item.originalData) {
       if (this.selectionMode === 'single') {
-        // Verifica se o item já estava selecionado, se sim demarca ele
-        if (this.isSelected(item)) {
-          item.highlight = false;
-          delete this._selectedItems[item.originalData[this.primaryKey]];
-          this.itemSelected.emit(null);
-        } else {
-          // Limpa seleções anteriores e seleciona apenas este item
-          this._selectedItems = {};
-          this._selectedItems[item.originalData[this.primaryKey]] = true;
-          this.itemSelected.emit(item.originalData);
-        }
+        this.itemSelected.emit(item.originalData);
       }
     }
   }

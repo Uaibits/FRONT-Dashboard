@@ -16,11 +16,12 @@ import { BaseInputComponent } from '../base-input.component';
 import { FormsModule } from '@angular/forms';
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
+import {NgClass, NgStyle} from '@angular/common';
 
 @Component({
   selector: 'ub-dropdown',
   standalone: true,
-  imports: [BaseInputComponent, FormsModule],
+  imports: [BaseInputComponent, FormsModule, NgStyle, NgClass],
   templateUrl: './dropdown.component.html',
   styleUrls: ['../base-input.component.scss'],
   providers: [
@@ -41,10 +42,11 @@ export class DropdownComponent implements ControlValueAccessor, OnInit, OnChange
   @Input() placeholder: string = 'Selecione uma opção';
   @Input() filter: boolean = true;
   @Input() clearable: boolean = false;
+  @Input() disabled: boolean = false;
   @Input() error: string = '';
   @Input() success: string = '';
   @Input() value: any | null = null;
-  @Output() valueChange = new EventEmitter<string | null>();
+  @Output() valueChange = new EventEmitter<any | null>();
   @Output() change = new EventEmitter<Event>();
   @Output() click = new EventEmitter<Event>();
 
@@ -94,6 +96,7 @@ export class DropdownComponent implements ControlValueAccessor, OnInit, OnChange
   }
 
   toggleDropdown(): void {
+    if (this.disabled) return;
     if (this.isOpen) {
       this.closeDropdown();
     } else {
@@ -165,7 +168,7 @@ export class DropdownComponent implements ControlValueAccessor, OnInit, OnChange
 
   clearSelection(event: Event): void {
     event.stopPropagation();
-    this.value = '';
+    this.value = null;
     this.selectedOptionLabel = '';
     this.onChange(this.value);
     this.valueChange.emit(this.value);

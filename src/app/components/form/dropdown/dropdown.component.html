@@ -5,7 +5,7 @@
   [success]="success"
 >
   <div class="dropdown-container">
-    <div class="dropdown-header" [class.open]="isOpen" (click)="toggleDropdown()">
+    <div class="dropdown-header" [class.open]="isOpen" (click)="toggleDropdown()" [ngClass]="{'disabled': disabled}">
       @if (!selectedOptionLabel) {
         <span>{{ placeholder }}</span>
       }

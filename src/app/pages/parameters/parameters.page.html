@@ -1,4 +1,4 @@
-<ub-content title="Parâmetros" [loading]="loading">
+<ub-content title="Parâmetros" [loading]="loading" [selectCompany]="true" [(companyId)]="comapanyId" (companyIdChange)="load()">
   <ub-panel-area direction="horizontal">
     <ub-panel [size]="20" title="Lista de parâmetros">
       <ub-folder-view primaryKey="key" [folderConfig]="folderConfig" selectionMode="single"
@@ -9,12 +9,13 @@
 
         <div class="col-12 md:col-6">
           <ub-input label="Chave" placeholder="Digite a chave do parâmetro"
-                    [(ngModel)]="form.key" [disabled]="true" (blur)="formatKey()"></ub-input>
+                    [(ngModel)]="form.key" [disabled]="isUpdateCompanyValue()" (blur)="formatKey()"></ub-input>
         </div>
 
         <div class="col-12 md:col-6">
           <ub-input label="Descrição" placeholder="Digite a descrição do parâmetro"
                     [(ngModel)]="form.description"
+                    [disabled]="isUpdateCompanyValue()"
                     [error]="FormErrorHandlerService.getError('description', errors)"></ub-input>
         </div>
 
@@ -22,12 +23,13 @@
           <ub-input label="Categoria" placeholder="Selecione a categoria do parâmetro"
                     [suggestions]="categories"
                     [(ngModel)]="form.category"
+                    [disabled]="isUpdateCompanyValue()"
                     [error]="FormErrorHandlerService.getError('category', errors)"></ub-input>
         </div>
 
         <div class="col-12 md:col-6">
           <ub-dropdown label="Tipo" placeholder="Selecione o tipo do parâmetro"
-                       [options]="types" optionLabel="label" optionValue="name"
+                       [options]="types" optionLabel="label" optionValue="name" [disabled]="isUpdateCompanyValue()"
                        [(value)]="form.type" [error]="FormErrorHandlerService.getError('type', errors)"></ub-dropdown>
         </div>
 
@@ -51,16 +53,6 @@
                 [error]="FormErrorHandlerService.getError('default_value', errors)">
               </ub-input>
             }
-            <!--
-            @case ('date') {
-              <ub-datepicker
-                label="Data"
-                placeholder="Selecione a data padrão"
-                [(ngModel)]="form.default_value"
-                [error]="FormErrorHandlerService.getError('default_value', errors)">
-              </ub-datepicker>
-            }
-            -->
             @case ('list') {
               <div class="p-fluid">
                 <div class="flex align-items-end">
@@ -124,14 +116,17 @@
               optionLabel="label"
               optionDescription="description"
               optionValue="value"
+              [disabled]="isUpdateCompanyValue()"
               [error]="FormErrorHandlerService.getError('access_level', errors)"
               [(value)]="form.access_level">
             </ub-dropdown>
           </div>
         }
 
-        <div class="flex justify-content-end">
-          <ub-button (click)="save()" [loading]="loadingAction">Salvar</ub-button>
+        <div class="col-12">
+          <div class="flex justify-content-end">
+            <ub-button (click)="save()" [loading]="loadingAction">Salvar</ub-button>
+          </div>
         </div>
       </div>
     </ub-panel>

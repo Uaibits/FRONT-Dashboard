@@ -25,7 +25,11 @@ body {
   --primary-color-light: #333; /* Cinza claro (primária) */
   --primary-color-dark: #1a1a1a; /* Cinza escuro (primária) */
   --secondary-color: #f7c212; /* Amarelo (secundária) */
+  --secondary-color-light: #f9d54b; /* Amarelo claro (secundária) */
   --secondary-color-dark: #f5b90f; /* Amarelo escuro (secundária) */
+  --disabled-text-color: #b0b0b0; /* Cinza suave (texto desativado) */
+  --disabled-bg-color: #f0f0f0; /* Cinza suave (fundo desativado) */
+  --disabled-border-color: #d0d0d0; /* Cinza suave (borda desativada) */
   --danger-color: #ff4647; /* Vermelho */
   --danger-color-dark: #df1115; /* Vermelho escuro */
   --error-color: #ff7675; /* Vermelho suave */

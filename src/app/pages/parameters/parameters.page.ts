@@ -36,6 +36,7 @@ export class ParametersPage implements OnInit {
   protected loading: boolean = false;
   protected loadingAction: boolean = false;
   protected showOptions: boolean = false;
+  protected comapanyId: number | null = null;
   protected permissions = {
     CREATE_PARAMETER: false,
     DELETE_PARAMETER: false
@@ -120,7 +121,7 @@ export class ParametersPage implements OnInit {
       this.loading = true;
 
       const [parameters, accessLevels, categories] = await Promise.all([
-        this.parameterService.getParameters(),
+        this.parameterService.getParameters(this.comapanyId),
         this.permissionService.accessLevels(),
         this.parameterService.getParameterCategories()
       ]);
@@ -144,7 +145,7 @@ export class ParametersPage implements OnInit {
         description: item.description || "",
         category: item.category || "",
         type: item.type || "text",
-        default_value: item.default_value || "",
+        default_value: item.formatted_value || "",
         options: item.options || [],
         access_level: item.access_level || null
       }
@@ -184,12 +185,16 @@ export class ParametersPage implements OnInit {
   public async save() {
     this.loadingAction = true;
     try {
-      if (this.itemSelected) {
-        // Update existing parameter
-        await this.parameterService.updateParameter(this.itemSelected.id, this.form);
+      if (this.isUpdateCompanyValue()) {
+        await this.parameterService.updateValueCompany(this.itemSelected.id, this.comapanyId!, this.form.key, this.form.default_value);
       } else {
-        // Create new parameter
-        await this.parameterService.createParameter(this.form);
+        if (this.itemSelected) {
+          // Update existing parameter
+          await this.parameterService.updateParameter(this.itemSelected.id, this.form);
+        } else {
+          // Create new parameter
+          await this.parameterService.createParameter(this.form);
+        }
       }
       this.resetForm();
       await this.load();
@@ -217,4 +222,8 @@ export class ParametersPage implements OnInit {
   }
 
   protected readonly FormErrorHandlerService = FormErrorHandlerService;
+
+  isUpdateCompanyValue() {
+    return this.comapanyId && this.itemSelected;
+  }
 }

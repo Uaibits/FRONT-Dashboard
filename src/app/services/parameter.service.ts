@@ -17,9 +17,11 @@ export class ParameterService {
   ) {
   }
 
-  async getParameters(): Promise<any[]> {
+  async getParameters(companyId?: number | null): Promise<any[]> {
     try {
-      const response = await firstValueFrom(this.http.get<any>(`${this.API_URL}/parameter`));
+      let route = `${this.API_URL}/parameter`;
+      if (companyId) route += `?companyId=${companyId}`;
+      const response = await firstValueFrom(this.http.get<any>(route));
       return response.data;
     } catch (err: any) {
       const message = err.error.message || 'Erro ao buscar os parâmetros do sistema';
@@ -57,5 +59,13 @@ export class ParameterService {
       this.toast.error(message_1);
       throw err;
     }
+  }
+
+  updateValueCompany(id: number, company_id: number | string, key:string, value: any) {
+    return firstValueFrom(this.http.put<any>(`${this.API_URL}/parameter/${id}/company/update`, {
+      company_id,
+      key,
+      value
+    }))
   }
 }
