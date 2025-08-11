@@ -3,6 +3,7 @@ import {environment} from "../../environments/environment";
 import {ToastService} from '../components/toast/toast.service';
 import {HttpClient} from '@angular/common/http';
 import {firstValueFrom} from 'rxjs';
+import {Utils} from './utils.service';
 
 @Injectable(
   {providedIn: 'root'}
@@ -22,8 +23,7 @@ export class CompanyService {
       const response = await firstValueFrom(this.http.get<any>(`${this.API_URL}/company`));
       return response.data;
     } catch (err: any) {
-      const message = err.error.message || 'Erro ao buscar as empresas';
-      this.toast.error(message);
+      this.toast.error(Utils.getErrorMessage(err));
       return [];
     }
   }
@@ -33,8 +33,7 @@ export class CompanyService {
       const response = await firstValueFrom(this.http.get<any>(`${this.API_URL}/company/${id}`));
       return response.data;
     } catch (err: any) {
-      const message = err.error.message || 'Erro ao buscar a empresa';
-      this.toast.error(message);
+      this.toast.error(Utils.getErrorMessage(err));
       return {};
     }
   }
@@ -51,8 +50,7 @@ export class CompanyService {
     try {
       return await firstValueFrom(this.http.delete<any>(`${this.API_URL}/company/${id}/delete`));
     } catch (err: any) {
-      const message = err.error.message || 'Erro ao deletar a empresa';
-      this.toast.error(message);
+      this.toast.error(Utils.getErrorMessage(err));
       console.log(err);
       return err;
     }

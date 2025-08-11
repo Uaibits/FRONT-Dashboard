@@ -8,6 +8,7 @@ import {PasswordComponent} from '../../../components/form/password/password.comp
 import {DropdownComponent} from '../../../components/form/dropdown/dropdown.component';
 import {ButtonComponent} from '../../../components/form/button/button.component';
 import {DatePipe} from '@angular/common';
+import {Utils} from '../../../services/utils.service';
 
 @Component({
   selector: 'erp-settings',
@@ -87,8 +88,7 @@ export class ErpSettingsComponent implements OnInit {
         this.idSettings = setting.id;
       }
     } catch (err: any) {
-      const message = err.error.message || 'Erro ao buscar as configurações ERP';
-      this.toast.error(message);
+      this.toast.error(Utils.getErrorMessage(err));
     } finally {
       this.setLoading(false);
     }
@@ -108,8 +108,7 @@ export class ErpSettingsComponent implements OnInit {
       this.toast.success('Configurações ERP salvas com sucesso!');
       this.load(); // Recarrega as configurações após salvar
     }).catch((err: any) => {
-      const message = err.error.message || 'Erro ao salvar as configurações ERP';
-      this.toast.error(message);
+      this.toast.error(Utils.getErrorMessage(err));
     }).finally(() => {
       this.setLoading(false);
     });

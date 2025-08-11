@@ -1,0 +1,131 @@
+<div class="service-params-container">
+  <div *ngIf="!loading && !hasParameters" class="no-params-message">
+    <div class="text-center p-6">
+      <i class="pi pi-info-circle text-4xl text-blue-500 mb-3"></i>
+      <h3 class="text-lg font-medium text-gray-700 mb-2">Nenhum parâmetro configurável</h3>
+      <p class="text-gray-500">Este serviço não possui parâmetros que precisam ser configurados.</p>
+    </div>
+  </div>
+
+  <form [formGroup]="form" *ngIf="!loading && hasParameters">
+    <div *ngFor="let group of getGroupNames()" class="param-group mb-4">
+      <div class="group-header mb-3" *ngIf="getGroupNames().length > 1">
+        <h4 class="text-md font-semibold text-gray-800 capitalize border-b border-gray-200 pb-2">
+          {{ getGroupDisplayName(group) }}
+        </h4>
+      </div>
+
+      <div class="p-fluid p-formgrid grid">
+        <ng-container *ngFor="let param of serviceParams[group]; trackBy: trackByParamName">
+          <div [class]="getColumnClass(param)" *ngIf="shouldShowParameter(param)">
+
+            <!-- Input de Texto/URL/Email -->
+            <ub-input
+              *ngIf="isTextInput(param)"
+              [label]="param.label || getDefaultLabel(param.name)"
+              [placeholder]="param.placeholder || getDefaultPlaceholder(param)"
+              [formControlName]="param.name"
+              [required]="param.required"
+              [type]="getInputType(param)"
+              [error]="getFieldError(param.name)">
+
+              <small class="help-text" *ngIf="param.description">
+                <i class="pi pi-info-circle mr-1"></i>{{ param.description }}
+              </small>
+            </ub-input>
+
+            <!-- Dropdown/Select -->
+            <ub-dropdown
+              *ngIf="param.type === 'select'"
+              [label]="param.label || getDefaultLabel(param.name)"
+              [placeholder]="param.placeholder || 'Selecione uma opção'"
+              [formControlName]="param.name"
+              [required]="param.required"
+              [options]="getSelectOptions(param)"
+              [error]="getFieldError(param.name)">
+
+              <small class="help-text" *ngIf="param.description">
+                <i class="pi pi-info-circle mr-1"></i>{{ param.description }}
+              </small>
+            </ub-dropdown>
+
+            <!-- MultiSelect -->
+            <ub-multiselect
+              *ngIf="param.type === 'multiselect'"
+              [label]="param.label || getDefaultLabel(param.name)"
+              [placeholder]="param.placeholder || 'Selecione as opções'"
+              [formControlName]="param.name"
+              [required]="param.required"
+              [options]="getSelectOptions(param)"
+              [error]="getFieldError(param.name)">
+
+              <small class="help-text" *ngIf="param.description">
+                <i class="pi pi-info-circle mr-1"></i>{{ param.description }}
+              </small>
+            </ub-multiselect>
+
+            <!-- Toggle Switch (Boolean) -->
+            <ub-toggle-switch
+              *ngIf="param.type === 'boolean'"
+              [label]="param.label || getDefaultLabel(param.name)"
+              [formControlName]="param.name"
+              [error]="getFieldError(param.name)">
+
+              <small class="help-text" *ngIf="param.description">
+                <i class="pi pi-info-circle mr-1"></i>{{ param.description }}
+              </small>
+            </ub-toggle-switch>
+
+            <!-- Número -->
+            <ub-input
+              *ngIf="param.type === 'number'"
+              [label]="param.label || getDefaultLabel(param.name)"
+              [placeholder]="param.placeholder || 'Digite um número'"
+              [formControlName]="param.name"
+              [required]="param.required"
+              type="number"
+              [error]="getFieldError(param.name)">
+
+              <small class="help-text" *ngIf="param.description">
+                <i class="pi pi-info-circle mr-1"></i>{{ param.description }}
+              </small>
+            </ub-input>
+
+            <!-- Data -->
+            <ub-input
+              *ngIf="param.type === 'date'"
+              [label]="param.label || getDefaultLabel(param.name)"
+              [placeholder]="param.placeholder || 'dd/mm/aaaa'"
+              [formControlName]="param.name"
+              [required]="param.required"
+              type="date"
+              [error]="getFieldError(param.name)">
+
+              <small class="help-text" *ngIf="param.description">
+                <i class="pi pi-info-circle mr-1"></i>{{ param.description }}
+              </small>
+            </ub-input>
+
+            <!-- Textarea para arrays/objects complexos -->
+            <ub-textarea
+              *ngIf="param.type === 'array' || param.type === 'object'"
+              [label]="param.label || getDefaultLabel(param.name)"
+              [placeholder]="getComplexFieldPlaceholder(param)"
+              [formControlName]="param.name"
+              [required]="param.required"
+              type="textarea"
+              [rows]="4"
+              [error]="getFieldError(param.name)">
+
+              <small class="help-text">
+                <i class="pi pi-info-circle mr-1"></i>
+                {{ param.description || getComplexFieldHelp(param) }}
+              </small>
+            </ub-textarea>
+
+          </div>
+        </ng-container>
+      </div>
+    </div>
+  </form>
+</div>

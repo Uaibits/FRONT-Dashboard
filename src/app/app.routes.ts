@@ -14,6 +14,7 @@ import {PermissionsPage} from './pages/permissions/permissions.page';
 import {PermissionGroupsPage} from './pages/permission-groups/permission-groups.page';
 import {ManagePermissionGroupPage} from './pages/permission-groups/manage/manage-permission-group.page';
 import {ParametersPage} from './pages/parameters/parameters.page';
+import {DynamicQueriesPage} from './pages/dynamic-queries/dynamic-queries.page';
 
 export const routes: Routes = [
   {
@@ -151,6 +152,19 @@ export const routes: Routes = [
           {
             path: '',
             component: ParametersPage
+          }
+        ]
+      },
+      {
+        path: 'dynamic-queries',
+        canActivate: [PermissionGuard],
+        data: {
+          permission: 'dynamic_query.view',
+        },
+        children: [
+          {
+            path: '',
+            component: DynamicQueriesPage
           }
         ]
       }

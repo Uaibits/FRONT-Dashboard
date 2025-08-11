@@ -19,7 +19,7 @@ import {CompanyService} from '../../services/company.service';
 })
 export class ContentComponent implements OnInit {
 
-  @Input({ required: true }) title: string = ''; // Título do conteúdo
+  @Input() title: string = ''; // Título do conteúdo
   @Input() showBackButton: boolean = false; // Controla a visibilidade do botão de voltar
   @Input() selectCompany: boolean = false; // Se deve exibir o seletor de empresa
   @Input() loading: boolean = false; // Estado de carregamento
@@ -28,7 +28,6 @@ export class ContentComponent implements OnInit {
 
   @Output() companyIdChange = new EventEmitter<number | null>(); // Evento emitido ao selecionar uma empresa
   @Output() back = new EventEmitter<void>(); // Evento emitido ao clicar no botão de voltar
-
   protected readonly FormErrorHandlerService = FormErrorHandlerService;
   protected companies: any[] = [];
 

@@ -5,6 +5,7 @@ import {HttpClient} from '@angular/common/http';
 import {firstValueFrom} from 'rxjs';
 import {AuthService} from '../security/auth.service';
 import {User} from '../models/user';
+import {Utils} from './utils.service';
 
 @Injectable(
   {providedIn: 'root'}
@@ -24,8 +25,7 @@ export class UserService {
       const response = await firstValueFrom(this.http.get<any>(`${this.API_URL}/user`));
       return response.data;
     } catch (err: any) {
-      const message = err.error.message || 'Erro ao buscar os usuários';
-      this.toast.error(message);
+      this.toast.error(Utils.getErrorMessage(err));
       return [];
     }
   }
@@ -35,8 +35,7 @@ export class UserService {
       const response = await firstValueFrom(this.http.get<any>(`${this.API_URL}/user/${id}`));
       return response.data as User;
     } catch (err: any) {
-      const message = err.error.message || 'Erro ao buscar o usuário';
-      this.toast.error(message);
+      this.toast.error(Utils.getErrorMessage(err));
       return null;
     }
   }
@@ -47,8 +46,7 @@ export class UserService {
       this.toast.success('Usuário criado com sucesso');
       return response;
     } catch (err: any) {
-      const message = err.error.message || 'Erro ao criar o usuário';
-      this.toast.error(message);
+      this.toast.error(Utils.getErrorMessage(err));
       throw err;
     }
   }
@@ -59,8 +57,7 @@ export class UserService {
       this.toast.success('Usuário atualizado com sucesso');
       return response;
     } catch (err: any) {
-      const message = err.error.message || 'Erro ao atualizar o usuário';
-      this.toast.error(message);
+      this.toast.error(Utils.getErrorMessage(err));
       throw err;
     }
   }
@@ -71,8 +68,7 @@ export class UserService {
       this.toast.success('Usuário deletado com sucesso');
       return response;
     } catch (err: any) {
-      const message_1 = err.error.message || 'Erro ao deletar o usuário';
-      this.toast.error(message_1);
+      this.toast.error(Utils.getErrorMessage(err));
       throw err;
     }
   }

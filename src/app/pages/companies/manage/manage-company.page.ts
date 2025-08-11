@@ -87,8 +87,7 @@ export class ManageCompanyPage implements OnInit {
       // Carrega os usuários para o dropdown
       this.users = await this.userService.getUsers();
     } catch (err: any) {
-      const message = err.error?.message || 'Erro ao carregar os dados da empresa';
-      this.toast.error(message);
+      this.toast.error(Utils.getErrorMessage(err));
     } finally {
       this.loadingPage = false;
     }

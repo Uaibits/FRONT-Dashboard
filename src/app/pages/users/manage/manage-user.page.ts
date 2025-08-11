@@ -7,9 +7,6 @@ import {InputComponent} from '../../../components/form/input/input.component';
 import {Utils} from '../../../services/utils.service';
 import {ButtonComponent} from '../../../components/form/button/button.component';
 import {UserService} from '../../../services/user.service';
-import {EditorComponent} from '../../../components/form/editor/editor.component';
-import {ImageComponent} from '../../../components/form/image/image.component';
-import {ToggleSwitchComponent} from '../../../components/form/toggle-switch/toggle-switch.component';
 import {CompanyService} from '../../../services/company.service';
 import {ToastService} from '../../../components/toast/toast.service';
 import {PasswordComponent} from '../../../components/form/password/password.component';
@@ -94,8 +91,7 @@ export class ManageUserPage {
       });
 
     } catch (err: any) {
-      const message = err.error.message || 'Erro ao carregar os dados do usuário';
-      this.toastService.error(message);
+      this.toastService.error(Utils.getErrorMessage(err));
     } finally {
       this.loadingPage = false;
     }

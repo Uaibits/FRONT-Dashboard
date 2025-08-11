@@ -53,6 +53,13 @@ export class LayoutService {
       icon: 'bx bx-cog',
       description: 'Configure preferências e ajustes do sistema',
       permission: 'parameter.view'
+    },
+    {
+      title: 'Consultas Dinâmicas',
+      path: '/dynamic-queries',
+      icon: 'bx bx-search',
+      description: 'Crie e execute consultas personalizadas ',
+      permission: 'dynamic_query.view'
     }
   ];
 

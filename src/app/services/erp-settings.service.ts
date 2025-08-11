@@ -3,6 +3,7 @@ import {environment} from "../../environments/environment";
 import {ToastService} from '../components/toast/toast.service';
 import {HttpClient} from '@angular/common/http';
 import {firstValueFrom} from 'rxjs';
+import {Utils} from './utils.service';
 
 @Injectable(
   {providedIn: 'root'}
@@ -22,8 +23,7 @@ export class ErpSettingsService {
       const response = await firstValueFrom(this.http.get<any>(`${this.API_URL}/company/erp-settings/${idCompany}`));
       return response.data;
     } catch (err: any) {
-      const message = err.error.message || 'Erro ao buscar as configurações ERP';
-      this.toast.error(message);
+      this.toast.error(Utils.getErrorMessage(err));
       return [];
     }
   }
@@ -41,8 +41,7 @@ export class ErpSettingsService {
     try {
       return await firstValueFrom(this.http.delete<any>(`${this.API_URL}/company/erp-settings/${id}/delete`));
     } catch (err: any) {
-      const message = err.error.message || 'Erro ao deletar as configurações ERP';
-      this.toast.error(message);
+      this.toast.error(Utils.getErrorMessage(err));
       console.log(err);
       return err;
     }

@@ -74,10 +74,9 @@ export class Utils {
 
   public handleErrorsForm(error: any, form: any) {
     if (error.error.message === 'Validation error') {
-      return  FormErrorHandlerService.getErrorMessages(form, error.error.errors);
+      return FormErrorHandlerService.getErrorMessages(form, error.error.errors);
     } else {
-      const message = error.error.message || 'Ops! Ocorreu um erro inesperado.';
-      this.toast.error(message);
+      this.toast.error(Utils.getErrorMessage(error));
     }
     return {}
   }
@@ -88,5 +87,22 @@ export class Utils {
       .replace(/[\u0300-\u036f]/g, '') // Remove acentos
       .toLowerCase() // Transforma em minúsculas
       .trim(); // Remove espaços em branco no início e no fim
+  }
+
+  /**
+   * Tenta coletar a mensagem de erro de uma resposta de erro.
+   * @param error
+   * @param defaultMessage
+   */
+  public static getErrorMessage(error: any, defaultMessage: string = 'Ocorreu um erro inesperado.'): string {
+    if (error.error && error.error.message) {
+      return error.error.message;
+    } else if (error.message) {
+      return error.message;
+    } else if (typeof error === 'string') {
+      return error;
+    } else {
+      return defaultMessage;
+    }
   }
 }

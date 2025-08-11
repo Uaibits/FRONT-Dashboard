@@ -5,6 +5,7 @@ import {HttpClient} from '@angular/common/http';
 import {firstValueFrom} from 'rxjs';
 import {PaginationService} from './pagination.service';
 import {FolderItem} from '../components/folder-view/folder-view.component';
+import {Utils} from './utils.service';
 
 @Injectable(
   {providedIn: 'root'}
@@ -24,8 +25,7 @@ export class PermissionService {
     try {
       return await this.paginationService.paginate(`${this.API_URL}/permission`, page, perPage);
     } catch (err: any) {
-      const message = err.error.message || 'Erro ao buscar as permissões';
-      this.toast.error(message);
+      this.toast.error(Utils.getErrorMessage(err));
       return {data: [], pagination: null};
     }
   }
@@ -35,8 +35,7 @@ export class PermissionService {
       const response = await firstValueFrom(this.http.get<any>(`${this.API_URL}/permission`));
       return response.data || [];
     } catch (err: any) {
-      const message = err.error.message || 'Erro ao buscar as permissões';
-      this.toast.error(message);
+      this.toast.error(Utils.getErrorMessage(err));
       return [];
     }
   }
@@ -48,8 +47,7 @@ export class PermissionService {
       const response = await firstValueFrom(this.http.get<any>(url));
       return response.data || [];
     } catch (err: any) {
-      const message = err.error.message || 'Erro ao buscar os grupos de permissões';
-      this.toast.error(message);
+      this.toast.error(Utils.getErrorMessage(err));
       return [];
     }
   }
@@ -59,8 +57,7 @@ export class PermissionService {
       const response = await firstValueFrom(this.http.get<any>(`${this.API_URL}/permission/group/${idGroup}`));
       return response.data || null;
     } catch (err: any) {
-      const message = err.error.message || 'Erro ao buscar o grupo de permissões';
-      this.toast.error(message);
+      this.toast.error(Utils.getErrorMessage(err));
       return null;
     }
   }
@@ -79,8 +76,7 @@ export class PermissionService {
       this.toast.success('Grupo deletado com sucesso');
       return response;
     } catch (err: any) {
-      const message_1 = err.error.message || 'Erro ao deletar o grupo';
-      this.toast.error(message_1);
+      this.toast.error(Utils.getErrorMessage(err));
       throw err;
     }
   }
@@ -90,8 +86,7 @@ export class PermissionService {
       const response = await firstValueFrom(this.http.get<any>(`${this.API_URL}/permission/access-levels`));
       return response.data || [];
     } catch (err: any) {
-      const message = err.error.message || 'Erro ao buscar os níveis de acesso';
-      this.toast.error(message);
+      this.toast.error(Utils.getErrorMessage(err));
       return [];
     }
   }

@@ -1,0 +1,11 @@
+<ub-content title="Consultas" [loading]="loading" [(companyId)]="companyId" [selectCompany]="true"
+            (companyIdChange)="loadData()">
+
+  <ub-table [config]="configTable"
+            [data]="data"
+            (reloadEvent)="loadData()"
+            (createEvent)="openConfig()"
+            (editEvent)="openConfig($event)">
+  </ub-table>
+
+</ub-content>

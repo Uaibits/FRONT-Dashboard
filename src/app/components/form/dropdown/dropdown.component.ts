@@ -21,7 +21,7 @@ import {NgClass, NgStyle} from '@angular/common';
 @Component({
   selector: 'ub-dropdown',
   standalone: true,
-  imports: [BaseInputComponent, FormsModule, NgStyle, NgClass],
+  imports: [BaseInputComponent, FormsModule, NgClass],
   templateUrl: './dropdown.component.html',
   styleUrls: ['../base-input.component.scss'],
   providers: [
@@ -70,6 +70,7 @@ export class DropdownComponent implements ControlValueAccessor, OnInit, OnChange
   ngOnInit(): void {
     this.filteredOptions = this.options;
     this.updateSelectedOptionLabel();
+
   }
 
   ngOnChanges(changes: SimpleChanges) {

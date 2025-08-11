@@ -7,6 +7,7 @@ import {ButtonComponent} from '../../../components/form/button/button.component'
 import {ToastService} from '../../../components/toast/toast.service';
 import {HasPermissionDirective} from '../../../directives/has-permission.directive';
 import {User} from '../../../models/user';
+import {Utils} from '../../../services/utils.service';
 
 @Component({
   selector: 'user-access-settings',
@@ -157,9 +158,8 @@ export class UserAccessSettingsComponent implements OnInit, OnDestroy, OnChanges
       // Atualiza o estado original
       this.selectedPermissionsOriginal = { ...currentPermissions };
       this.reload.emit();
-    } catch (error: any) {
-      const message = error.error?.message || 'Erro ao salvar as permissões';
-      this.toast.error(message);
+    } catch (err: any) {
+      this.toast.error(Utils.getErrorMessage(err));
     } finally {
       this.loadingAction = false;
     }

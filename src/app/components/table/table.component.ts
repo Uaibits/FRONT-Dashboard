@@ -38,6 +38,8 @@ export class TableComponent implements OnChanges, OnInit {
   @Input() paginate?: Pagination;
 
   @Output() deleteEvent = new EventEmitter<any>();
+  @Output() createEvent = new EventEmitter<void>();
+  @Output() editEvent = new EventEmitter<any>();
   @Output() selectEvent = new EventEmitter<any[]>();
   @Output() reloadEvent = new EventEmitter<void>();
   @Output() paginationChange = new EventEmitter<{page: number, perPage: number}>();
@@ -158,10 +160,20 @@ export class TableComponent implements OnChanges, OnInit {
   }
 
   edit(item: any) {
+    if (this.editEvent.observed) {
+      this.editEvent.emit(item);
+      return;
+    }
+
     this.router.navigate(['manage', item[this.pk]], { relativeTo: this.route });
   }
 
   create() {
+    if (this.createEvent.observed) {
+      this.createEvent.emit();
+      return;
+    }
+
     this.router.navigate(['manage'], { relativeTo: this.route });
   }
 
