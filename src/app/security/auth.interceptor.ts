@@ -4,66 +4,121 @@ import {
   HttpHandler,
   HttpInterceptor,
   HttpRequest,
+  HttpErrorResponse,
 } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError, switchMap } from 'rxjs/operators';
+import { Observable, throwError, BehaviorSubject, EMPTY } from 'rxjs';
+import { catchError, switchMap, filter, take, finalize } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
-  private isRefreshing = false; // Flag para evitar múltiplas tentativas de renovação
+  private isRefreshing = false;
+  private refreshTokenSubject: BehaviorSubject<any> = new BehaviorSubject<any>(null);
 
   constructor(private authService: AuthService) {}
 
-  intercept(
-    req: HttpRequest<any>,
-    next: HttpHandler
-  ): Observable<HttpEvent<any>> {
-    const token = this.authService.getToken();
-
-    // Adiciona o token ao cabeçalho da requisição, se existir
-    if (token) {
-      req = req.clone({
-        headers: req.headers.set('Authorization', `Bearer ${token}`),
-      });
+  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    // Não adiciona token para requisições de autenticação
+    if (this.isAuthEndpoint(req.url)) {
+      return next.handle(req);
     }
 
-    return next.handle(req).pipe(
-      catchError((error) => {
-        // Verifica se o erro é 401 (não autorizado) e se há um refresh token
-        if (error.status === 401 && this.authService.getRefreshToken() && !this.isRefreshing) {
-          this.isRefreshing = true; // Marca que está tentando renovar o token
+    // Adiciona o token se disponível
+    const authenticatedReq = this.addTokenToRequest(req);
 
-          return this.authService.refreshToken().pipe(
-            switchMap(() => {
-              this.isRefreshing = false; // Reseta a flag após a renovação
-              const newToken = this.authService.getToken();
-
-              // Se o novo token foi obtido, clona a requisição com o novo token
-              if (newToken) {
-                const cloned = req.clone({
-                  headers: req.headers.set('Authorization', `Bearer ${newToken}`),
-                });
-
-                // Repete a requisição com o novo token
-                return next.handle(cloned);
-              } else {
-                // Se não foi possível renovar o token, faz logout e retorna o erro
-                this.authService.logout();
-                return throwError(() => new Error('Failed to refresh token'));
-              }
-            }),
-            catchError((refreshError) => {
-              this.isRefreshing = false; // Reseta a flag em caso de erro
-              this.authService.logout();
-              return throwError(() => refreshError);
-            })
-          );
+    return next.handle(authenticatedReq).pipe(
+      catchError((error: HttpErrorResponse) => {
+        // Se for erro 401 e não for uma requisição de refresh, tenta renovar o token
+        if (error.status === 401 && !this.isRefreshEndpoint(req.url)) {
+          return this.handle401Error(req, next);
         }
 
-        // Se o erro não for 401 ou não houver refresh token, retorna o erro
+        // Para outros erros, apenas propaga
         return throwError(() => error);
       })
     );
+  }
+
+  /**
+   * Adiciona o token de autenticação à requisição
+   */
+  private addTokenToRequest(req: HttpRequest<any>): HttpRequest<any> {
+    const token = this.authService.getToken();
+
+    if (token) {
+      return req.clone({
+        setHeaders: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+    }
+
+    return req;
+  }
+
+  /**
+   * Trata erros 401 (não autorizado)
+   */
+  private handle401Error(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    if (!this.isRefreshing) {
+      this.isRefreshing = true;
+      this.refreshTokenSubject.next(null);
+
+      const refreshToken = this.authService.getRefreshToken();
+
+      if (refreshToken) {
+        return this.authService.refreshToken().pipe(
+          switchMap(() => {
+            this.isRefreshing = false;
+            const newToken = this.authService.getToken();
+            this.refreshTokenSubject.next(newToken);
+
+            // Repete a requisição original com o novo token
+            return next.handle(this.addTokenToRequest(req));
+          }),
+          catchError((error) => {
+            this.isRefreshing = false;
+            this.refreshTokenSubject.next(null);
+
+            // Se falhar ao renovar, faz logout
+            this.authService.logout();
+            return throwError(() => error);
+          }),
+          finalize(() => {
+            this.isRefreshing = false;
+          })
+        );
+      } else {
+        // Sem refresh token disponível, faz logout
+        this.isRefreshing = false;
+        this.authService.logout();
+        return throwError(() => new Error('No refresh token available'));
+      }
+    } else {
+      // Se já está renovando o token, espera a renovação terminar
+      return this.refreshTokenSubject.pipe(
+        filter(token => token !== null),
+        take(1),
+        switchMap(() => {
+          // Repete a requisição com o novo token
+          return next.handle(this.addTokenToRequest(req));
+        })
+      );
+    }
+  }
+
+  /**
+   * Verifica se a URL é um endpoint de autenticação
+   */
+  private isAuthEndpoint(url: string): boolean {
+    const authEndpoints = ['/auth', '/auth/login', '/auth/register'];
+    return authEndpoints.some(endpoint => url.includes(endpoint));
+  }
+
+  /**
+   * Verifica se a URL é um endpoint de refresh
+   */
+  private isRefreshEndpoint(url: string): boolean {
+    return url.includes('/auth/refresh');
   }
 }

@@ -1,0 +1,133 @@
+<ub-base-input [label]="label" [helpText]="helpText" [error]="error" [success]="success">
+  <div class="object-editor">
+    <!-- Formulário para adicionar nova propriedade -->
+    @if (isAdding) {
+      <div class="add-form">
+        <div class="form-grid">
+          <ub-input
+            label="Nome da propriedade"
+            placeholder="Ex: nome, idade, ativo"
+            [(value)]="newAttributeName"
+            [error]="error"
+            class="name-input">
+          </ub-input>
+
+          <ub-dropdown
+            label="Tipo"
+            placeholder="Selecione o tipo"
+            [options]="typeOptions"
+            optionLabel="label"
+            optionValue="value"
+            [(value)]="newAttributeType"
+            class="type-dropdown">
+          </ub-dropdown>
+
+          <div class="form-actions">
+            <ub-button
+              (click)="addAttribute()"
+              class="btn-primary">
+              Adicionar
+            </ub-button>
+
+            <ub-button
+              (click)="cancelAddAttribute()">
+              Cancelar
+            </ub-button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Lista de propriedades existentes -->
+    @if (attributes.length > 0) {
+      <div class="properties-grid">
+        @for (attr of attributes; track attr.name; let i = $index) {
+          <div class="property-card">
+            <div class="property-header">
+              <div class="property-info">
+                <ub-input
+                  [value]="attr.name"
+                  (valueChange)="updateAttributeName(i, $event)"
+                  placeholder="Nome da propriedadeaa"
+                  class="compact-input">
+                </ub-input>
+
+                <ub-dropdown
+                  [options]="typeOptions"
+                  optionLabel="label"
+                  optionValue="value"
+                  [value]="attr.type"
+                  (valueChange)="updateAttributeType(i, $event)"
+                  class="type-dropdown compact">
+                </ub-dropdown>
+              </div>
+
+              <button class="btn-remove" (click)="removeAttribute(i)" title="Remover propriedade">
+                <i class="bx bx-trash"></i>
+              </button>
+            </div>
+
+            <div class="property-value">
+              <!-- Campos de texto simples -->
+              @if (isTextInput(attr)) {
+                <ub-input
+                  [value]="attr.value"
+                  [type]="getInputType(attr)"
+                  (valueChange)="updateAttributeValue(i, $event)"
+                  [placeholder]="getValuePlaceholder(attr.type)"
+                  class="value-input">
+                </ub-input>
+              }
+
+              <!-- Checkbox para booleanos -->
+              @if (attr.type === 'boolean') {
+                <div class="toggle-wrapper">
+                  <label>Valor:</label>
+                  <ub-toggle-switch
+                    [value]="attr.value"
+                    (valueChange)="updateAttributeValue(i, $event)">
+                  </ub-toggle-switch>
+                  <span class="toggle-label">{{ attr.value ? 'Verdadeiro' : 'Falso' }}</span>
+                </div>
+              }
+
+              <!-- Textarea para arrays e objetos -->
+              @if (isTextareaInput(attr)) {
+                <div class="textarea-wrapper">
+                  <ub-textarea
+                    [value]="formatValueForDisplay(attr.value)"
+                    (valueChange)="updateAttributeValue(i, parseInputValue(attr.type, $event))"
+                    [placeholder]="getValuePlaceholder(attr.type)"
+                    [rows]="3"
+                    class="value-textarea">
+                  </ub-textarea>
+                  <div class="textarea-hint">Use JSON válido</div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Estado vazio -->
+    @if (attributes.length === 0 && !isAdding) {
+      <div class="empty-state" (click)="startAddAttribute()">
+        <div class="empty-icon">📋</div>
+        <h4>Nenhum atributo criado</h4>
+        <p>Clique aqui para criar o primeiro atributo</p>
+      </div>
+    }
+
+    <!-- Botão para adicionar quando já existem propriedades -->
+    @if (attributes.length > 0 && !isAdding) {
+      <div class="add-section">
+        <ub-button
+          (click)="startAddAttribute()"
+          class="add-button">
+          + Adicionar outra propriedade
+        </ub-button>
+      </div>
+    }
+  </div>
+</ub-base-input>

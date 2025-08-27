@@ -27,6 +27,7 @@ export class TextareaComponent implements ControlValueAccessor {
   @Input() minLength: number | undefined = undefined; // Limite mínimo de caracteres
   @Input() resize: 'none' | 'both' | 'horizontal' | 'vertical' = 'vertical'; // Controle de redimensionamento
   @Input() rows: number = 3; // Número de linhas visíveis
+  @Input() disabled: boolean = false;
   @Output() valueChange = new EventEmitter<string>();
   @Output() input = new EventEmitter<Event>();
   @Output() change = new EventEmitter<Event>();

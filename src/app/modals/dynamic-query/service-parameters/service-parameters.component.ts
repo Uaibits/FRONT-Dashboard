@@ -9,6 +9,7 @@ import {DropdownComponent} from '../../../components/form/dropdown/dropdown.comp
 import {NgForOf, NgIf} from '@angular/common';
 import {MultiselectComponent} from '../../../components/form/multiselect/multiselect.component';
 import {ToggleSwitchComponent} from '../../../components/form/toggle-switch/toggle-switch.component';
+import {ObjectEditorComponent} from '../../../components/form/object-editor/object-editor.component';
 
 interface ServiceParameter {
   name: string;
@@ -41,7 +42,8 @@ interface ServiceParams {
     NgIf,
     NgForOf,
     MultiselectComponent,
-    ToggleSwitchComponent
+    ToggleSwitchComponent,
+    ObjectEditorComponent
   ],
   templateUrl: './service-parameters.component.html',
   standalone: true,

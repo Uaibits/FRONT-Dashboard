@@ -30,6 +30,7 @@ export class MultiselectComponent implements ControlValueAccessor {
   @Input() value: any[] = [];
   @Input() error: string = '';
   @Input() success: string = '';
+  @Input() disabled: boolean = false;
   @Output() valueChange = new EventEmitter<any[]>();
   @Output() change = new EventEmitter<Event>();
   @Output() click = new EventEmitter<Event>();

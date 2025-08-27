@@ -106,9 +106,19 @@
               </small>
             </ub-input>
 
-            <!-- Textarea para arrays/objects complexos -->
+            <!-- Object -->
+            @if (param.type === 'object') {
+              <ub-object-editor
+                [label]="param.label || getDefaultLabel(param.name)"
+                [formControlName]="param.name"
+                [required]="param.required"
+                [error]="getFieldError(param.name)">
+              </ub-object-editor>
+            }
+
+            <!-- Textarea para arrays complexos -->
             <ub-textarea
-              *ngIf="param.type === 'array' || param.type === 'object'"
+              *ngIf="param.type === 'array'"
               [label]="param.label || getDefaultLabel(param.name)"
               [placeholder]="getComplexFieldPlaceholder(param)"
               [formControlName]="param.name"

@@ -1,11 +1,26 @@
-import {Injectable} from '@angular/core';
-import {BehaviorSubject, firstValueFrom, Observable, throwError} from 'rxjs';
-import {Router} from '@angular/router';
-import {HttpClient} from '@angular/common/http';
-import {environment} from '../../environments/environment';
-import {catchError, tap} from 'rxjs/operators';
-import {LayoutService} from '../layout/layout.service';
-import {User} from '../models/user';
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, firstValueFrom, Observable, throwError, EMPTY, timer } from 'rxjs';
+import { Router } from '@angular/router';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { environment } from '../../environments/environment';
+import { catchError, tap, switchMap, finalize } from 'rxjs/operators';
+import { LayoutService } from '../layout/layout.service';
+import { User } from '../models/user';
+
+export interface AuthTokens {
+  access_token: string;
+  refresh_token: string;
+  expires_in: number;
+}
+
+export interface LoginResponse {
+  data: {
+    access_token: string;
+    refresh_token: string;
+    access_token_expires_in: number;
+    user: User;
+  };
+}
 
 @Injectable({
   providedIn: 'root',
@@ -14,168 +29,398 @@ export class AuthService {
   private readonly TOKEN_KEY = 'auth_token';
   private readonly REFRESH_TOKEN_KEY = 'refresh_token';
   private readonly TOKEN_EXPIRATION_KEY = 'token_expiration';
-  private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasToken());
+  private readonly USER_KEY = 'user';
 
-  private user: User | null = null;
-  private currentUser: User | null = null;
+  private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
+  private userSubject = new BehaviorSubject<User | null>(null);
+  private refreshTokenInProgress = false;
+  private refreshTokenPromise: Promise<void> | null = null;
+  private autoRefreshTimer: any;
+
+  // Observables públicos
+  public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
+  public user$ = this.userSubject.asObservable();
 
   constructor(
     private http: HttpClient,
     private router: Router,
     private layoutService: LayoutService
   ) {
-    const user = localStorage.getItem('user');
-    if (user) this.user = JSON.parse(user);
+    this.initializeAuth();
   }
 
-  // Verifica se o usuário está autenticado
+  /**
+   * Inicializa o estado de autenticação ao carregar o serviço
+   */
+  private initializeAuth(): void {
+    const token = this.getStoredToken();
+    const user = this.getStoredUser();
+
+    if (token && !this.isTokenExpired() && user) {
+      this.setAuthState(true, user);
+      this.scheduleTokenRefresh();
+    } else if (token && this.getStoredRefreshToken()) {
+      // Token expirado mas temos refresh token - tenta renovar
+      this.silentRefresh().catch(() => {
+        this.logout();
+      });
+    } else {
+      this.setAuthState(false, null);
+    }
+  }
+
+  /**
+   * Verifica se o usuário está autenticado
+   */
   isAuthenticated(): boolean {
-    return this.hasToken() && !this.isTokenExpired();
+    const hasToken = !!this.getStoredToken();
+    const tokenValid = !this.isTokenExpired();
+    return hasToken && tokenValid;
   }
 
-  // Faz login e armazena os tokens
+  /**
+   * Faz login e armazena os tokens
+   */
   async login(credentials: { email: string; password: string }): Promise<void> {
     try {
-      const response: any = await firstValueFrom(
-        this.http.post(`${environment.api}/auth`, credentials)
+      const response = await firstValueFrom(
+        this.http.post<LoginResponse>(`${environment.api}/auth`, credentials)
       );
-      this.storeTokens(
-        response.data.access_token,
-        response.data.refresh_token,
-        response.data.access_token_expires_in
-      );
-      this.storeUser(response.data.user);
-      this.isAuthenticatedSubject.next(true);
-      this.router.navigate(['/home']);
+
+      const { access_token, refresh_token, access_token_expires_in, user } = response.data;
+
+      this.storeTokens(access_token, refresh_token, access_token_expires_in);
+      this.storeUser(user);
+      this.setAuthState(true, user);
+      this.scheduleTokenRefresh();
+
+      await this.router.navigate(['/home']);
     } catch (error) {
-      console.error('Login failed', error);
+      console.error('Login failed:', error);
       throw error;
     }
   }
 
-  // Atualiza os dados do usuário
-  public refreshUserData(): void {
-    this.http.get(`${environment.api}/profile`).subscribe((response: any) => {
-      this.storeUser(response.data);
-    });
-  }
-
-  // Faz registro de um novo usuário
+  /**
+   * Faz registro de um novo usuário
+   */
   async register(userData: { name: string; email: string; password: string }): Promise<void> {
     try {
-      const response: any = await firstValueFrom(
-        this.http.post(`${environment.api}/auth/register`, userData)
+      const response = await firstValueFrom(
+        this.http.post<LoginResponse>(`${environment.api}/auth/register`, userData)
       );
-      this.storeTokens(response.data.access_token, response.data.refresh_token, response.data.access_token_expires_in);
-      this.isAuthenticatedSubject.next(true);
-      this.router.navigate(['/home']);
+
+      const { access_token, refresh_token, access_token_expires_in, user } = response.data;
+
+      this.storeTokens(access_token, refresh_token, access_token_expires_in);
+      this.storeUser(user);
+      this.setAuthState(true, user);
+      this.scheduleTokenRefresh();
+
+      await this.router.navigate(['/home']);
     } catch (error) {
-      console.error('Registration failed', error);
+      console.error('Registration failed:', error);
       throw error;
     }
   }
 
-  // Faz logout e remove os tokens
-  logout(): void {
-    this.removeTokens();
-    this.removeUser();
-    this.isAuthenticatedSubject.next(false);
-    this.http.post(`${environment.api}/auth/logout`, {}).subscribe(); // Envia a requisição de logout
-    this.router.navigate(['/auth/logar']);
-    this.layoutService.setOpenTabs([]); // Limpa as abas abertas ao fazer logout
-  }
-
-  // Método refreshToken retornando um Observable
-  refreshToken(): Observable<void> {
-    const refreshToken = this.getRefreshToken();
-    if (!refreshToken) {
-      this.logout();
-      return throwError(() => new Error('No refresh token available'));
-    }
-
-    return this.http.post(`${environment.api}/auth/refresh`, {}, {
-      headers: {
-        Token: refreshToken
-      }
-    }).pipe(
-      tap((response: any) => {
-        this.storeTokens(response.access_token, response.refresh_token, response.access_token_expires_in);
+  /**
+   * Atualiza os dados do usuário
+   */
+  refreshUserData(): Observable<void> {
+    return this.http.get<{ data: User }>(`${environment.api}/profile`).pipe(
+      tap((response) => {
+        this.storeUser(response.data);
+        this.userSubject.next(response.data);
       }),
+      switchMap(() => EMPTY),
       catchError((error) => {
-        this.logout(); // Faz logout em caso de erro
+        console.error('Failed to refresh user data:', error);
         return throwError(() => error);
       })
     );
   }
 
-  // Verifica se o token JWT está expirado
+  /**
+   * Faz logout e remove os tokens
+   */
+  logout(): void {
+    // Cancela timer de refresh automático
+    this.cancelAutoRefresh();
+
+    // Limpa dados locais primeiro
+    this.clearAuthData();
+
+    // Notifica sobre logout
+    this.setAuthState(false, null);
+
+    // Faz requisição de logout no servidor (fire and forget)
+    this.http.post(`${environment.api}/auth/logout`, {}).subscribe({
+      error: (error) => console.warn('Logout request failed:', error)
+    });
+
+    // Navega para login
+    this.router.navigate(['/auth/logar']);
+
+    // Limpa as abas abertas
+    this.layoutService.setOpenTabs([]);
+  }
+
+  /**
+   * Renova o token usando refresh token
+   */
+  refreshToken(): Observable<void> {
+    if (this.refreshTokenInProgress && this.refreshTokenPromise) {
+      return new Observable(subscriber => {
+        this.refreshTokenPromise!
+          .then(() => subscriber.complete())
+          .catch(error => subscriber.error(error));
+      });
+    }
+
+    const refreshToken = this.getStoredRefreshToken();
+    if (!refreshToken) {
+      this.logout();
+      return throwError(() => new Error('No refresh token available'));
+    }
+
+    this.refreshTokenInProgress = true;
+    this.refreshTokenPromise = this.performTokenRefresh(refreshToken);
+
+    return new Observable(subscriber => {
+      this.refreshTokenPromise!
+        .then(() => {
+          subscriber.next();
+          subscriber.complete();
+        })
+        .catch(error => subscriber.error(error));
+    });
+  }
+
+  /**
+   * Renovação silenciosa do token (sem interferir na UI)
+   */
+  private async silentRefresh(): Promise<void> {
+    const refreshToken = this.getStoredRefreshToken();
+    if (!refreshToken) {
+      throw new Error('No refresh token available');
+    }
+
+    return this.performTokenRefresh(refreshToken);
+  }
+
+  /**
+   * Executa a renovação do token
+   */
+  private async performTokenRefresh(refreshToken: string): Promise<void> {
+    try {
+      const response = await firstValueFrom(
+        this.http.post<{ access_token: string; refresh_token: string; access_token_expires_in: number }>(
+          `${environment.api}/auth/refresh`,
+          {},
+          {
+            headers: { Token: refreshToken }
+          }
+        )
+      );
+
+      this.storeTokens(
+        response.access_token,
+        response.refresh_token,
+        response.access_token_expires_in
+      );
+
+      this.scheduleTokenRefresh();
+    } catch (error) {
+      console.error('Token refresh failed:', error);
+      this.logout();
+      throw error;
+    } finally {
+      this.refreshTokenInProgress = false;
+      this.refreshTokenPromise = null;
+    }
+  }
+
+  /**
+   * Programa a renovação automática do token
+   */
+  private scheduleTokenRefresh(): void {
+    this.cancelAutoRefresh();
+
+    const expiration = this.getStoredTokenExpiration();
+    if (!expiration) return;
+
+    // Programa refresh para 5 minutos antes da expiração
+    const refreshTime = expiration - Date.now() - (5 * 60 * 1000);
+
+    if (refreshTime > 0) {
+      this.autoRefreshTimer = timer(refreshTime).subscribe(() => {
+        this.silentRefresh().catch(() => {
+          console.warn('Silent refresh failed, user will need to login again');
+        });
+      });
+    }
+  }
+
+  /**
+   * Cancela a renovação automática do token
+   */
+  private cancelAutoRefresh(): void {
+    if (this.autoRefreshTimer) {
+      this.autoRefreshTimer.unsubscribe();
+      this.autoRefreshTimer = null;
+    }
+  }
+
+  /**
+   * Verifica se o token está expirado
+   */
   private isTokenExpired(): boolean {
-    const expiration = localStorage.getItem(this.TOKEN_EXPIRATION_KEY);
+    const expiration = this.getStoredTokenExpiration();
     if (!expiration) return true;
-    return Date.now() > Number(expiration);
+
+    // Considera expirado se faltar menos de 1 minuto
+    return Date.now() > (expiration - 60000);
   }
 
-  // Armazena os tokens e a data de expiração
+  /**
+   * Armazena os tokens e a data de expiração
+   */
   private storeTokens(token: string, refreshToken: string, expiresIn: number): void {
-    const expiration = Date.now() + expiresIn * 1000; // Converte para milissegundos
-    localStorage.setItem(this.TOKEN_KEY, token);
-    localStorage.setItem(this.REFRESH_TOKEN_KEY, refreshToken);
-    localStorage.setItem(this.TOKEN_EXPIRATION_KEY, expiration.toString());
+    const expiration = Date.now() + (expiresIn * 1000);
+
+    try {
+      localStorage.setItem(this.TOKEN_KEY, token);
+      localStorage.setItem(this.REFRESH_TOKEN_KEY, refreshToken);
+      localStorage.setItem(this.TOKEN_EXPIRATION_KEY, expiration.toString());
+    } catch (error) {
+      console.error('Failed to store tokens:', error);
+      throw new Error('Failed to store authentication tokens');
+    }
   }
 
-  // Remove os tokens e a data de expiração
-  private removeTokens(): void {
+  /**
+   * Armazena o usuário logado
+   */
+  public storeUser(user: User): void {
+    try {
+      localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+    } catch (error) {
+      console.error('Failed to store user:', error);
+    }
+  }
+
+  /**
+   * Remove todos os dados de autenticação
+   */
+  private clearAuthData(): void {
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.REFRESH_TOKEN_KEY);
     localStorage.removeItem(this.TOKEN_EXPIRATION_KEY);
+    localStorage.removeItem(this.USER_KEY);
   }
 
-  // Armazena o usuário logado
-  public storeUser(user: any): void {
-    this.user = user;
-    localStorage.setItem('user', JSON.stringify(user));
+  /**
+   * Define o estado de autenticação
+   */
+  private setAuthState(isAuthenticated: boolean, user: User | null): void {
+    this.isAuthenticatedSubject.next(isAuthenticated);
+    this.userSubject.next(user);
   }
 
-  // Retorna o usuário logado
-  getUser(): User | null {
-    return this.user;
-  }
-
-  private removeUser(): void {
-    this.user = null;
-    localStorage.removeItem('user');
-  }
-
-  // Obtém o token JWT
+  // Métodos públicos para obter dados armazenados
   getToken(): string | null {
-    return localStorage.getItem(this.TOKEN_KEY);
+    return this.getStoredToken();
   }
 
-  // Obtém o refresh token
   getRefreshToken(): string | null {
-    return localStorage.getItem(this.REFRESH_TOKEN_KEY);
+    return this.getStoredRefreshToken();
   }
 
-  // Verifica se há um token armazenado
-  private hasToken(): boolean {
-    return !!this.getToken();
+  getUser(): User | null {
+    return this.userSubject.value || this.getStoredUser();
   }
 
   getCurrentUser(): User | null {
-    return this.currentUser;
+    return this.getUser();
   }
 
+  // Métodos privados para acessar localStorage
+  private getStoredToken(): string | null {
+    try {
+      return localStorage.getItem(this.TOKEN_KEY);
+    } catch (error) {
+      console.error('Failed to get token from localStorage:', error);
+      return null;
+    }
+  }
+
+  private getStoredRefreshToken(): string | null {
+    try {
+      return localStorage.getItem(this.REFRESH_TOKEN_KEY);
+    } catch (error) {
+      console.error('Failed to get refresh token from localStorage:', error);
+      return null;
+    }
+  }
+
+  private getStoredTokenExpiration(): number | null {
+    try {
+      const expiration = localStorage.getItem(this.TOKEN_EXPIRATION_KEY);
+      return expiration ? Number(expiration) : null;
+    } catch (error) {
+      console.error('Failed to get token expiration from localStorage:', error);
+      return null;
+    }
+  }
+
+  private getStoredUser(): User | null {
+    try {
+      const user = localStorage.getItem(this.USER_KEY);
+      return user ? JSON.parse(user) : null;
+    } catch (error) {
+      console.error('Failed to get user from localStorage:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Verifica se o usuário tem determinada(s) permissão(ões)
+   */
   hasPermission(permission: string | string[]): boolean {
+    if ((Array.isArray(permission) && permission.length === 0) || !permission || permission === '') {
+      return true;
+    }
 
-    if (Array.isArray(permission) && permission.length === 0 || !permission || permission === '') return true;
-
-    if (!this.user || !this.user.permissions) {
+    const user = this.getUser();
+    if (!user || !user.permissions) {
       return false;
     }
 
     const permissions = Array.isArray(permission) ? permission : [permission];
     return permissions.every(perm =>
-      this.user!.permissions.some(userPerm => userPerm.name === perm && userPerm.is_active)
+      user.permissions.some(userPerm => userPerm.name === perm && userPerm.is_active)
     );
+  }
+
+  /**
+   * Método para limpar dados corrompidos (caso necessário)
+   */
+  clearCorruptedData(): void {
+    try {
+      // Verifica se os dados estão corrompidos
+      const token = this.getStoredToken();
+      const user = this.getStoredUser();
+
+      if (token && !user) {
+        console.warn('Corrupted auth data detected, clearing...');
+        this.clearAuthData();
+        this.setAuthState(false, null);
+      }
+    } catch (error) {
+      console.error('Error checking corrupted data:', error);
+      this.clearAuthData();
+      this.setAuthState(false, null);
+    }
   }
 }
