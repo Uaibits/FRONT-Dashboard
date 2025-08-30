@@ -215,7 +215,7 @@ export class AuthService {
   private async performTokenRefresh(refreshToken: string): Promise<void> {
     try {
       const response = await firstValueFrom(
-        this.http.post<{ access_token: string; refresh_token: string; access_token_expires_in: number }>(
+        this.http.post<any>(
           `${environment.api}/auth/refresh`,
           {},
           {
@@ -225,9 +225,9 @@ export class AuthService {
       );
 
       this.storeTokens(
-        response.access_token,
-        response.refresh_token,
-        response.access_token_expires_in
+        response.data.access_token,
+        response.data.refresh_token,
+        response.data.access_token_expires_in
       );
 
       this.scheduleTokenRefresh();

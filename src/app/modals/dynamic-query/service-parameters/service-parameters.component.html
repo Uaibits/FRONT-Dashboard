@@ -133,6 +133,31 @@
               </small>
             </ub-textarea>
 
+            <!-- Code Editor para SQL -->
+            @if (param.type === 'sql') {
+              <ub-code-editor
+                language="sql"
+                [label]="param.label || getDefaultLabel(param.name)"
+                [placeholder]="param.placeholder || getDefaultPlaceholder(param)"
+                [formControlName]="param.name"
+                [required]="param.required"
+                [helpText]="param.description ?? ''"
+                [error]="getFieldError(param.name)">
+              </ub-code-editor>
+            }
+
+            <!-- Code Editor para JavaScript -->
+            @if (param.type === 'javascript') {
+              <ub-code-editor
+                language="javascript"
+                [label]="param.label || getDefaultLabel(param.name)"
+                [placeholder]="param.placeholder || getDefaultPlaceholder(param)"
+                [formControlName]="param.name"
+                [required]="param.required"
+                [helpText]="param.description ?? ''"
+                [error]="getFieldError(param.name)">
+              </ub-code-editor>
+            }
           </div>
         </ng-container>
       </div>

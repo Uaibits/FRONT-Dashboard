@@ -10,6 +10,7 @@ import {NgForOf, NgIf} from '@angular/common';
 import {MultiselectComponent} from '../../../components/form/multiselect/multiselect.component';
 import {ToggleSwitchComponent} from '../../../components/form/toggle-switch/toggle-switch.component';
 import {ObjectEditorComponent} from '../../../components/form/object-editor/object-editor.component';
+import {CodeeditorComponent} from '../../../components/form/code-editor/code-editor.component';
 
 interface ServiceParameter {
   name: string;
@@ -43,7 +44,8 @@ interface ServiceParams {
     NgForOf,
     MultiselectComponent,
     ToggleSwitchComponent,
-    ObjectEditorComponent
+    ObjectEditorComponent,
+    CodeeditorComponent
   ],
   templateUrl: './service-parameters.component.html',
   standalone: true,
@@ -58,6 +60,7 @@ interface ServiceParams {
 })
 export class ServiceParametersComponent implements OnInit, OnChanges, ControlValueAccessor {
   @Input() serviceSlug: string | null = null;
+  @Input() companyId: number | null = null;
   @Input() disabled: boolean = false;
 
   form!: FormGroup;
@@ -66,8 +69,10 @@ export class ServiceParametersComponent implements OnInit, OnChanges, ControlVal
   errors: { [key: string]: string } = {};
 
   // ControlValueAccessor
-  private onChange = (value: any) => {};
-  private onTouched = () => {};
+  private onChange = (value: any) => {
+  };
+  private onTouched = () => {
+  };
 
   constructor(
     private fb: FormBuilder,
@@ -108,7 +113,7 @@ export class ServiceParametersComponent implements OnInit, OnChanges, ControlVal
 
     this.loading = true;
     try {
-      const response = await this.servicesService.getServiceParams(this.serviceSlug);
+      const response = await this.servicesService.getServiceParams(this.serviceSlug, this.companyId);
       this.serviceParams = response.data || {};
       this.buildForm();
     } catch (error) {
@@ -162,7 +167,7 @@ export class ServiceParametersComponent implements OnInit, OnChanges, ControlVal
         const value = control.value;
         if (value === null || value === undefined || value === '' ||
           (Array.isArray(value) && value.length === 0)) {
-          return { required: true };
+          return {required: true};
         }
         return null;
       });
@@ -202,7 +207,7 @@ export class ServiceParametersComponent implements OnInit, OnChanges, ControlVal
   }
 
   getColumnClass(param: ServiceParameter): string {
-    if (param.type === 'object' || param.type === 'array') {
+    if (param.type === 'object' || param.type === 'array' || param.type === 'sql' || param.type === 'javascript') {
       return 'col-12';
     }
     return 'col-12 md:col-6';
@@ -214,10 +219,13 @@ export class ServiceParametersComponent implements OnInit, OnChanges, ControlVal
 
   getInputType(param: ServiceParameter): string {
     switch (param.type) {
-      case 'email': return 'email';
-      case 'url': return 'url';
+      case 'email':
+        return 'email';
+      case 'url':
+        return 'url';
       case 'text':
-      default: return 'text';
+      default:
+        return 'text';
     }
   }
 
@@ -229,11 +237,16 @@ export class ServiceParametersComponent implements OnInit, OnChanges, ControlVal
 
   getDefaultPlaceholder(param: ServiceParameter): string {
     switch (param.type) {
-      case 'email': return 'Digite o email';
-      case 'url': return 'https://exemplo.com';
-      case 'number': return 'Digite um número';
-      case 'date': return 'dd/mm/aaaa';
-      default: return `Digite ${this.getDefaultLabel(param.name).toLowerCase()}`;
+      case 'email':
+        return 'Digite o email';
+      case 'url':
+        return 'https://exemplo.com';
+      case 'number':
+        return 'Digite um número';
+      case 'date':
+        return 'dd/mm/aaaa';
+      default:
+        return `Digite ${this.getDefaultLabel(param.name).toLowerCase()}`;
     }
   }
 
@@ -241,7 +254,7 @@ export class ServiceParametersComponent implements OnInit, OnChanges, ControlVal
     if (Array.isArray(param.options)) {
       return param.options.map(option =>
         typeof option === 'string' ?
-          { label: option, value: option } :
+          {label: option, value: option} :
           option
       );
     }
@@ -276,7 +289,7 @@ export class ServiceParametersComponent implements OnInit, OnChanges, ControlVal
   // ControlValueAccessor implementation
   writeValue(value: any): void {
     if (value && this.form) {
-      this.form.patchValue(value, { emitEvent: false });
+      this.form.patchValue(value, {emitEvent: false});
     }
   }
 

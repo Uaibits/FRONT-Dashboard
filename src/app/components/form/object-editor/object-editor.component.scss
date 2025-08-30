@@ -15,7 +15,7 @@
 
       .view-mode-selector {
         display: flex;
-        background: #f8f9fa;
+        background: #ffffff;
         border-radius: 6px;
         padding: 2px;
         border: 1px solid #e9ecef;
@@ -39,7 +39,7 @@
           }
 
           &.active {
-            background: #0d6efd;
+            background: var(--primary-color);
             color: white;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
           }
@@ -161,7 +161,6 @@
       background: white;
       border: 1px solid #e9ecef;
       border-radius: 8px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
       overflow: hidden;
       transition: all 0.2s ease;
 
@@ -170,8 +169,8 @@
       }
 
       .accordion-header {
-        padding: 1rem;
-        background: #f8f9fa;
+        padding: 5px;
+        background: #ffffff;
         border-bottom: 1px solid #e9ecef;
         cursor: pointer;
         display: flex;
@@ -196,12 +195,13 @@
           }
 
           .property-name {
+            font-size: var(--font-size-base);
             font-weight: 600;
             color: #212529;
           }
 
           .property-type {
-            font-size: 0.875rem;
+            font-size: var(--font-size-small);
             color: #6c757d;
             font-style: italic;
           }
@@ -234,7 +234,7 @@
       }
 
       .accordion-content {
-        padding: 1.25rem;
+        padding: 16px;
         background: white;
         animation: slideDown 0.2s ease-out;
 
@@ -243,8 +243,7 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 1rem;
-            margin-bottom: 1rem;
-            padding-bottom: 1rem;
+            margin-bottom: 8px;
             border-bottom: 1px solid #f1f3f4;
           }
 
@@ -432,7 +431,7 @@
   // Estado vazio
   .empty-state {
     text-align: center;
-    padding: 3rem 1rem;
+    padding: 16px 8px;
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     border: 2px dashed #dee2e6;
     border-radius: 12px;
@@ -440,16 +439,7 @@
     transition: all 0.3s ease;
 
     &:hover {
-      background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
-      border-color: #adb5bd;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    .empty-icon {
-      font-size: 3rem;
-      margin-bottom: 1rem;
-      opacity: 0.7;
+      border-color: #c6ccd3;
     }
 
     h4 {

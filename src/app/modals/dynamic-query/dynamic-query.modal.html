@@ -43,7 +43,7 @@
   </ub-tab>
   @if (dynamicQuery) {
     <ub-tab label="Parâmetros">
-      <app-service-parameters [serviceSlug]="form.get('service_slug')?.value"></app-service-parameters>
+      <app-service-parameters [serviceSlug]="form.get('service_slug')?.value" [companyId]="companyId"></app-service-parameters>
     </ub-tab>
   }
 </ub-tabs>

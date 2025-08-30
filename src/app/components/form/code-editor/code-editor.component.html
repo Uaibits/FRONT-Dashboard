@@ -1,0 +1,46 @@
+<ub-base-input
+  [label]="label"
+  [helpText]="helpText"
+  [error]="error"
+  [success]="success"
+>
+  <div class="codeeditor-wrapper" [class.disabled]="disabled" [class.readonly]="readonly">
+    <div #editorContainer class="codeeditor-container"></div>
+
+    <!-- Informações do editor -->
+    @if (!disabled && !readonly) {
+      <div class="codeeditor-info">
+        <div class="info-left">
+          <span class="language-badge">{{ getLanguageDisplayName() }}</span>
+          <span class="line-info">Linhas: {{ lineCount }}</span>
+        </div>
+
+        <div class="info-right">
+          @if (maxlength) {
+            <span class="character-counter" [class.warning]="characterCount > maxlength * 0.9"
+                  [class.error]="!isMaxLengthValid">
+            {{ characterCount }} / {{ maxlength }}
+          </span>
+          } @else {
+            <span class="character-counter">
+            {{ characterCount }} caracteres
+          </span>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Mensagens de validação -->
+  @if (minLength && !isMinLengthValid) {
+    <div class="error-message">
+      O código deve ter pelo menos {{ minLength }} caracteres.
+    </div>
+  }
+
+  @if (maxlength && !isMaxLengthValid) {
+    <div class="error-message">
+      O código não pode exceder {{ maxlength }} caracteres.
+    </div>
+  }
+</ub-base-input>

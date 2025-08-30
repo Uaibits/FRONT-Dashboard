@@ -24,11 +24,13 @@ export class ServicesService {
     let route = `${this.API_URL}/services`;
     if (type) route += `?service_type=${type}`;
     if (companyId) route += (type ? '&' : '?') + `company_id=${companyId}`;
-    return firstValueFrom(this.http.get<any>(`${route}`));
+    return firstValueFrom(this.http.get<any>(route));
   }
 
-  getServiceParams(serviceSlug: string): Promise<any> {
-    return firstValueFrom(this.http.get<any>(`${this.API_URL}/services/${serviceSlug}/parameters`));
+  getServiceParams(serviceSlug: string, companyId?: string | number | null): Promise<any> {
+    let route = `${this.API_URL}/services/${serviceSlug}/parameters`;
+    if (companyId) route += `?company_id=${companyId}`;
+    return firstValueFrom(this.http.get<any>(route));
   }
 
 

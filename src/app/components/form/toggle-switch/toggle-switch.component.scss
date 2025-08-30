@@ -30,8 +30,8 @@
   .toggle-switch {
     position: relative;
     display: inline-block;
-    width: 55px;
-    height: 29px;
+    width: 50px;
+    height: 24px;
     flex-shrink: 0; // Evita que o switch diminua
 
     input {
@@ -71,8 +71,8 @@
       &:before {
         position: absolute;
         content: '';
-        height: 21px;
-        width: 21px;
+        height: 16px;
+        width: 16px;
         left: 4px;
         bottom: 4px;
         background-color: white;

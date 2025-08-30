@@ -30,7 +30,7 @@
   select,
   textarea{
     padding: var(--spacing-medium);
-    border: 2px solid var(--input-border-color);
+    border: 1px solid var(--input-border-color);
     border-radius: var(--border-radius);
     font-size: var(--font-size-base);
     transition: all var(--transition-speed) ease-in-out;
@@ -155,7 +155,7 @@
   justify-content: space-between;
   align-items: center;
   padding: var(--spacing-medium);
-  border: 2px solid var(--input-border-color);
+  border: 1px solid var(--input-border-color);
   border-radius: var(--border-radius);
   cursor: pointer;
   background-color: #fff;
@@ -217,7 +217,7 @@
   top: calc(100% + var(--spacing-small));
   left: 0;
   right: 0;
-  border: 2px solid var(--input-border-color);
+  border: 1px solid var(--input-border-color);
   border-radius: var(--border-radius);
   background-color: #fff;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
@@ -238,7 +238,7 @@
 .filter-input {
   width: calc(100% - 16px); // Subtrai o padding e a margem para evitar overflow
   padding: var(--spacing-medium);
-  border: 2px solid var(--input-border-color);
+  border: 1px solid var(--input-border-color);
   margin: 8px; // Mantém a margem, mas ajusta o width para compensar
   border-radius: var(--border-radius);
   font-size: var(--font-size-base);
@@ -326,7 +326,7 @@
     justify-content: space-between;
     align-items: center;
     padding: var(--spacing-medium);
-    border: 2px solid var(--input-border-color);
+    border: 1px solid var(--input-border-color);
     border-radius: var(--border-radius);
     cursor: pointer;
     background-color: #fff;
@@ -356,7 +356,7 @@
     top: calc(100% + var(--spacing-small));
     left: 0;
     right: 0;
-    border: 2px solid var(--input-border-color);
+    border: 1px solid var(--input-border-color);
     border-radius: var(--border-radius);
     background-color: #fff;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
@@ -391,7 +391,7 @@
           height: 16px;
           width: 16px;
           background-color: #fff;
-          border: 2px solid var(--input-border-color);
+          border: 1px solid var(--input-border-color);
           border-radius: 4px;
           transition: all var(--transition-speed) ease-in-out;
 
@@ -426,7 +426,7 @@
       .filter-input {
         flex: 1;
         padding: var(--spacing-medium);
-        border: 2px solid var(--input-border-color);
+        border: 1px solid var(--input-border-color);
         border-radius: var(--border-radius);
         font-size: var(--font-size-base);
         outline: none;
@@ -475,7 +475,7 @@
             height: 16px;
             width: 16px;
             background-color: #fff;
-            border: 2px solid var(--input-border-color);
+            border: 1px solid var(--input-border-color);
             border-radius: 4px;
             transition: all var(--transition-speed) ease-in-out;
 
