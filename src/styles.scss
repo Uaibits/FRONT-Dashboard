@@ -22,10 +22,12 @@ body {
 :root {
   /* Cores */
   --primary-color: #262626; /* Cinza escuro (primária) */
+  --primary-color-rgb: 38, 38, 38; /* Cinza escuro (primária) em RGB */
   --primary-color-light: #333; /* Cinza claro (primária) */
   --primary-color-dark: #1a1a1a; /* Cinza escuro (primária) */
 
   --secondary-color: #f7c212; /* Amarelo (secundária) */
+  --secondary-color-rgb: 247, 194, 18; /* Amarelo (secundária) em RGB */
   --secondary-color-light: #f9d54b; /* Amarelo claro (secundária) */
   --secondary-color-dark: #f5b90f; /* Amarelo escuro (secundária) */
 
@@ -34,17 +36,23 @@ body {
   --disabled-border-color: #d0d0d0; /* Cinza suave (borda desativada) */
 
   --danger-color: #ff4647; /* Vermelho */
+  --danger-color-rgb: 255, 70, 71; /* Vermelho em RGB */
   --danger-color-dark: #df1115; /* Vermelho escuro */
   --error-color: #ff7675; /* Vermelho suave */
 
   --success-color: #00b82b; /* Verde suave */
+  --success-color-rgb: 0, 184, 43; /* Verde suave em RGB */
   --success-color-dark: #009e1a; /* Verde escuro */
 
   --warning-color: #f1c40f; /* Amarelo suave */
+  --warning-color-rgb: 241, 196, 15; /* Amarelo suave em RGB */
   --warning-color-dark: #d4ac0d; /* Amarelo escuro */
 
   --info-color: #26a0ff; /* Azul suave */
+  --info-color-rgb: 38, 160, 255; /* Azul suave em RGB */
   --info-color-dark: #0c89ff; /* Azul escuro */
+
+  --text-muted: #6c757d; /* Cinza médio (texto secundário) */
 
   --background-color: #f8f9fa; /* Cinza claro (fundo) */
   --bg-primary-color: #f8f9fa; /* Branco (fundo primário) */

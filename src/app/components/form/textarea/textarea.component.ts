@@ -18,28 +18,44 @@ import { BaseInputComponent } from '../base-input.component';
 })
 export class TextareaComponent implements ControlValueAccessor {
   @Input() label: string = '';
-  @Input() helpText: string = '';
-  @Input() placeholder: string = '';
-  @Input() value: string = '';
   @Input() error: string = '';
   @Input() success: string = '';
-  @Input() maxlength: number | undefined = undefined; // Limite máximo de caracteres
-  @Input() minLength: number | undefined = undefined; // Limite mínimo de caracteres
-  @Input() resize: 'none' | 'both' | 'horizontal' | 'vertical' = 'vertical'; // Controle de redimensionamento
-  @Input() rows: number = 3; // Número de linhas visíveis
+  @Input() helpText: string = '';
+  @Input() placeholder: string = '';
+  @Input() maxlength: number | undefined = undefined;
+  @Input() minLength: number | undefined = undefined;
+  @Input() resize: 'none' | 'both' | 'horizontal' | 'vertical' = 'vertical';
+  @Input() rows: number = 3;
   @Input() disabled: boolean = false;
   @Output() valueChange = new EventEmitter<string>();
   @Output() input = new EventEmitter<Event>();
   @Output() change = new EventEmitter<Event>();
   @Output() click = new EventEmitter<Event>();
 
-  characterCount: number = 0; // Contador de caracteres
+  // Use um campo interno para o valor
+  private _value: string = '';
+  characterCount: number = 0;
 
   onChange: any = () => {};
   onTouched: any = () => {};
 
+  // Getter e Setter para o valor
+  get value(): string {
+    return this._value;
+  }
+
+  @Input()
+  set value(val: string) {
+    if (val !== this._value) {
+      this._value = val || '';
+      this.updateCharacterCount();
+      this.onChange(this._value);
+      this.valueChange.emit(this._value);
+    }
+  }
+
   writeValue(value: string): void {
-    this.value = value || '';
+    this._value = value || '';
     this.updateCharacterCount();
   }
 
@@ -53,7 +69,7 @@ export class TextareaComponent implements ControlValueAccessor {
 
   onInput(event: Event): void {
     const value = (event.target as HTMLTextAreaElement).value;
-    this.value = value;
+    this._value = value;
     this.updateCharacterCount();
     this.onChange(value);
     this.valueChange.emit(value);
@@ -68,18 +84,19 @@ export class TextareaComponent implements ControlValueAccessor {
     this.click.emit(event);
   }
 
-  // Atualiza o contador de caracteres
   private updateCharacterCount(): void {
-    this.characterCount = this.value ? this.value.length : 0;
+    this.characterCount = this._value ? this._value.length : 0;
   }
 
-  // Verifica se o valor atende ao minLength
   get isMinLengthValid(): boolean {
-    return this.minLength ? this.value.length >= this.minLength : true;
+    return this.minLength ? this.characterCount >= this.minLength : true;
   }
 
-  // Verifica se o valor atende ao maxlength
   get isMaxLengthValid(): boolean {
-    return this.maxlength ? this.value.length <= this.maxlength : true;
+    return this.maxlength ? this.characterCount <= this.maxlength : true;
+  }
+
+  setDisabledState(isDisabled: boolean): void {
+    this.disabled = isDisabled;
   }
 }

@@ -1,0 +1,100 @@
+<div class="p-fluid p-formgrid grid">
+
+  @for (filter of dynamicQuery.active_filters; track filter.var_name) {
+    @switch (filter.type) {
+      @case ('text') {
+        <div class="col-12 md:col-6">
+          <ub-input
+            label="{{ filter.name }}"
+            helpText="{{ filter.description }}"
+            placeholder="Digite {{ filter.name }}"
+            [required]="filter.required"
+            [(ngModel)]="values[filter.var_name]"
+          ></ub-input>
+        </div>
+      }
+      @case ('number') {
+        <div class="col-12 md:col-6">
+          <ub-input
+            type="number"
+            label="{{ filter.name }}"
+            helpText="{{ filter.description }}"
+            placeholder="Digite {{ filter.name }}"
+            [required]="filter.required"
+            [(ngModel)]="values[filter.var_name]"
+          ></ub-input>
+        </div>
+      }
+      @case ('date') {
+        <div class="col-12 md:col-6">
+          <ub-input
+            label="{{ filter.name }}"
+            helpText="{{ filter.description }}"
+            placeholder="Selecione {{ filter.name }}"
+            [required]="filter.required"
+            [(ngModel)]="values[filter.var_name]"
+            type="date"
+          ></ub-input>
+        </div>
+      }
+      @case ('boolean') {
+        <div class="col-12 md:col-6">
+          <ub-toggle-switch
+            label="{{ filter.name }}"
+            helpText="{{ filter.description }}"
+            [required]="filter.required"
+            [(ngModel)]="values[filter.var_name]">
+          </ub-toggle-switch>
+        </div>
+      }
+      @case ('select') {
+        <div class="col-12 md:col-6">
+          <ub-dropdown
+            label="{{ filter.name }}"
+            helpText="{{ filter.description }}"
+            placeholder="Selecione {{ filter.name }}"
+            [required]="filter.required"
+            [(ngModel)]="values[filter.var_name]"
+            [options]="getFilterOptions(filter.options)"
+            optionLabel="label"
+            optionValue="value"
+          ></ub-dropdown>
+        </div>
+      }
+      @case ('multiselect') {
+        <div class="col-12 md:col-6">
+          <ub-multiselect
+            label="{{ filter.name }}"
+            helpText="{{ filter.description }}"
+            placeholder="Selecione {{ filter.name }}"
+            [required]="filter.required"
+            [(ngModel)]="values[filter.var_name]"
+            [options]="getFilterOptions(filter.options)"
+            optionLabel="label"
+            optionValue="value"
+          ></ub-multiselect>
+        </div>
+      }
+      @case ('array') {
+        <div class="col-12">
+          <ub-input
+            label="{{ filter.name }}"
+            helpText="{{ filter.description }} - Formato esperado: ['value1', 'value2']"
+            [required]="filter.required"
+            [(ngModel)]="values[filter.var_name]"
+          ></ub-input>
+        </div>
+      }
+      @default {
+        <div class="col-12">
+          <p>Tipo de filtro desconhecido: {{ filter.type }}</p>
+        </div>
+      }
+    }
+  }
+</div>
+<div class="flex justify-content-end gap-2">
+  <ub-button [loading]="loading" (click)="save()">
+    Aplicar Filtros
+  </ub-button>
+</div>

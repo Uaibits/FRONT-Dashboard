@@ -33,6 +33,7 @@ export class InputComponent implements ControlValueAccessor, OnChanges {
   @Input() type: string = 'text';
   @Input() value: string = '';
   @Input() disabled: boolean = false;
+  @Input() required: boolean = false;
   @Input() error: string = '';
   @Input() success: string = '';
   @Input() suggestions: string[] = []; // Lista de sugestões

@@ -6,11 +6,12 @@ import {InputComponent} from '../../../components/form/input/input.component';
 import {ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, ReactiveFormsModule} from '@angular/forms';
 import {TextareaComponent} from '../../../components/form/textarea/textarea.component';
 import {DropdownComponent} from '../../../components/form/dropdown/dropdown.component';
-import {NgForOf, NgIf} from '@angular/common';
 import {MultiselectComponent} from '../../../components/form/multiselect/multiselect.component';
 import {ToggleSwitchComponent} from '../../../components/form/toggle-switch/toggle-switch.component';
 import {ObjectEditorComponent} from '../../../components/form/object-editor/object-editor.component';
 import {CodeeditorComponent} from '../../../components/form/code-editor/code-editor.component';
+import {ButtonComponent} from '../../../components/form/button/button.component';
+import {DynamicQueryService} from '../../../services/dynamic-query.service';
 
 interface ServiceParameter {
   name: string;
@@ -40,12 +41,11 @@ interface ServiceParams {
     ReactiveFormsModule,
     TextareaComponent,
     DropdownComponent,
-    NgIf,
-    NgForOf,
     MultiselectComponent,
     ToggleSwitchComponent,
     ObjectEditorComponent,
-    CodeeditorComponent
+    CodeeditorComponent,
+    ButtonComponent
   ],
   templateUrl: './service-parameters.component.html',
   standalone: true,
@@ -59,6 +59,10 @@ interface ServiceParams {
   ]
 })
 export class ServiceParametersComponent implements OnInit, OnChanges, ControlValueAccessor {
+
+  @Input({
+    required: true
+  }) dynamicQuery: any | null = null;
   @Input() serviceSlug: string | null = null;
   @Input() companyId: number | null = null;
   @Input() disabled: boolean = false;
@@ -77,7 +81,9 @@ export class ServiceParametersComponent implements OnInit, OnChanges, ControlVal
   constructor(
     private fb: FormBuilder,
     private servicesService: ServicesService,
-    private toast: ToastService
+    private toast: ToastService,
+    private dynamicQueryService: DynamicQueryService,
+    private utils: Utils
   ) {
     this.form = this.fb.group({});
   }
@@ -143,6 +149,10 @@ export class ServiceParametersComponent implements OnInit, OnChanges, ControlVal
     if (this.disabled) {
       this.form.disable();
     }
+
+    if (this.dynamicQuery && this.dynamicQuery.service_params) {
+      this.form.patchValue(this.dynamicQuery.service_params, {emitEvent: false});
+    }
   }
 
   private getDefaultValue(param: ServiceParameter): any {
@@ -153,7 +163,7 @@ export class ServiceParametersComponent implements OnInit, OnChanges, ControlVal
       case 'multiselect':
         return param.defaultValue ?? [];
       case 'object':
-        return param.defaultValue ? JSON.stringify(param.defaultValue, null, 2) : '';
+        return param.defaultValue ? param.defaultValue : {};
       default:
         return param.defaultValue ?? '';
     }
@@ -309,6 +319,31 @@ export class ServiceParametersComponent implements OnInit, OnChanges, ControlVal
       } else {
         this.form.enable();
       }
+    }
+  }
+
+  onSubmit() {
+    if (this.form.invalid) {
+      this.toast.error('Por favor, corrija os erros no formulário antes de enviar.');
+      return;
+    }
+
+    this.loading = true;
+    const data = this.form.value;
+
+    this.updateDynamicQuery(data);
+  }
+
+  async updateDynamicQuery(data: any) {
+    try {
+      await this.dynamicQueryService.updateDynamicQuery(this.dynamicQuery.key!, {
+        service_params: data
+      }, this.companyId);
+      this.toast.success('Consulta dinâmica atualizada com sucesso!');
+    } catch (error) {
+      this.errors = this.utils.handleErrorsForm(error, this.form);
+    } finally {
+      this.loading = false;
     }
   }
 }

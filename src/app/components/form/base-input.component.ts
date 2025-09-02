@@ -28,4 +28,5 @@ export class BaseInputComponent {
   @Input() helpText: string = '';
   @Input() error: string = '';
   @Input() success: string = '';
+  @Input() required: boolean = false;
 }

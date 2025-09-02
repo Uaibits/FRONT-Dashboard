@@ -4,8 +4,12 @@ import {ToastService} from '../components/toast/toast.service';
 import {HttpClient} from '@angular/common/http';
 import {firstValueFrom} from 'rxjs';
 import {ModalRef, ModalService} from '../modals/modal/modal.service';
-import {DynamicQueryModal} from '../modals/dynamic-query/dynamic-query.modal';
+import {DynamicQuery, DynamicQueryModal} from '../modals/dynamic-query/dynamic-query.modal';
 import {Utils} from './utils.service';
+import {
+  DynamicQueryFilterBuilderModal
+} from '../modals/dynamic-query/dynamic-query-filter-builder/dynamic-query-filter-builder.modal';
+
 
 @Injectable(
   {providedIn: 'root'}
@@ -34,13 +38,50 @@ export class DynamicQueryService {
     }
   }
 
-  async createDynamicQuery(data: any, companyId?: string | number | null): Promise<any> {
+  createDynamicQuery(data: any, companyId?: string | number | null): Promise<any> {
     return firstValueFrom(this.http.post<any>(`${this.API_URL}/queries/create${companyId ? '?company_id=' + companyId : ''}`, data));
   }
 
   updateDynamicQuery(key: string, data: any, companyId?: string | number | null): Promise<any> {
-      return firstValueFrom(this.http.put<any>(`${this.API_URL}/queries/${key}/update${companyId ? '?company_id=' + companyId : ''}`, data));
+    return firstValueFrom(this.http.put<any>(`${this.API_URL}/queries/${key}/update${companyId ? '?company_id=' + companyId : ''}`, data));
   }
+
+  validateDynamicQuery(key: string, companyId?: string | number | null): Promise<any> {
+    return firstValueFrom(this.http.post<any>(`${this.API_URL}/queries/${key}/validate${companyId ? '?company_id=' + companyId : ''}`, {}));
+  }
+
+  async executeDynamicQuery(dynamicQuery: DynamicQuery, params: any, companyId?: string | number | null): Promise<any> {
+    let filters = dynamicQuery.active_filters || [];
+    filters = filters.filter(f => f.visible);
+
+    if (filters.length > 0) {
+      const modalRef = this.modalService.open({
+        title: 'Preencher Filtros',
+        component: DynamicQueryFilterBuilderModal,
+        data: {
+          dynamicQuery: dynamicQuery
+        }
+      });
+
+      // aguarda o usuário preencher os filtros e fechar o modal com `close(result)`
+      const filledFilters = await modalRef;
+      if (!filledFilters) {
+        return Promise.reject('Execução cancelada pelo usuário.');
+      }
+
+      // preenche os parâmetros com os valores retornados do modal
+      params = { ...params, ...filledFilters };
+    }
+
+    // só executa aqui, depois do preenchimento
+    return firstValueFrom(
+      this.http.post<any>(
+        `${this.API_URL}/queries/${dynamicQuery.key}/execute${companyId ? '?company_id=' + companyId : ''}`,
+        params
+      )
+    );
+  }
+
 
   async deleteDynamicQuery(key: string): Promise<any> {
     try {
@@ -53,7 +94,7 @@ export class DynamicQueryService {
     }
   }
 
-  openDynamicQueryModal(dynamicQuery?: any, companyId?: number | string | null): ModalRef {
+  openDynamicQueryModal(dynamicQuery?: DynamicQuery, companyId?: number | string | null) {
     return this.modalService.open({
       title: 'Configurar Consulta Dinâmica',
       component: DynamicQueryModal,

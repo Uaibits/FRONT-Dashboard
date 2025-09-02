@@ -11,14 +11,15 @@
     (change)="onChangeEvent($event)"
     (click)="onClick($event)"
     [class.error]="error"
-    [maxLength]="maxlength"
-    [minLength]="minLength"
+    [attr.maxlength]="maxlength"
+    [attr.minlength]="minLength"
     [style.resize]="resize"
     [rows]="rows"
+    [disabled]="disabled"
   ></textarea>
 
   @if (maxlength) {
-    <div class="character-counter">
+    <div class="character-counter" [class.error]="!isMaxLengthValid">
       {{ characterCount }} / {{ maxlength }}
     </div>
   }

@@ -1,0 +1,274 @@
+.filters-container {
+  .suggestions-card {
+    .suggestion-tag {
+      transition: all 0.2s ease;
+
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+    }
+  }
+
+  .filter-form-card {
+    .grid {
+      margin: 0;
+    }
+
+    small {
+      margin-top: 0.25rem;
+      display: block;
+    }
+  }
+
+  .filters-list {
+    .filter-list-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .filter-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 16px;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      background: white;
+      transition: all 0.2s ease;
+      position: relative;
+
+      &:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border-color: #ced4da;
+      }
+
+      &.cdk-drag-preview {
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        border-color: var(--primary-color);
+        transform: rotate(2deg);
+      }
+
+      &.cdk-drag-placeholder {
+        opacity: 0.4;
+        border: 2px dashed #ced4da;
+        background: #f8f9fa;
+      }
+
+      &.cdk-drag-animating {
+        transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+      }
+
+      .drag-handle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        cursor: grab;
+        padding: 4px 0;
+
+        &:active {
+          cursor: grabbing;
+        }
+
+        i {
+          font-size: 14px;
+          opacity: 0.6;
+          transition: opacity 0.2s ease;
+        }
+
+        &:hover i {
+          opacity: 1;
+        }
+      }
+
+      .filter-content {
+        flex: 1;
+        min-width: 0; // Para permitir text-overflow
+
+        .filter-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 8px;
+          gap: 12px;
+
+          .filter-title {
+            flex: 1;
+            min-width: 0;
+
+            h5 {
+              font-size: 16px;
+              font-weight: 600;
+              color: #212529;
+              margin-bottom: 4px;
+              word-wrap: break-word;
+            }
+
+            .filter-variable {
+              font-family: 'Courier New', monospace;
+              font-size: 12px;
+              color: #6c757d;
+              background: #f8f9fa;
+              padding: 2px 6px;
+              border-radius: 4px;
+              border: 1px solid #e9ecef;
+            }
+          }
+
+          .filter-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            align-items: center;
+
+            .badge {
+              font-size: 11px;
+              font-weight: 500;
+              padding: 2px 6px;
+              border-radius: 12px;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+
+              &.badge-type {
+                background: #e3f2fd;
+                color: #1565c0;
+                border: 1px solid #bbdefb;
+              }
+
+              &.badge-required {
+                background: #fff3e0;
+                color: #ef6c00;
+                border: 1px solid #ffcc02;
+              }
+
+              &.badge-inactive {
+                background: #fafafa;
+                color: #757575;
+                border: 1px solid #e0e0e0;
+              }
+            }
+          }
+        }
+
+        .filter-description {
+          margin-bottom: 8px;
+
+          p {
+            line-height: 1.4;
+            word-wrap: break-word;
+          }
+        }
+
+        .filter-details {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+          font-size: 12px;
+
+          .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+
+            .detail-label {
+              font-weight: 500;
+              color: #6c757d;
+            }
+
+            .detail-value {
+              color: #495057;
+              font-family: 'Courier New', monospace;
+              background: #f8f9fa;
+              padding: 1px 4px;
+              border-radius: 3px;
+            }
+          }
+        }
+      }
+
+      .filter-actions {
+        display: flex;
+        gap: 4px;
+        flex-shrink: 0;
+      }
+    }
+  }
+
+  .empty-state {
+    i {
+      opacity: 0.6;
+    }
+
+    h4 {
+      margin: 16px 0 8px 0;
+    }
+
+    p {
+      margin-bottom: 24px;
+      max-width: 400px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+}
+
+// Responsividade
+@media (max-width: 768px) {
+  .filters-container {
+    .filter-item {
+      .filter-content {
+        .filter-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 8px;
+
+          .filter-badges {
+            align-self: stretch;
+          }
+        }
+
+        .filter-details {
+          flex-direction: column;
+          gap: 4px;
+
+          .detail-item {
+            justify-content: space-between;
+          }
+        }
+      }
+
+      .filter-actions {
+        flex-direction: column;
+        align-self: stretch;
+      }
+    }
+
+    .suggestions-card {
+      .flex.flex-wrap {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  }
+}
+
+// Estados específicos do CDK Drag & Drop
+.cdk-drop-list {
+  display: block;
+}
+
+.cdk-drag-preview {
+  box-sizing: border-box;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.4;
+}
+
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}

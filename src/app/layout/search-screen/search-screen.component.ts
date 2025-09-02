@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LayoutService } from '../layout.service';
 import { AuthService } from '../../security/auth.service';
-import {Utils} from '../../services/utils.service';
+import { Utils } from '../../services/utils.service';
 
 interface SearchItem {
   path: string;
@@ -20,19 +20,22 @@ interface SearchItem {
   standalone: true,
   styleUrls: ['./search-screen.component.scss']
 })
-export class SearchScreenComponent implements OnInit {
+export class SearchScreenComponent implements OnInit, OnDestroy {
   searchQuery: string = '';
   isSearchModalActive = false;
-  isSearchText = false;
+  isSearchFocused = false;
   recentSearches: SearchItem[] = [];
   favoritePages: SearchItem[] = [];
   filteredResults: SearchItem[] = [];
+  allPages: SearchItem[] = [];
 
-  private readonly MAX_RECENT_SEARCHES = 10;
+  private readonly MAX_RECENT_SEARCHES = 8;
   private readonly STORAGE_KEYS = {
     RECENT_SEARCHES: 'recent_searches',
     FAVORITE_PAGES: 'favorite_pages'
-  };
+  } as const;
+
+  private searchTimeout?: number;
 
   constructor(
     private router: Router,
@@ -41,55 +44,98 @@ export class SearchScreenComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.loadFromLocalStorage();
+    this.loadStoredData();
+    this.loadAllPages();
   }
 
-  private loadFromLocalStorage(): void {
-    const recent = localStorage.getItem(this.STORAGE_KEYS.RECENT_SEARCHES);
-    const favorites = localStorage.getItem(this.STORAGE_KEYS.FAVORITE_PAGES);
+  ngOnDestroy(): void {
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
+    }
+  }
 
-    this.recentSearches = recent ? JSON.parse(recent) : [];
-    this.favoritePages = favorites ? JSON.parse(favorites) : [];
+  private loadStoredData(): void {
+    try {
+      const recent = localStorage.getItem(this.STORAGE_KEYS.RECENT_SEARCHES);
+      const favorites = localStorage.getItem(this.STORAGE_KEYS.FAVORITE_PAGES);
+
+      this.recentSearches = recent ? JSON.parse(recent) : [];
+      this.favoritePages = favorites ? JSON.parse(favorites) : [];
+    } catch (error) {
+      console.warn('Erro ao carregar dados do localStorage:', error);
+      this.recentSearches = [];
+      this.favoritePages = [];
+    }
+  }
+
+  private loadAllPages(): void {
+    this.allPages = this.layoutService.getAvailableRoutes()
+      .filter(route => this.auth.hasPermission(route.permission || ''))
+      .sort((a, b) => a.title.localeCompare(b.title));
   }
 
   private saveToLocalStorage(): void {
-    localStorage.setItem(this.STORAGE_KEYS.RECENT_SEARCHES, JSON.stringify(this.recentSearches));
-    localStorage.setItem(this.STORAGE_KEYS.FAVORITE_PAGES, JSON.stringify(this.favoritePages));
+    try {
+      localStorage.setItem(this.STORAGE_KEYS.RECENT_SEARCHES, JSON.stringify(this.recentSearches));
+      localStorage.setItem(this.STORAGE_KEYS.FAVORITE_PAGES, JSON.stringify(this.favoritePages));
+    } catch (error) {
+      console.warn('Erro ao salvar no localStorage:', error);
+    }
   }
 
   handleSearch(): void {
-    if (this.searchQuery.trim() === '') {
-      this.filteredResults = [];
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
+    }
+
+    this.searchTimeout = window.setTimeout(() => {
+      this.performSearch();
+    }, 150);
+  }
+
+  private performSearch(): void {
+    const query = this.searchQuery.trim();
+
+    if (!query) {
+      this.filteredResults = this.isSearchModalActive ? this.allPages : [];
       return;
     }
 
-    const searchQuery = Utils.prepareSearchQuery(this.searchQuery);
+    const searchTerm = Utils.prepareSearchQuery(query);
 
-    this.filteredResults = this.layoutService.getAvailableRoutes()
-      .filter(route =>
-        Utils.prepareSearchQuery(route.title).includes(searchQuery) &&
-        this.auth.hasPermission(route.permission || ''));
+    this.filteredResults = this.allPages.filter(page => {
+      const titleMatch = Utils.prepareSearchQuery(page.title).includes(searchTerm);
+      const descMatch = page.description ?
+        Utils.prepareSearchQuery(page.description).includes(searchTerm) : false;
+
+      return titleMatch || descMatch;
+    });
   }
 
   navigate(path: string): void {
-    const route = this.layoutService.getAvailableRoutes().find(r => r.path === path);
-    if (route) {
-      this.addToRecentSearches(route);
+    const page = this.allPages.find(p => p.path === path);
+    if (page) {
+      this.addToRecentSearches(page);
+      this.router.navigate([path]);
     }
-    this.router.navigate([path]);
     this.closeAll();
   }
 
   private addToRecentSearches(item: SearchItem): void {
+    // Remove se já existe
     this.recentSearches = this.recentSearches.filter(search => search.path !== item.path);
+
+    // Adiciona no início
     this.recentSearches.unshift({
       path: item.path,
       title: item.title,
-      icon: item.icon
+      icon: item.icon,
+      description: item.description
     });
 
+    // Mantém apenas os últimos MAX_RECENT_SEARCHES
     if (this.recentSearches.length > this.MAX_RECENT_SEARCHES) {
-      this.recentSearches.pop();
+      this.recentSearches = this.recentSearches.slice(0, this.MAX_RECENT_SEARCHES);
     }
 
     this.saveToLocalStorage();
@@ -97,50 +143,111 @@ export class SearchScreenComponent implements OnInit {
 
   toggleSearch(): void {
     this.isSearchModalActive = !this.isSearchModalActive;
+
     if (this.isSearchModalActive) {
-      this.isSearchText = false;
       this.searchQuery = '';
-      this.filteredResults = [];
+      this.filteredResults = this.allPages;
+      // Foca no input após um pequeno delay para garantir que o modal está visível
+      setTimeout(() => this.focusSearchInput(), 100);
+    } else {
+      this.closeAll();
+    }
+  }
+
+  private focusSearchInput(): void {
+    const input = document.querySelector('.selector-menu input') as HTMLInputElement;
+    if (input) {
+      input.focus();
     }
   }
 
   onSearchFocus(): void {
-    this.isSearchText = true;
-    this.searchQuery = '';
-    this.filteredResults = [];
+    setTimeout(() => {
+      this.isSearchFocused = true;
+    }, 250);
+
+    if (!this.searchQuery.trim()) {
+      this.filteredResults = [];
+    }
   }
 
-  onSearchBlur(): void {
-    setTimeout(() => {
-      if (!this.isSearchModalActive) {
-        this.isSearchText = false;
-      }
-    }, 200);
+  onSearchBlur(event: FocusEvent): void {
+    const relatedTarget = event.relatedTarget as HTMLElement;
+
+    // Verifica se o foco foi para um elemento dentro dos resultados de busca
+    if (relatedTarget && relatedTarget.closest('.search-results')) {
+      return; // Não remove o foco se clicou dentro dos resultados
+    }
+
+    this.isSearchFocused = false;
   }
+
+  onSearchResultsClick(event: MouseEvent): void {
+    event.stopPropagation();
+
+    const container = (event.currentTarget as HTMLElement).closest('.selector-search');
+    const input = container?.querySelector('input') as HTMLInputElement | null;
+
+    input?.focus();
+  }
+
 
   isFavorite(item: SearchItem): boolean {
     return this.favoritePages.some(fav => fav.path === item.path);
   }
 
   toggleFavorite(item: SearchItem, event?: Event): void {
-    if (event) event.stopPropagation();
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
 
-    if (this.isFavorite(item)) {
-      this.favoritePages = this.favoritePages.filter(fav => fav.path !== item.path);
+    const favoriteIndex = this.favoritePages.findIndex(fav => fav.path === item.path);
+
+    if (favoriteIndex >= 0) {
+      // Remove dos favoritos
+      this.favoritePages.splice(favoriteIndex, 1);
     } else {
+      // Adiciona aos favoritos
       this.favoritePages.unshift({
         path: item.path,
         title: item.title,
-        icon: item.icon
+        icon: item.icon,
+        description: item.description
       });
     }
+
+    this.saveToLocalStorage();
+  }
+
+  clearRecentSearches(): void {
+    this.recentSearches = [];
+    this.saveToLocalStorage();
+  }
+
+  clearFavorites(): void {
+    this.favoritePages = [];
     this.saveToLocalStorage();
   }
 
   private closeAll(): void {
-    this.isSearchText = false;
+    this.isSearchFocused = false;
     this.isSearchModalActive = false;
     this.searchQuery = '';
     this.filteredResults = [];
+
+    if (this.searchTimeout) {
+      clearTimeout(this.searchTimeout);
+    }
+  }
+
+  // Getter para verificar se deve mostrar os resultados de busca
+  get showSearchResults(): boolean {
+    return this.isSearchFocused && !this.isSearchModalActive;
+  }
+
+  // Getter para verificar se deve mostrar estado vazio
+  get showEmptyState(): boolean {
+    return this.searchQuery.trim() !== '' && this.filteredResults.length === 0;
   }
 }

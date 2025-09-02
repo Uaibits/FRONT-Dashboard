@@ -1,0 +1,266 @@
+<div class="filters-container">
+
+  <!-- Cabeçalho -->
+  <div class="flex justify-content-between align-items-center mb-4">
+    <h3 class="m-0">Filtros da Consulta</h3>
+    <div class="flex gap-2">
+      <ub-button
+        type="button"
+        icon="bx bx-plus"
+        (click)="showAddFilterForm()"
+        [disabled]="loading">
+        Adicionar Filtro
+      </ub-button>
+    </div>
+  </div>
+
+  <!-- Sugestões de Variáveis -->
+  @if (hasSuggestions && !showFilterForm) {
+    <div class="suggestions-card mb-4">
+      <div class="bg-blue-50 border-round p-3 border-blue-200">
+        <h5 class="text-blue-800 mb-2">
+          Variáveis Sugeridas
+        </h5>
+        <p class="text-blue-700 text-sm mb-3">
+          Estas variáveis foram encontradas na configuração da consulta mas ainda não possuem filtros:
+        </p>
+        <div class="flex flex-wrap gap-2">
+          @for (suggestion of variableSuggestions; track suggestion) {
+            <span
+              class="suggestion-tag bg-blue-100 text-blue-800 px-2 py-1 border-round text-sm cursor-pointer hover:bg-blue-200 transition-colors"
+              (click)="useSuggestion(suggestion)">
+          {{ suggestion }}
+        </span>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Formulário de Filtro -->
+  @if (showFilterForm) {
+    <div class="filter-form-card mb-4">
+      <div class="bg-gray-50 border-round p-4 border-gray-200">
+        <div class="flex justify-content-between align-items-center mb-3">
+          <h4 class="m-0">
+            {{ editingFilter ? 'Editar Filtro' : 'Adicionar Novo Filtro' }}
+          </h4>
+        </div>
+
+        <form [formGroup]="filterForm" (ngSubmit)="saveFilter()">
+          <div class="p-fluid p-formgrid grid">
+
+            <!-- Nome e Variável -->
+            <div class="col-12 md:col-6">
+              <ub-input
+                label="Nome do Filtro"
+                placeholder="Digite o nome do filtro"
+                formControlName="name"
+                [error]="FormErrorHandlerService.getError('name', errors)"
+                (blur)="generateVarName($event)">
+              </ub-input>
+            </div>
+
+            <div class="col-12 md:col-6">
+              <ub-input
+                label="Nome da Variável"
+                placeholder="NOME_VARIAVEL"
+                formControlName="var_name"
+                [error]="FormErrorHandlerService.getError('var_name', errors)">
+              </ub-input>
+              <small class="text-500">Deve começar com letra maiúscula e conter apenas letras maiúsculas, números e
+                underscores.</small>
+            </div>
+
+            <!-- Descrição -->
+            <div class="col-12">
+              <ub-textarea
+                label="Descrição"
+                placeholder="Descrição do filtro (opcional)"
+                formControlName="description"
+                [error]="FormErrorHandlerService.getError('description', errors)">
+              </ub-textarea>
+            </div>
+
+            <!-- Tipo -->
+            <div class="col-12 md:col-6">
+              <ub-dropdown
+                label="Tipo do Filtro"
+                placeholder="Selecione o tipo"
+                formControlName="type"
+                [error]="FormErrorHandlerService.getError('type', errors)"
+                [options]="filterTypes"
+                optionLabel="label"
+                optionValue="value"
+                optionDescription="description"
+                (valueChange)="onTypeChange()">
+              </ub-dropdown>
+            </div>
+
+            <!-- Valor Padrão -->
+            <div class="col-12 md:col-6">
+              <ub-input
+                label="Valor Padrão"
+                placeholder="Valor padrão (opcional)"
+                formControlName="default_value"
+                [error]="FormErrorHandlerService.getError('default_value', errors)">
+              </ub-input>
+            </div>
+
+            <!-- Opções (quando necessário) -->
+            @if (showOptionsField) {
+              <div class="col-12">
+                <ub-object-editor
+                  label="Opções"
+                  helpText='Formato esperado: {"key1": "Label 1", "key2": "Label 2"}'
+                  formControlName="options"
+                  [error]="FormErrorHandlerService.getError('options', errors)">
+                </ub-object-editor>
+                <small class="text-500">Para tipos select/multiselect, defina as opções em formato JSON.</small>
+              </div>
+            }
+
+            <!-- Configurações -->
+            <div class="col-12">
+              <div class="flex flex-wrap gap-3">
+                <label class="flex align-items-center gap-2">
+                  <input type="checkbox" formControlName="required">
+                  <span>Obrigatório</span>
+                </label>
+                <label class="flex align-items-center gap-2">
+                  <input type="checkbox" formControlName="visible">
+                  <span>Visível</span>
+                </label>
+                <label class="flex align-items-center gap-2">
+                  <input type="checkbox" formControlName="active">
+                  <span>Ativo</span>
+                </label>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Botões -->
+          <div class="flex justify-content-end gap-2 mt-4">
+            <ub-button
+              type="button"
+              (click)="cancelEdit()"
+              [disabled]="loading">
+              Cancelar
+            </ub-button>
+            <ub-button
+              type="submit"
+              [disabled]="filterForm.invalid"
+              [loading]="loading">
+              {{ editingFilter ? 'Atualizar' : 'Criar' }}
+            </ub-button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (loading && !showFilterForm) {
+    <div class="text-center p-4">
+      <i class="bx bx-loader bx-spin text-2xl"></i>
+      <p class="mt-2">Carregando filtros...</p>
+    </div>
+  }
+
+  <!-- Lista de Filtros -->
+  @if (hasFilters && !loading) {
+    <div class="filters-list">
+      <div
+        class="filter-list-container"
+        cdkDropList
+        (cdkDropListDropped)="onFiltersReorder($event)">
+
+        @for (filter of filters; track filter.var_name) {
+          <div class="filter-item" cdkDrag>
+
+            <!-- Handle de Drag -->
+            <div class="drag-handle" cdkDragHandle>
+              <i class="bx bx-move text-400"></i>
+            </div>
+
+            <!-- Conteúdo do Filtro -->
+            <div class="filter-content">
+              <div class="filter-header">
+                <div class="filter-title">
+                  <h5 class="m-0">{{ filter.name }}</h5>
+                  <span class="filter-variable">:{{ filter.var_name }}</span>
+                </div>
+                <div class="filter-badges">
+                  <span class="badge badge-type">{{ filter.type }}</span>
+                  @if (filter.required) {
+                    <span class="badge badge-required">Obrigatório</span>
+                  }
+                  @if (!filter.active) {
+                    <span class="badge badge-inactive">Inativo</span>
+                  }
+                </div>
+              </div>
+
+              @if (filter.description) {
+                <div class="filter-description">
+                  <p class="text-600 text-sm m-0">{{ filter.description }}</p>
+                </div>
+              }
+
+              <div class="filter-details">
+                @if (filter.default_value) {
+                  <div class="detail-item">
+                    <span class="detail-label">Padrão:</span>
+                    <span class="detail-value">{{ filter.default_value }}</span>
+                  </div>
+                }
+                <div class="detail-item">
+                  <span class="detail-label">Ordem:</span>
+                  <span class="detail-value">{{ filter.order }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Visível:</span>
+                  <span class="detail-value">{{ filter.visible ? 'Sim' : 'Não' }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ações -->
+            <div class="filter-actions">
+              <ub-button
+                type="button"
+                icon="bx bx-edit"
+                (click)="editFilter(filter)"
+                [disabled]="loading">
+              </ub-button>
+              <ub-button
+                type="button"
+                icon="bx bx-trash"
+                severity="danger"
+                (click)="deleteFilter(filter)"
+                [disabled]="loading">
+              </ub-button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Estado Vazio -->
+  @if (!hasFilters && !loading && !showFilterForm) {
+    <div class="empty-state text-center p-5">
+      <i class="bx bx-filter-alt text-6xl text-400 mb-3"></i>
+      <h4 class="text-600">Nenhum filtro configurado</h4>
+      <p class="text-500">Adicione filtros para tornar sua consulta dinâmica mais flexível.</p>
+      <ub-button
+        type="button"
+        icon="bx bx-plus"
+        (click)="showAddFilterForm()">
+        Adicionar Primeiro Filtro
+      </ub-button>
+    </div>
+  }
+
+</div>

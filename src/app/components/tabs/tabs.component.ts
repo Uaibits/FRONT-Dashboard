@@ -5,8 +5,7 @@ import {
   Output,
   ContentChildren,
   QueryList,
-  AfterContentInit,
-  HostListener,
+  AfterContentInit
 } from '@angular/core';
 import { TabComponent } from './tab/tab.component';
 
@@ -35,19 +34,4 @@ export class TabsComponent implements AfterContentInit {
     this.activeTabIndexChange.emit(this.activeTabIndex);
   }
 
-  // Navegação por teclado
-  @HostListener('keydown', ['$event'])
-  onKeyDown(event: KeyboardEvent): void {
-    const tabsArray = this.tabs.toArray();
-    const currentIndex = tabsArray.findIndex((tab) => tab.active);
-
-    if (event.key === 'ArrowRight') {
-      const nextIndex = (currentIndex + 1) % tabsArray.length;
-      this.selectTab(tabsArray[nextIndex]);
-    } else if (event.key === 'ArrowLeft') {
-      const prevIndex =
-        (currentIndex - 1 + tabsArray.length) % tabsArray.length;
-      this.selectTab(tabsArray[prevIndex]);
-    }
-  }
 }

@@ -6,7 +6,6 @@ import { DropdownComponent } from '../dropdown/dropdown.component';
 import { ToggleSwitchComponent } from '../toggle-switch/toggle-switch.component';
 import { ButtonComponent } from '../button/button.component';
 import { TextareaComponent } from '../textarea/textarea.component';
-import { BaseInputComponent } from '../base-input.component';
 import { NgxJsonViewerModule } from 'ngx-json-viewer';
 
 // Interface para opções de tipo
@@ -35,7 +34,6 @@ export enum ViewMode {
   standalone: true,
   imports: [
     CommonModule,
-    BaseInputComponent,
     InputComponent,
     DropdownComponent,
     ToggleSwitchComponent,
@@ -89,7 +87,7 @@ export class ObjectEditorComponent implements ControlValueAccessor {
   isAdding: boolean = false;
   jsonString: string = '';
   jsonError: string = '';
-  allCollapsed: boolean = false;
+  allCollapsed: boolean = true;
 
   // ControlValueAccessor methods
   onChange: any = () => {};
@@ -101,7 +99,7 @@ export class ObjectEditorComponent implements ControlValueAccessor {
         name,
         value: val,
         type: this.detectType(val),
-        collapsed: false
+        collapsed: true
       }));
     } else {
       this.attributes = [];

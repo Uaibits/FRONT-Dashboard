@@ -31,7 +31,7 @@ export class ModalService {
     this.viewContainer = viewContainer;
   }
 
-  open(config: ModalConfig): ModalRef {
+  open<T = any>(config: ModalConfig): Promise<T | undefined> {
     if (!this.viewContainer) {
       throw new Error('ViewContainer não configurado. Chame setRootViewContainer primeiro.');
     }
@@ -51,7 +51,7 @@ export class ModalService {
     // Criar o componente de conteúdo
     const contentComponentRef = modalComponentRef.instance.contentContainer.createComponent(config.component);
 
-    // Passar dados para o componente de conteúdo se existir
+    // Passar dados
     if (config.data) {
       Object.keys(config.data).forEach(key => {
         if (contentComponentRef.instance.hasOwnProperty(key)) {
@@ -60,46 +60,34 @@ export class ModalService {
       });
     }
 
-    // Criar subject para resultados
-    const resultSubject = new Subject<any>();
-    const dismissedSubject = new Subject<any>();
-
-    // Criar referência do modal
-    const modalRef: ModalRef = {
-      close: (result?: any) => {
-        resultSubject.next(result);
-        resultSubject.complete();
+    // Promise de retorno
+    return new Promise<T | undefined>((resolve, reject) => {
+      const close = (result?: T) => {
+        resolve(result);
         this.destroyModal(modalComponentRef);
-      },
-      dismiss: (reason?: any) => {
-        dismissedSubject.next(reason);
-        dismissedSubject.complete();
+      };
+
+      const dismiss = (reason?: any) => {
+        resolve(undefined);
         this.destroyModal(modalComponentRef);
-      },
-      result: resultSubject.asObservable(),
-      dismissed: dismissedSubject.asObservable()
-    };
+      };
 
-    // Configurar eventos do modal
-    modalComponentRef.instance.closeModal.subscribe(() => {
-      modalRef.dismiss('close');
-    });
+      // Configurar eventos do modal
+      modalComponentRef.instance.closeModal.subscribe(() => {
+        dismiss('close');
+      });
 
-    modalComponentRef.instance.backdropClick.subscribe(() => {
-      if (modalComponentRef.instance.config.backdrop) {
-        modalRef.dismiss('backdrop');
+      modalComponentRef.instance.backdropClick.subscribe(() => {
+        if (modalComponentRef.instance.config.backdrop) {
+          dismiss('backdrop');
+        }
+      });
+
+      // Injetar close/dismiss no conteúdo
+      if (contentComponentRef.instance.hasOwnProperty('modalRef')) {
+        contentComponentRef.instance['modalRef'] = { close, dismiss };
       }
     });
-
-    // Injetar modalRef no componente de conteúdo se ele aceitar
-    if (contentComponentRef.instance.hasOwnProperty('modalRef')) {
-      contentComponentRef.instance.modalRef = modalRef;
-    }
-
-    // Adicionar à lista de modais ativos
-    this.activeModals.push(modalComponentRef);
-
-    return modalRef;
   }
 
   private destroyModal(modalComponentRef: ComponentRef<ModalComponent>) {
@@ -108,16 +96,5 @@ export class ModalService {
       this.activeModals.splice(index, 1);
     }
     modalComponentRef.destroy();
-  }
-
-  closeAll() {
-    this.activeModals.forEach(modal => {
-      modal.destroy();
-    });
-    this.activeModals = [];
-  }
-
-  hasOpenModals(): boolean {
-    return this.activeModals.length > 0;
   }
 }

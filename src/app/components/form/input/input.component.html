@@ -3,6 +3,7 @@
   [helpText]="helpText"
   [error]="error"
   [success]="success"
+  [required]="required"
 >
   <div class="input-with-suggestions">
     <input
@@ -10,6 +11,7 @@
       [type]="type"
       [placeholder]="placeholder"
       [value]="value"
+      [required]="required"
       (blur)="onBlur($event)"
       (input)="onInput($event)"
       (change)="onChangeEvent($event)"

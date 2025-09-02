@@ -4,6 +4,7 @@ import {TableComponent, TableConfig} from '../../components/table/table.componen
 import {DynamicQueryService} from '../../services/dynamic-query.service';
 import {ToastService} from '../../components/toast/toast.service';
 import {Utils} from '../../services/utils.service';
+import {DynamicQuery} from '../../modals/dynamic-query/dynamic-query.modal';
 
 @Component({
   selector: 'app-dynamic-queries',
@@ -19,7 +20,7 @@ export class DynamicQueriesPage implements OnInit {
 
   protected companyId: number | null = null;
   protected loading: boolean = false;
-  protected data: any[] = [];
+  protected data: DynamicQuery[] = [];
   protected configTable: TableConfig = {
     cols: [
       {
@@ -69,7 +70,7 @@ export class DynamicQueriesPage implements OnInit {
   openConfig(query?: any) {
     const modal = this.dynamicQueryService.openDynamicQueryModal(query, this.companyId);
 
-    modal.dismissed.subscribe(() => {
+    modal.then(() => {
       this.loadData();
     });
   }
