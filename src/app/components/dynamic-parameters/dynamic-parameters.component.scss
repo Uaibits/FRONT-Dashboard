@@ -1,0 +1,108 @@
+.service-params-container {
+  min-height: 200px;
+}
+
+.param-group {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid #e9ecef;
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.group-header h4 {
+  color: #495057;
+  margin: 0;
+  font-weight: 600;
+}
+
+.help-text {
+  display: block;
+  color: #6c757d;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+  line-height: 1.4;
+
+  .pi {
+    color: #17a2b8;
+  }
+}
+
+.no-params-message {
+  background: #f8f9fa;
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  margin: 1rem 0;
+
+  .pi-info-circle {
+    color: #17a2b8;
+  }
+}
+
+.loading-container {
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin: 1rem 0;
+
+  .pi-spinner {
+    color: #17a2b8;
+  }
+}
+
+.required-indicator {
+  color: #dc3545;
+  margin-left: 2px;
+}
+
+// Melhorias visuais para campos obrigatórios
+.form-field.required {
+  .form-label::after {
+    content: " *";
+    color: #dc3545;
+  }
+}
+
+// Feedback visual para campos com erro
+.form-field.error {
+  .form-control {
+    border-color: #dc3545;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+  }
+}
+
+// Estados de loading
+.loading {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+// Responsividade aprimorada
+@media (max-width: 768px) {
+  .param-group {
+    padding: 0.75rem;
+  }
+
+  .group-header h4 {
+    font-size: 1rem;
+  }
+}
+
+// Animações sutis
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.param-group {
+  animation: fadeIn 0.3s ease-out;
+}

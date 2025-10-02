@@ -74,4 +74,11 @@ export class DynamicQueriesPage implements OnInit {
       this.loadData();
     });
   }
+
+  deleteDynamicQuery(event: any) {
+    this.loading = true;
+    this.dynamicQueryService.deleteDynamicQuery(event.key, this.companyId).then(() => {
+      this.loadData();
+    }).finally(() => this.loading = false);
+  }
 }

@@ -1,55 +1,30 @@
 import {Component, forwardRef, Input, OnChanges, OnInit, SimpleChanges} from '@angular/core';
+import {ControlValueAccessor, NG_VALUE_ACCESSOR} from '@angular/forms';
 import {ServicesService} from '../../../services/services.service';
 import {ToastService} from '../../../components/toast/toast.service';
 import {Utils} from '../../../services/utils.service';
-import {InputComponent} from '../../../components/form/input/input.component';
-import {ControlValueAccessor, FormBuilder, FormGroup, NG_VALUE_ACCESSOR, ReactiveFormsModule} from '@angular/forms';
-import {TextareaComponent} from '../../../components/form/textarea/textarea.component';
-import {DropdownComponent} from '../../../components/form/dropdown/dropdown.component';
-import {MultiselectComponent} from '../../../components/form/multiselect/multiselect.component';
-import {ToggleSwitchComponent} from '../../../components/form/toggle-switch/toggle-switch.component';
-import {ObjectEditorComponent} from '../../../components/form/object-editor/object-editor.component';
-import {CodeeditorComponent} from '../../../components/form/code-editor/code-editor.component';
-import {ButtonComponent} from '../../../components/form/button/button.component';
 import {DynamicQueryService} from '../../../services/dynamic-query.service';
-
-interface ServiceParameter {
-  name: string;
-  type: string;
-  required: boolean;
-  defaultValue: any;
-  description?: string;
-  label?: string;
-  options?: any[];
-  validation?: any;
-  placeholder?: string;
-  group?: string;
-  order: number;
-  sensitive: boolean;
-  dependsOn: string[];
-  arrayItemType?: any;
-}
-
-interface ServiceParams {
-  [groupName: string]: ServiceParameter[];
-}
+import {DynamicParametersComponent, DynamicParams} from '../../../components/dynamic-parameters/dynamic-parameters.component';
 
 @Component({
   selector: 'app-service-parameters',
   imports: [
-    InputComponent,
-    ReactiveFormsModule,
-    TextareaComponent,
-    DropdownComponent,
-    MultiselectComponent,
-    ToggleSwitchComponent,
-    ObjectEditorComponent,
-    CodeeditorComponent,
-    ButtonComponent
+    DynamicParametersComponent
   ],
-  templateUrl: './service-parameters.component.html',
+  template: `
+    <ub-dynamic-parameters
+      [loading]="loading"
+      [disabled]="disabled"
+      [dynamicParams]="serviceParams"
+      [paramsValue]="currentValue"
+      [submitButtonText]="submitButtonText"
+      [errors]="errors"
+      (save)="onSave($event)"
+      (formChange)="onFormChange($event)"
+      (formValid)="onFormValid($event)">
+    </ub-dynamic-parameters>
+  `,
   standalone: true,
-  styleUrl: './service-parameters.component.scss',
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
@@ -60,33 +35,27 @@ interface ServiceParams {
 })
 export class ServiceParametersComponent implements OnInit, OnChanges, ControlValueAccessor {
 
-  @Input({
-    required: true
-  }) dynamicQuery: any | null = null;
-  @Input() serviceSlug: string | null = null;
+  @Input({required: true}) serviceSlug: string | null = null;
   @Input() companyId: number | null = null;
   @Input() disabled: boolean = false;
+  @Input() dynamicQuery: any | null = null;
 
-  form!: FormGroup;
-  serviceParams: ServiceParams = {};
+  serviceParams: DynamicParams = {};
+  submitButtonText: string = 'Salvar Parâmetros';
   loading = false;
   errors: { [key: string]: string } = {};
+  currentValue: any = {};
 
   // ControlValueAccessor
-  private onChange = (value: any) => {
-  };
-  private onTouched = () => {
-  };
+  private onChange = (value: any) => {};
+  private onTouched = () => {};
 
   constructor(
-    private fb: FormBuilder,
     private servicesService: ServicesService,
     private toast: ToastService,
     private dynamicQueryService: DynamicQueryService,
     private utils: Utils
-  ) {
-    this.form = this.fb.group({});
-  }
+  ) {}
 
   ngOnInit() {
     this.loadServiceParams();
@@ -96,24 +65,11 @@ export class ServiceParametersComponent implements OnInit, OnChanges, ControlVal
     if (changes['serviceSlug'] && !changes['serviceSlug'].firstChange) {
       this.loadServiceParams();
     }
-
-    if (changes['disabled']) {
-      if (this.disabled) {
-        this.form.disable();
-      } else {
-        this.form.enable();
-      }
-    }
-  }
-
-  get hasParameters(): boolean {
-    return Object.keys(this.serviceParams).length > 0;
   }
 
   private async loadServiceParams() {
     if (!this.serviceSlug) {
       this.serviceParams = {};
-      this.buildForm();
       return;
     }
 
@@ -121,186 +77,59 @@ export class ServiceParametersComponent implements OnInit, OnChanges, ControlVal
     try {
       const response = await this.servicesService.getServiceParams(this.serviceSlug, this.companyId);
       this.serviceParams = response.data || {};
-      this.buildForm();
+
+      // Se há um dynamicQuery com service_params, atualiza o valor atual
+      if (this.dynamicQuery?.service_params) {
+        this.currentValue = this.dynamicQuery.service_params;
+      }
     } catch (error) {
       this.toast.error(Utils.getErrorMessage(error, 'Erro ao carregar parâmetros do serviço'));
       this.serviceParams = {};
-      this.buildForm();
     } finally {
       this.loading = false;
     }
   }
 
-  private buildForm() {
-    const formControls: { [key: string]: any } = {};
+  onFormChange(value: any) {
+    this.currentValue = value;
+    this.onChange(value);
+    this.onTouched();
+  }
 
-    Object.values(this.serviceParams).flat().forEach(param => {
-      const defaultValue = this.getDefaultValue(param);
-      formControls[param.name] = [defaultValue, this.getValidators(param)];
-    });
+  onFormValid(isValid: boolean) {
+    // Pode emitir evento para o componente pai se necessário
+  }
 
-    this.form = this.fb.group(formControls);
-
-    // Emitir mudanças para o ControlValueAccessor
-    this.form.valueChanges.subscribe(value => {
-      this.onChange(value);
-    });
-
-    if (this.disabled) {
-      this.form.disable();
+  async onSave(data: any) {
+    if (!this.dynamicQuery) {
+      this.toast.error('Consulta dinâmica não encontrada');
+      return;
     }
 
-    if (this.dynamicQuery && this.dynamicQuery.service_params) {
-      this.form.patchValue(this.dynamicQuery.service_params, {emitEvent: false});
-    }
-  }
+    this.loading = true;
+    this.errors = {};
 
-  private getDefaultValue(param: ServiceParameter): any {
-    switch (param.type) {
-      case 'boolean':
-        return param.defaultValue ?? false;
-      case 'array':
-      case 'multiselect':
-        return param.defaultValue ?? [];
-      case 'object':
-        return param.defaultValue ? param.defaultValue : {};
-      default:
-        return param.defaultValue ?? '';
-    }
-  }
-
-  private getValidators(param: ServiceParameter): any[] {
-    const validators = [];
-
-    if (param.required) {
-      validators.push((control: any) => {
-        const value = control.value;
-        if (value === null || value === undefined || value === '' ||
-          (Array.isArray(value) && value.length === 0)) {
-          return {required: true};
-        }
-        return null;
-      });
-    }
-
-    // Adicionar mais validadores conforme necessário
-    if (param.validation) {
-      // Implementar validações específicas baseadas em param.validation
-    }
-
-    return validators;
-  }
-
-  // Template methods
-  getGroupNames(): string[] {
-    return Object.keys(this.serviceParams).sort();
-  }
-
-  getGroupDisplayName(group: string): string {
-    return group === 'general' ? 'Configurações Gerais' :
-      group.charAt(0).toUpperCase() + group.slice(1).replace('_', ' ');
-  }
-
-  trackByParamName(index: number, param: ServiceParameter): string {
-    return param.name;
-  }
-
-  shouldShowParameter(param: ServiceParameter): boolean {
-    if (!param.dependsOn || param.dependsOn.length === 0) {
-      return true;
-    }
-
-    return param.dependsOn.every(dependency => {
-      const dependencyValue = this.form.get(dependency)?.value;
-      return dependencyValue !== null && dependencyValue !== undefined && dependencyValue !== '';
-    });
-  }
-
-  getColumnClass(param: ServiceParameter): string {
-    if (param.type === 'object' || param.type === 'array' || param.type === 'sql' || param.type === 'javascript') {
-      return 'col-12';
-    }
-    return 'col-12 md:col-6';
-  }
-
-  isTextInput(param: ServiceParameter): boolean {
-    return ['text', 'email', 'url'].includes(param.type);
-  }
-
-  getInputType(param: ServiceParameter): string {
-    switch (param.type) {
-      case 'email':
-        return 'email';
-      case 'url':
-        return 'url';
-      case 'text':
-      default:
-        return 'text';
-    }
-  }
-
-  getDefaultLabel(name: string): string {
-    return name.split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  }
-
-  getDefaultPlaceholder(param: ServiceParameter): string {
-    switch (param.type) {
-      case 'email':
-        return 'Digite o email';
-      case 'url':
-        return 'https://exemplo.com';
-      case 'number':
-        return 'Digite um número';
-      case 'date':
-        return 'dd/mm/aaaa';
-      default:
-        return `Digite ${this.getDefaultLabel(param.name).toLowerCase()}`;
-    }
-  }
-
-  getSelectOptions(param: ServiceParameter): any[] {
-    if (Array.isArray(param.options)) {
-      return param.options.map(option =>
-        typeof option === 'string' ?
-          {label: option, value: option} :
-          option
+    try {
+      await this.dynamicQueryService.updateDynamicQuery(
+        this.dynamicQuery.key!,
+        { service_params: data },
+        this.companyId
       );
-    }
-    return [];
-  }
 
-  getComplexFieldPlaceholder(param: ServiceParameter): string {
-    if (param.type === 'object') {
-      return '{\n  "chave": "valor",\n  "outra_chave": "outro_valor"\n}';
+      this.toast.success('Parâmetros salvos com sucesso!');
+      this.currentValue = data;
+      this.onChange(data);
+    } catch (error) {
+      this.errors = this.utils.handleErrorsForm(error, null);
+      this.toast.error(Utils.getErrorMessage(error, 'Erro ao salvar parâmetros'));
+    } finally {
+      this.loading = false;
     }
-    return '["item1", "item2", "item3"]';
-  }
-
-  getComplexFieldHelp(param: ServiceParameter): string {
-    if (param.type === 'object') {
-      return 'Digite um objeto JSON válido';
-    }
-    return 'Digite um array JSON válido';
-  }
-
-  getFieldError(fieldName: string): string {
-    const control = this.form.get(fieldName);
-    if (control && control.invalid && (control.dirty || control.touched)) {
-      if (control.errors?.['required']) {
-        return 'Este campo é obrigatório';
-      }
-      // Adicionar mais tipos de erro conforme necessário
-    }
-    return "";
   }
 
   // ControlValueAccessor implementation
   writeValue(value: any): void {
-    if (value && this.form) {
-      this.form.patchValue(value, {emitEvent: false});
-    }
+    this.currentValue = value || {};
   }
 
   registerOnChange(fn: any): void {
@@ -313,37 +142,5 @@ export class ServiceParametersComponent implements OnInit, OnChanges, ControlVal
 
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
-    if (this.form) {
-      if (isDisabled) {
-        this.form.disable();
-      } else {
-        this.form.enable();
-      }
-    }
-  }
-
-  onSubmit() {
-    if (this.form.invalid) {
-      this.toast.error('Por favor, corrija os erros no formulário antes de enviar.');
-      return;
-    }
-
-    this.loading = true;
-    const data = this.form.value;
-
-    this.updateDynamicQuery(data);
-  }
-
-  async updateDynamicQuery(data: any) {
-    try {
-      await this.dynamicQueryService.updateDynamicQuery(this.dynamicQuery.key!, {
-        service_params: data
-      }, this.companyId);
-      this.toast.success('Consulta dinâmica atualizada com sucesso!');
-    } catch (error) {
-      this.errors = this.utils.handleErrorsForm(error, this.form);
-    } finally {
-      this.loading = false;
-    }
   }
 }

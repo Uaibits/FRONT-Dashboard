@@ -83,9 +83,9 @@ export class DynamicQueryService {
   }
 
 
-  async deleteDynamicQuery(key: string): Promise<any> {
+  async deleteDynamicQuery(key: string, companyId?: string | number | null): Promise<any> {
     try {
-      const response = await firstValueFrom(this.http.delete<any>(`${this.API_URL}/queries/${key}/delete`));
+      const response = await firstValueFrom(this.http.delete<any>(`${this.API_URL}/queries/${key}/delete${companyId ? '?company_id=' + companyId : ''}`));
       this.toast.success('Consulta dinâmica excluída com sucesso!');
       return response;
     } catch (error) {

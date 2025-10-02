@@ -1,0 +1,13 @@
+<div class="alert" [ngClass]="type">
+  <i class="bx alert-icon" [ngClass]="getIconClass()"></i>
+
+  <div class="alert-content">
+    <ng-content></ng-content>
+  </div>
+
+  @if (closable) {
+    <button class="alert-close" (click)="onClose()" aria-label="Fechar">
+      <i class="bx bx-x"></i>
+    </button>
+  }
+</div>

@@ -15,6 +15,7 @@ import {PermissionGroupsPage} from './pages/permission-groups/permission-groups.
 import {ManagePermissionGroupPage} from './pages/permission-groups/manage/manage-permission-group.page';
 import {ParametersPage} from './pages/parameters/parameters.page';
 import {DynamicQueriesPage} from './pages/dynamic-queries/dynamic-queries.page';
+import {IntegrationsPage} from './pages/integrations/integrations.page';
 
 export const routes: Routes = [
   {
@@ -112,6 +113,19 @@ export const routes: Routes = [
           {
             path: "",
             component: PermissionsPage
+          }
+        ]
+      },
+      {
+        path: 'integrations',
+        canActivate: [PermissionGuard],
+        data: {
+          permission: 'integration.manage',
+        },
+        children: [
+          {
+            path: "",
+            component: IntegrationsPage
           }
         ]
       },

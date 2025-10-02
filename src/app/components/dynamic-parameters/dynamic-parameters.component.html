@@ -4,7 +4,7 @@
       <div class="text-center p-6">
         <i class="pi pi-info-circle text-4xl text-blue-500 mb-3"></i>
         <h3 class="text-lg font-medium text-gray-700 mb-2">Nenhum parâmetro configurável</h3>
-        <p class="text-gray-500">Este serviço não possui parâmetros que precisam ser configurados.</p>
+        <p class="text-gray-500">Este componente não possui parâmetros que precisam ser configurados.</p>
       </div>
     </div>
   }
@@ -23,7 +23,7 @@
           }
 
           <div class="p-fluid p-formgrid grid">
-            @for (param of serviceParams[group]; track param.name) {
+            @for (param of dynamicParams[group]; track param.name) {
               @if (shouldShowParameter(param)) {
                 <div [class]="getColumnClass(param)">
 
@@ -35,13 +35,9 @@
                       [formControlName]="param.name"
                       [required]="param.required"
                       [type]="getInputType(param)"
+                      [disabled]="disabled"
+                      [helpText]="param.description || ''"
                       [error]="getFieldError(param.name)">
-
-                      @if (param.description) {
-                        <small class="help-text">
-                          <i class="pi pi-info-circle mr-1"></i>{{ param.description }}
-                        </small>
-                      }
                     </ub-input>
                   }
 
@@ -52,13 +48,10 @@
                       [placeholder]="param.placeholder || 'Selecione uma opção'"
                       [formControlName]="param.name"
                       [required]="param.required"
+                      [disabled]="disabled"
                       [options]="getSelectOptions(param)"
+                      [helpText]="param.description || ''"
                       [error]="getFieldError(param.name)">
-                      @if (param.description) {
-                        <small class="help-text">
-                          <i class="pi pi-info-circle mr-1"></i>{{ param.description }}
-                        </small>
-                      }
                     </ub-dropdown>
                   }
 
@@ -69,8 +62,10 @@
                       [placeholder]="param.placeholder || 'Selecione as opções'"
                       [formControlName]="param.name"
                       [required]="param.required"
+                      [disabled]="disabled"
                       [options]="getSelectOptions(param)"
                       [error]="getFieldError(param.name)">
+
                       @if (param.description) {
                         <small class="help-text">
                           <i class="pi pi-info-circle mr-1"></i>{{ param.description }}
@@ -84,6 +79,7 @@
                     <ub-toggle-switch
                       [label]="param.label || getDefaultLabel(param.name)"
                       [formControlName]="param.name"
+                      [disabled]="disabled"
                       [helpText]="param.description || ''"
                       [error]="getFieldError(param.name)">
                     </ub-toggle-switch>
@@ -96,8 +92,10 @@
                       [placeholder]="param.placeholder || 'Digite um número'"
                       [formControlName]="param.name"
                       [required]="param.required"
+                      [disabled]="disabled"
                       type="number"
                       [error]="getFieldError(param.name)">
+
                       @if (param.description) {
                         <small class="help-text">
                           <i class="pi pi-info-circle mr-1"></i>{{ param.description }}
@@ -113,8 +111,10 @@
                       [placeholder]="param.placeholder || 'dd/mm/aaaa'"
                       [formControlName]="param.name"
                       [required]="param.required"
+                      [disabled]="disabled"
                       type="date"
                       [error]="getFieldError(param.name)">
+
                       @if (param.description) {
                         <small class="help-text">
                           <i class="pi pi-info-circle mr-1"></i>{{ param.description }}
@@ -129,7 +129,14 @@
                       [label]="param.label || getDefaultLabel(param.name)"
                       [formControlName]="param.name"
                       [required]="param.required"
+                      [disabled]="disabled"
                       [error]="getFieldError(param.name)">
+
+                      @if (param.description) {
+                        <small class="help-text">
+                          <i class="pi pi-info-circle mr-1"></i>{{ param.description }}
+                        </small>
+                      }
                     </ub-object-editor>
                   }
 
@@ -140,6 +147,7 @@
                       [placeholder]="getComplexFieldPlaceholder(param)"
                       [formControlName]="param.name"
                       [required]="param.required"
+                      [disabled]="disabled"
                       type="textarea"
                       [rows]="4"
                       [error]="getFieldError(param.name)">
@@ -159,6 +167,7 @@
                       [placeholder]="param.placeholder || getDefaultPlaceholder(param)"
                       [formControlName]="param.name"
                       [required]="param.required"
+                      [disabled]="disabled"
                       [helpText]="param.description ?? ''"
                       [error]="getFieldError(param.name)">
                     </ub-code-editor>
@@ -172,6 +181,7 @@
                       [placeholder]="param.placeholder || getDefaultPlaceholder(param)"
                       [formControlName]="param.name"
                       [required]="param.required"
+                      [disabled]="disabled"
                       [helpText]="param.description ?? ''"
                       [error]="getFieldError(param.name)">
                     </ub-code-editor>
@@ -184,9 +194,25 @@
       }
 
       <!-- Botão de Salvar -->
-      <div class="flex justify-content-end gap-2">
-        <ub-button type="submit" [disabled]="form.invalid" [loading]="loading">Salvar</ub-button>
-      </div>
+      @if (showSubmitButton) {
+        <div class="flex justify-content-end gap-2">
+          <ub-button
+            type="submit"
+            [disabled]="form.invalid || disabled"
+            [loading]="loading">
+            {{ submitButtonText }}
+          </ub-button>
+        </div>
+      }
     </form>
+  }
+
+  @if (loading) {
+    <div class="loading-container">
+      <div class="text-center p-6">
+        <i class="pi pi-spin pi-spinner text-2xl text-blue-500 mb-2"></i>
+        <p class="text-gray-500">Carregando parâmetros...</p>
+      </div>
+    </div>
   }
 </div>

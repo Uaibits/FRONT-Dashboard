@@ -4,6 +4,9 @@ import {FormErrorHandlerService} from '../form/form-error-handler.service';
 import {DropdownComponent} from '../form/dropdown/dropdown.component';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {CompanyService} from '../../services/company.service';
+import {User} from '../../models/user';
+import {UserService} from '../../services/user.service';
+import {AuthService} from '../../security/auth.service';
 
 @Component({
   selector: 'ub-content',
@@ -32,14 +35,21 @@ export class ContentComponent implements OnInit {
   protected companies: any[] = [];
 
   constructor(
-    private companyService: CompanyService
+    private companyService: CompanyService,
+    private authService: AuthService,
   ) {}
 
   ngOnInit() {
+    this.load();
+  }
 
-    if (this.selectCompany) {
-      // Inicializa o componente, carregando as empresas
-      this.loadCompanies();
+  async load() {
+    try {
+      if (this.selectCompany && this.authService.hasPermission('company.edit_other')) {
+        this.loadCompanies();
+      }
+    } catch (err: any) {
+      console.error('Erro ao carregar dados do usuário:', err);
     }
   }
 
@@ -59,7 +69,5 @@ export class ContentComponent implements OnInit {
   changeCompany(event: number | null) {
     this.companyId = event ?? null; // Atualiza o ID da empresa selecionada
     this.companyIdChange.emit(event);
-
-    console.log('Empresa selecionada:', this.companyId);
   }
 }

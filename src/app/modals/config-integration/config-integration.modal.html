@@ -1,0 +1,58 @@
+<div class="integration-container">
+
+  @if (integration) {
+    <div class="integration-card">
+
+      <div class="card-content">
+        <!-- Card Header -->
+        <div class="card-header">
+          <div class="integration-logo">
+            <img [src]="integration.img" [alt]="integration.name + ' logo'" (error)="onImageError($event)" loading="lazy">
+          </div>
+          <div class="integration-info">
+            <div class="infos">
+              <h3 class="integration-name">{{ integration.name }}</h3>
+              <span class="integration-version">v{{ integration.version }}</span>
+            </div>
+
+            <!-- Botão Testar -->
+            <button class="btn-test" (click)="testIntegration()">
+              <i class="bx bx-plug"></i>
+              <span>Testar Integração</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Card Body -->
+        <div class="card-body">
+          <p class="integration-description">{{ integration.description }}</p>
+        </div>
+
+      </div>
+
+    </div>
+  }
+
+  @if (!companyId) {
+    <ub-alert type="warning">
+      Não encontramos nenhuma empresa vinculada à sua conta.
+      Para continuar e configurar integrações, associe-se a uma empresa.
+    </ub-alert>
+  }
+
+  @if (erros && erros.length > 0) {
+    <ub-alert type="danger">
+      {{ getErrorsFormat() }}
+    </ub-alert>
+  }
+
+  @if (integration && !loading) {
+    <ub-dynamic-parameters
+      [loading]="loading"
+      [disabled]="!companyId"
+      [dynamicParams]="integration.parameters"
+      [paramsValue]="companyIntegration ? companyIntegration.configuration : {}"
+      (save)="save($event)"
+    ></ub-dynamic-parameters>
+  }
+</div>

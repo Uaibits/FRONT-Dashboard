@@ -1,0 +1,61 @@
+<ub-content [loading]="loading">
+
+  <!-- Header Section -->
+  <div class="integrations-header">
+    <h2 class="page-title">Integrações Disponíveis</h2>
+    <p class="page-subtitle">Conecte seu sistema com as principais plataformas do mercado e amplifique suas
+      possibilidades</p>
+  </div>
+
+  <!-- Empty State -->
+  @if (!loading && integrations.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M13 16H12V12H11M12 8H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+            stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h3 class="empty-title">Nenhuma integração encontrada</h3>
+      <p class="empty-description">Não foi possível carregar as integrações disponíveis no momento. Tente novamente em
+        alguns instantes.</p>
+    </div>
+  }
+
+  <!-- Integrations Grid -->
+  @if (!loading && integrations.length > 0) {
+    <div class="integrations-grid" [class.loading]="loading">
+      @for (integration of integrations; track integration.integration_name) {
+        <div class="integration-card" (click)="onConfigureIntegration(integration)">
+
+          <div class="card-content">
+            <!-- Card Header -->
+            <div class="card-header">
+              <div class="integration-logo">
+                <img [src]="integration.img"
+                     [alt]="integration.name + ' logo'"
+                     (error)="onImageError($event)"
+                     loading="lazy">
+              </div>
+              <div class="integration-info">
+                <div class="infos">
+                  <h3 class="integration-name">{{ integration.name }}</h3>
+                  <span class="integration-version">v{{ integration.version }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card Body -->
+            <div class="card-body">
+              <p class="integration-description">{{ integration.description }}</p>
+            </div>
+
+          </div>
+
+        </div>
+      }
+    </div>
+  }
+
+</ub-content>

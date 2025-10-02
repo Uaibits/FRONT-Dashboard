@@ -13,12 +13,12 @@ import {DropdownComponent} from '../../components/form/dropdown/dropdown.compone
 import {ButtonComponent} from '../../components/form/button/button.component';
 import {ServiceParametersComponent} from './service-parameters/service-parameters.component';
 import {TextareaComponent} from '../../components/form/textarea/textarea.component';
-import {NgxJsonViewerModule} from 'ngx-json-viewer';
 import {CommonModule} from '@angular/common';
 import {
   DynamicQueryFilter,
   DynamicQueryFiltersComponent
 } from './dynamic-query-filters/dynamic-query-filters.component';
+import {DynamicQueryTestComponent} from './dynamic-query-test/dynamic-query-test.component';
 
 export interface DynamicQuery {
   id: number;
@@ -34,14 +34,6 @@ export interface DynamicQuery {
   active_filters: DynamicQueryFilter[];
 }
 
-interface TestResult {
-  success: boolean;
-  message: string;
-  metadata: any;
-  data: any;
-  errors: any[];
-}
-
 @Component({
   selector: 'app-dynamic-query',
   imports: [
@@ -53,9 +45,9 @@ interface TestResult {
     ButtonComponent,
     ServiceParametersComponent,
     TextareaComponent,
-    NgxJsonViewerModule,
     CommonModule,
-    DynamicQueryFiltersComponent
+    DynamicQueryFiltersComponent,
+    DynamicQueryTestComponent
   ],
   templateUrl: './dynamic-query.modal.html',
   standalone: true,
@@ -65,17 +57,12 @@ export class DynamicQueryModal implements OnInit {
 
   modalRef!: ModalRef;
   dynamicQueryKey: string | null = null;
-  dynamicQuery: DynamicQuery | null = null; // Placeholder for dynamic query data
+  dynamicQuery: DynamicQuery | null = null;
   companyId: number | null = null;
   form: FormGroup;
   errors: { [key: string]: string } = {};
   loading: boolean = false;
   services: any[] = [];
-
-  // Propriedades para o teste
-  testLoading: boolean = false;
-  testResult: TestResult | null = null;
-  testParameters: any = {};
 
   constructor(
     private fb: FormBuilder,
@@ -94,7 +81,6 @@ export class DynamicQueryModal implements OnInit {
     this.form.valueChanges.subscribe(() => {
       this.errors = FormErrorHandlerService.getErrorMessages(this.form);
     });
-
   }
 
   ngOnInit() {
@@ -123,6 +109,7 @@ export class DynamicQueryModal implements OnInit {
         this.form.patchValue({
           key: this.dynamicQuery.key,
           name: this.dynamicQuery.name,
+          description: this.dynamicQuery.description,
           service_slug: this.dynamicQuery.service_slug
         });
       } catch (err: any) {
@@ -164,8 +151,6 @@ export class DynamicQueryModal implements OnInit {
       // Atualiza os dados locais para permitir acesso às outras abas
       this.dynamicQueryKey = response.data.key;
       this.dynamicQuery = response.data;
-
-      // Não fecha o modal para permitir configuração adicional
     } catch (error) {
       this.errors = this.utils.handleErrorsForm(error, this.form);
     } finally {
@@ -187,104 +172,11 @@ export class DynamicQueryModal implements OnInit {
     }
   }
 
-  // Métodos para o teste da consulta
-  async executeTest() {
-    if (!this.dynamicQueryKey || !this.dynamicQuery) {
-      this.toast.error('É necessário salvar a consulta antes de testá-la.');
-      return;
-    }
-
-    this.testLoading = true;
-    this.testResult = null;
-
-    try {
-      const response = await this.dynamicQueryService.executeDynamicQuery(
-        this.dynamicQuery,
-        this.testParameters,
-        this.companyId
-      );
-
-      this.testResult = response;
-
-      if (response.success) {
-        this.toast.success(response.message || 'Teste executado com sucesso!');
-      } else {
-        this.toast.warning(response.message || 'Teste executado com avisos.');
-      }
-
-    } catch (error: any) {
-      const errorMessage = Utils.getErrorMessage(error, 'Erro ao executar teste da consulta');
-      this.toast.error(errorMessage);
-
-      // Se a resposta do erro contém a estrutura esperada
-      if (error.error && error.error.success !== undefined) {
-        this.testResult = error.error;
-      } else {
-        this.testResult = {
-          success: false,
-          message: errorMessage,
-          metadata: {},
-          data: [],
-          errors: [error]
-        };
-      }
-    } finally {
-      this.testLoading = false;
-    }
-  }
-
-  clearTestResult() {
-    this.testResult = null;
-    this.testParameters = {};
-  }
-
-  onTestParametersChange(parameters: any) {
-    this.testParameters = parameters;
-  }
-
-  get hasTestResult(): boolean {
-    return this.testResult !== null;
-  }
-
-  get isTestSuccessful(): boolean {
-    return this.testResult?.success === true;
-  }
-
-  get hasTestData(): boolean {
-    if (!this.testResult) return false;
-    return !!this.testResult.data;
-  }
-
-  get hasTestErrors(): boolean {
-    if (!this.testResult) return false;
-    return this.testResult?.errors && this.testResult.errors.length > 0;
-  }
-
-  get hasTestMetadata(): boolean {
-    return this.testResult?.metadata && Object.keys(this.testResult.metadata).length > 0;
-  }
-
-  protected readonly onsubmit = onsubmit;
-  protected readonly FormErrorHandlerService = FormErrorHandlerService;
-
   generateKey(event: FocusEvent) {
     const input = event.target as HTMLInputElement;
     const value = input.value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
     this.form.patchValue({key: value});
   }
 
-  getInfoResult() {
-    if (this.testResult) {
-      const data = this.testResult.data;
-      if (typeof data === 'string') {
-        return 'Dado retornado';
-      } else if (Array.isArray(data)) {
-        return `Dados Retornados (${data.length} registros)`
-      } else if (typeof data === 'object' && data !== null) {
-        return `Objeto Retornado (${Object.keys(data).length} chaves)`;
-      }
-    }
-
-    return '';
-  }
+  protected readonly FormErrorHandlerService = FormErrorHandlerService;
 }

@@ -1,0 +1,129 @@
+<div class="modal-container">
+  <!-- Header -->
+  <div class="modal-header">
+    <div class="header-icon" [ngClass]="testStatus">
+      <i class='bx bx-wifi'></i>
+    </div>
+    <h3>Testando Integração {{ integration?.name || 'Desconhecida' }}</h3>
+  </div>
+
+  <!-- Content -->
+  <div class="modal-body">
+    <!-- Loading State -->
+    @if (testStatus === 'testing') {
+      <div class="test-status testing">
+        <div class="spinner"></div>
+        <h4>Testando conexão...</h4>
+        <p>Aguarde enquanto verificamos a conectividade com a integração</p>
+      </div>
+    }
+
+    <!-- Success State -->
+    @if (testStatus === 'success') {
+      <div class="test-status success">
+        <div class="status-icon">
+          <i class='bx bx-check-circle'></i>
+        </div>
+        <h4>✓ Conexão Estabelecida!</h4>
+        <p>A integração foi testada com sucesso e está pronta para uso.</p>
+      </div>
+    }
+
+    <!-- Error State -->
+    @if (testStatus === 'error') {
+      <div class="test-status error">
+        <div class="status-icon">
+          <i class='bx bx-error-circle'></i>
+        </div>
+        <h4>⚠️ Falha na Conexão</h4>
+        <p class="error-main-message">{{ testResult?.message || 'Não foi possível conectar à integração' }}</p>
+
+        @if (testResult?.details) {
+          <div class="error-details">
+            <h5><i class='bx bx-info-circle'></i> Detalhes do Erro:</h5>
+            <p>{{ testResult.details }}</p>
+          </div>
+        }
+
+        <div class="error-suggestions">
+          <h5><i class='bx bx-bulb'></i> O que fazer agora:</h5>
+          <ul>
+            @for (suggestion of getErrorSuggestions(); track suggestion) {
+              <li>{{ suggestion }}</li>
+            }
+          </ul>
+        </div>
+
+        <!-- Botão de tentar novamente -->
+        <button class="retry-button" (click)="testIntegration()" [disabled]="testLoading">
+          <i class='bx bx-refresh' [class.spinning]="testLoading"></i>
+          {{ testLoading ? 'Testando...' : 'Tentar Novamente' }}
+        </button>
+      </div>
+    }
+
+    <!-- Technical Info -->
+    @if (testResult?.data && testStatus !== 'testing') {
+      <div class="technical-info">
+        <h5><i class='bx bx-code-alt'></i> Informações Técnicas</h5>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Status da Conexão:</span>
+            <span class="info-value" [ngClass]="testResult.data.success ? 'success' : 'error'">
+              <i [class]="testResult.data.success ? 'bx bx-check-circle' : 'bx bx-x-circle'"></i>
+              {{ testResult.data.success ? 'Conectado' : 'Falhou' }}
+            </span>
+          </div>
+
+          @if (testResult.data.auth_type) {
+            <div class="info-item">
+              <span class="info-label">Tipo de Autenticação:</span>
+              <span class="info-value">
+                <i class='bx bx-lock-alt'></i>
+                {{ testResult.data.auth_type }}
+              </span>
+            </div>
+          }
+
+          <div class="info-item">
+            <span class="info-label">Tempo de Resposta:</span>
+            <span class="info-value" [ngClass]="testResult.data.response_time_ms < 500 ? 'success' : (testResult.data.response_time_ms < 2000 ? 'warning' : 'error')">
+              <i class='bx bx-time'></i>
+              {{ testResult.data.response_time_ms.toFixed(2) }} ms
+            </span>
+          </div>
+
+          <div class="info-item">
+            <span class="info-label">Data/Hora do Teste:</span>
+            <span class="info-value">
+              <i class='bx bx-calendar'></i>
+              {{ testResult.data.timestamp | date:'dd/MM/yyyy HH:mm:ss' }}
+            </span>
+          </div>
+        </div>
+
+        @if (testStatus === 'success') {
+          <div class="success-tip">
+            <i class='bx bx-info-circle'></i>
+            <span>Sua integração está configurada corretamente e pronta para ser utilizada no sistema.</span>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Ações do Modal -->
+    <div class="modal-actions">
+      @if (testStatus === 'success') {
+        <button class="action-button primary" (click)="closeTestModal()">
+          <i class='bx bx-check'></i>
+          Concluir
+        </button>
+      } @else if (testStatus === 'error') {
+        <button class="action-button secondary" (click)="closeTestModal()">
+          <i class='bx bx-x'></i>
+          Fechar e Editar
+        </button>
+      }
+    </div>
+  </div>
+</div>

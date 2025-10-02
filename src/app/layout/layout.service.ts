@@ -34,6 +34,13 @@ export class LayoutService {
       permission: 'company.view'
     },
     {
+      title: 'Integrações',
+      path: '/integrations',
+      icon: 'bx bx-plug',
+      description: 'Gerencie integrações com serviços externos',
+      permission: 'integration.manage'
+    },
+    {
       title: 'Permissões',
       path: '/permissions',
       icon: 'bx bx-lock',
@@ -60,7 +67,7 @@ export class LayoutService {
       icon: 'bx bx-search',
       description: 'Crie e execute consultas personalizadas ',
       permission: 'dynamic_query.view'
-    }
+    },
   ];
 
   private open_tabs: TabOpen[] = [];
