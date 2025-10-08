@@ -1,37 +1,45 @@
 import { Component } from '@angular/core';
-import {Toast, ToastService} from './toast.service';
-import {AsyncPipe} from '@angular/common';
+import { Toast, ToastService } from './toast.service';
+import {AsyncPipe, NgClass} from '@angular/common';
 
 @Component({
   selector: 'ub-toast',
-  imports: [
-    AsyncPipe
-  ],
+  imports: [AsyncPipe, NgClass],
   templateUrl: './toast.component.html',
   standalone: true,
   styleUrl: './toast.component.scss'
 })
 export class ToastComponent {
-
   constructor(public toastService: ToastService) {}
 
   // Retorna a classe CSS com base no tipo de toast
   getToastClass(toast: Toast): string {
-    return `toast toast-${toast.type}`;
+    return `toast toast-${toast.type} ${toast.isPaused ? 'toast-paused' : ''}`;
+  }
+
+  // Retorna o ícone apropriado para cada tipo
+  getIconClass(type: string): string {
+    const icons = {
+      success: 'bx-check-circle',
+      error: 'bx-x-circle',
+      warning: 'bx-error-circle',
+      info: 'bx-info-circle'
+    };
+    return icons[type as keyof typeof icons] || 'bx-info-circle';
   }
 
   // Pausa o desaparecimento do Toast quando o mouse está sobre ele
-  pauseToast(toast: Toast): void {
-    toast.isPaused = true;
-    clearTimeout(toast.timeoutId); // Cancela o timeout atual
+  onMouseEnter(toast: Toast): void {
+    this.toastService.pauseToast(toast.id);
   }
 
   // Retoma o desaparecimento do Toast quando o mouse sai dele
-  resumeToast(toast: Toast): void {
-    toast.isPaused = false;
-    toast.timeoutId = setTimeout(() => {
-      this.toastService.removeToast(toast);
-    }, toast.duration || 3000); // Reinicia o timeout
+  onMouseLeave(toast: Toast): void {
+    this.toastService.resumeToast(toast.id);
   }
 
+  // Remove o toast ao clicar
+  onClick(toast: Toast): void {
+    this.toastService.removeToast(toast.id);
+  }
 }

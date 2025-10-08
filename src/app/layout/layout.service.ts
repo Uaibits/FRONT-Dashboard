@@ -74,6 +74,13 @@ export class LayoutService {
       icon: 'bx bx-file',
       description: 'Monitore atividades e eventos do sistema',
       permission: 'log.view'
+    },
+    {
+      title: 'Desempenho do Sistema',
+      path: '/system-permormance',
+      icon: 'bx bx-tachometer',
+      description: 'Acompanhe métricas e saúde do sistema em tempo real',
+      permission: 'system_performance.view'
     }
   ];
 

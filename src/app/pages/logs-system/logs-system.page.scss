@@ -42,52 +42,6 @@
   }
 }
 
-// Botões
-.btn {
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  i {
-    font-size: 18px;
-  }
-
-  &.btn-primary {
-    background: #3b82f6;
-    color: white;
-
-    &:hover {
-      background: #2563eb;
-    }
-  }
-
-  &.btn-outline {
-    background: white;
-    border: 1px solid #e5e7eb;
-    color: #374151;
-
-    &:hover {
-      background: #f9fafb;
-      border-color: #d1d5db;
-    }
-  }
-
-  &.btn-danger {
-    background: #ef4444;
-    color: white;
-
-    &:hover {
-      background: #dc2626;
-    }
-  }
-}
 
 // Painel de Filtros
 .filters-panel {

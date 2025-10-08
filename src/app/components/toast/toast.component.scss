@@ -1,82 +1,201 @@
 .toast-container {
   position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1000;
+  top: 24px;
+  right: 24px;
+  z-index: 99999;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  pointer-events: none;
 }
 
 .toast {
-  padding: 12px 20px;
-  border-radius: 12px; // Bordas bem arredondadas
-  font-size: 14px;
+  pointer-events: auto;
+  position: relative;
+  min-width: 320px;
+  max-width: 420px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideInRight 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.12),
+      0 0 0 1px rgba(0, 0, 0, 0.05);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &.toast-paused {
+    .toast-progress {
+      animation-play-state: paused;
+    }
+  }
+}
+
+.toast-content {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background-color: #ffffff; // Fundo claro
-  border: 1px solid #e0e0e0; // Borda escura
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); // Sombra suave
-  animation: slideInRight 0.3s ease-in-out, fadeOut 0.3s ease-in-out 2.7s; // Animação de entrada e saída
+  gap: 12px;
+  padding: 16px 20px;
+  position: relative;
+}
 
-  &-success {
-    border-color: #28a745; // Verde
-    color: #28a745;
+.toast-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
 
-    .toast-icon {
-      color: #28a745;
-    }
-  }
-
-  &-error {
-    border-color: #dc3545; // Vermelho
-    color: #dc3545;
-
-    .toast-icon {
-      color: #dc3545;
-    }
-  }
-
-  &-warning {
-    border-color: #ffc107; // Amarelo
-    color: #ffc107;
-
-    .toast-icon {
-      color: #ffc107;
-    }
-  }
-
-  &-info {
-    border-color: #17a2b8; // Azul
-    color: #17a2b8;
-
-    .toast-icon {
-      color: #17a2b8;
-    }
+  .toast:hover & {
+    transform: scale(1.1);
   }
 }
 
 .toast-icon {
-  font-size: 20px;
+  font-size: 22px;
 }
 
+.toast-message {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: #1a1a1a;
+  word-break: break-word;
+}
+
+.toast-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+  color: #666;
+
+  i {
+    font-size: 20px;
+  }
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: #1a1a1a;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  transform-origin: left;
+  animation: progress 5s linear forwards;
+}
+
+// Success
+.toast-success {
+  .toast-icon-wrapper {
+    background: rgba(34, 197, 94, 0.1);
+    color: #22c55e;
+  }
+
+  .toast-progress {
+    background: linear-gradient(90deg, #22c55e, #16a34a);
+  }
+}
+
+// Error
+.toast-error {
+  .toast-icon-wrapper {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+  }
+
+  .toast-progress {
+    background: linear-gradient(90deg, #ef4444, #dc2626);
+  }
+}
+
+// Warning
+.toast-warning {
+  .toast-icon-wrapper {
+    background: rgba(251, 191, 36, 0.1);
+    color: #f59e0b;
+  }
+
+  .toast-progress {
+    background: linear-gradient(90deg, #fbbf24, #f59e0b);
+  }
+}
+
+// Info
+.toast-info {
+  .toast-icon-wrapper {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+  }
+
+  .toast-progress {
+    background: linear-gradient(90deg, #3b82f6, #2563eb);
+  }
+}
+
+// Animations
 @keyframes slideInRight {
   from {
     opacity: 0;
-    transform: translateX(100%);
+    transform: translateX(100%) scale(0.95);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateX(0) scale(1);
   }
 }
 
-@keyframes fadeOut {
+@keyframes progress {
   from {
-    opacity: 1;
+    transform: scaleX(1);
   }
   to {
-    opacity: 0;
+    transform: scaleX(0);
+  }
+}
+
+// Responsivo
+@media (max-width: 640px) {
+  .toast-container {
+    top: 16px;
+    right: 16px;
+    left: 16px;
+  }
+
+  .toast {
+    min-width: unset;
+    max-width: unset;
+    width: 100%;
   }
 }

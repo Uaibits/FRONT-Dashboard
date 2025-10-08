@@ -17,6 +17,7 @@ import {ParametersPage} from './pages/parameters/parameters.page';
 import {DynamicQueriesPage} from './pages/dynamic-queries/dynamic-queries.page';
 import {IntegrationsPage} from './pages/integrations/integrations.page';
 import {LogsSystemPage} from './pages/logs-system/logs-system.page';
+import {SystemPerformancePage} from './pages/system-performance/system-performance.page';
 
 export const routes: Routes = [
   {
@@ -190,6 +191,14 @@ export const routes: Routes = [
           permission: 'log.view',
         },
         component: LogsSystemPage
+      },
+      {
+        path: 'system-permormance',
+        canActivate: [PermissionGuard],
+        data: {
+          permission: 'system_performance.view',
+        },
+        component: SystemPerformancePage
       }
     ],
   },

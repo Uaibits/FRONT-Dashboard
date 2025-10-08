@@ -1,0 +1,460 @@
+<ub-content [loading]="loading">
+  <!-- Header com título e ações -->
+  <div class="performance-header">
+    <div class="performance-header-title">
+      <i class='bx bx-line-chart'></i>
+      <h1>Performance do Sistema</h1>
+      <span class="status-badge" [style.background]="getStatusColor(systemHealth?.current_health?.status) + '20'"
+            [style.color]="getStatusColor(systemHealth?.current_health?.status)">
+        <i class='bx' [ngClass]="getStatusIcon(systemHealth?.current_health?.status)"></i>
+        {{ getStatusLabel(systemHealth?.current_health?.status) }}
+      </span>
+    </div>
+
+    <div class="performance-header-actions">
+      <select [(ngModel)]="selectedPeriod" (change)="onPeriodChange()" class="period-select">
+        <option *ngFor="let period of periods" [value]="period.value">
+          {{ period.label }}
+        </option>
+      </select>
+      <ub-button icon="bx bx-refresh" severity="outline" (click)="load()">Atualizar</ub-button>
+      <ub-button icon="bx bx-trash" severity="danger" (click)="cleanupMetrics()">Limpar Métricas</ub-button>
+    </div>
+  </div>
+
+  <!-- Alertas Ativos -->
+  <div class="alerts-section" *ngIf="dashboard?.active_alerts && dashboard.active_alerts.length > 0">
+    <div class="alert" *ngFor="let alert of dashboard.active_alerts" [ngClass]="getAlertClass(alert.type)">
+      <i class='bx bx-info-circle'></i>
+      <div class="alert-content">
+        <strong>{{ alert.message }}</strong>
+        <span class="alert-value">{{ alert.value }}</span>
+      </div>
+    </div>
+  </div>
+
+
+  <ub-panel-area>
+    <!-- Painel: Visão Geral -->
+    <ub-panel [size]="100" title="Visão Geral">
+      <div class="overview-grid" *ngIf="dashboard?.overview">
+        <div class="metric-card">
+          <div class="metric-icon blue">
+            <i class='bx bx-server'></i>
+          </div>
+          <div class="metric-content">
+            <h3>{{ dashboard.overview.total_requests || 0 }}</h3>
+            <p>Total de Requisições</p>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon purple">
+            <i class='bx bx-time'></i>
+          </div>
+          <div class="metric-content">
+            <h3>{{ dashboard.overview.avg_response_time || 0 }}ms</h3>
+            <p>Tempo Médio de Resposta</p>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon green">
+            <i class='bx bx-chip'></i>
+          </div>
+          <div class="metric-content">
+            <h3>{{ dashboard.overview.avg_memory_usage || 0 }}MB</h3>
+            <p>Uso Médio de Memória</p>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon orange">
+            <i class='bx bx-tachometer'></i>
+          </div>
+          <div class="metric-content">
+            <h3>{{ dashboard.overview.avg_cpu_usage || 0 }}%</h3>
+            <p>Uso Médio de CPU</p>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon" [ngClass]="dashboard.overview.error_rate > 5 ? 'red' : 'green'">
+            <i class='bx bx-error'></i>
+          </div>
+          <div class="metric-content">
+            <h3>{{ dashboard.overview.error_rate || 0 }}%</h3>
+            <p>Taxa de Erro</p>
+          </div>
+        </div>
+      </div>
+    </ub-panel>
+  </ub-panel-area>
+
+  <ub-panel-area>
+    <!-- Painel: Saúde do Sistema -->
+    <ub-panel [size]="50" title="Saúde do Sistema">
+      <div class="system-health" *ngIf="systemHealth">
+        <!-- Status Geral -->
+        <div class="health-section">
+          <h4>Status Atual</h4>
+          <div class="health-status">
+            <i class='bx' [ngClass]="getStatusIcon(systemHealth.current_health?.status)"
+               [style.color]="getStatusColor(systemHealth.current_health?.status)"></i>
+            <span>{{ getStatusLabel(systemHealth.current_health?.status) }}</span>
+          </div>
+        </div>
+
+        <!-- Recursos -->
+        <div class="health-section">
+          <h4>Recursos</h4>
+          <div class="resource-item">
+            <span>Uso de Memória</span>
+            <strong>{{ systemHealth.resources?.memory_usage }}</strong>
+          </div>
+          <div class="resource-item">
+            <span>Pico de Memória</span>
+            <strong>{{ systemHealth.resources?.memory_peak }}</strong>
+          </div>
+          <div class="resource-item" *ngIf="systemHealth.resources?.cpu_load">
+            <span>Carga CPU (1min)</span>
+            <strong>{{ systemHealth.resources.cpu_load['1min'] }}</strong>
+          </div>
+        </div>
+
+        <!-- Banco de Dados -->
+        <div class="health-section">
+          <h4>Banco de Dados</h4>
+          <div class="resource-item">
+            <span>Status</span>
+            <strong [class]="systemHealth.database?.connected ? 'text-success' : 'text-danger'">
+              {{ systemHealth.database?.connected ? 'Conectado' : 'Desconectado' }}
+            </strong>
+          </div>
+          <div class="resource-item">
+            <span>Conexões Ativas</span>
+            <strong>{{ systemHealth.database?.total_connections }}</strong>
+          </div>
+          <div class="resource-item">
+            <span>Queries Lentas</span>
+            <strong [ngClass]="getPercentageClass(systemHealth.database?.slow_queries, 100)">
+              {{ systemHealth.database?.slow_queries }}
+            </strong>
+          </div>
+        </div>
+
+        <!-- Cache -->
+        <div class="health-section">
+          <h4>Cache</h4>
+          <div class="resource-item">
+            <span>Driver</span>
+            <strong>{{ systemHealth.cache?.driver }}</strong>
+          </div>
+          <div class="resource-item">
+            <span>Status</span>
+            <strong [class]="systemHealth.cache?.working ? 'text-success' : 'text-danger'">
+              {{ systemHealth.cache?.working ? 'Funcionando' : 'Erro' }}
+            </strong>
+          </div>
+        </div>
+      </div>
+    </ub-panel>
+
+    <!-- Painel: Informações do Servidor -->
+    <ub-panel [size]="50" title="Informações do Servidor">
+      <div class="server-info" *ngIf="systemHealth?.server">
+        <div class="info-item">
+          <i class='bx bx-code-alt'></i>
+          <div>
+            <span>Versão PHP</span>
+            <strong>{{ systemHealth.server.php_version }}</strong>
+          </div>
+        </div>
+
+        <div class="info-item">
+          <i class='bx bx-code-alt'></i>
+          <div>
+            <span>Versão Laravel</span>
+            <strong>{{ systemHealth.server.laravel_version }}</strong>
+          </div>
+        </div>
+
+        <div class="info-item">
+          <i class='bx bx-server'></i>
+          <div>
+            <span>Servidor</span>
+            <strong>{{ systemHealth.server.server_software }}</strong>
+          </div>
+        </div>
+
+        <div class="info-item">
+          <i class='bx bx-memory-card'></i>
+          <div>
+            <span>Limite de Memória</span>
+            <strong>{{ systemHealth.server.memory_limit }}</strong>
+          </div>
+        </div>
+
+        <div class="info-item">
+          <i class='bx bx-time'></i>
+          <div>
+            <span>Tempo Máximo de Execução</span>
+            <strong>{{ systemHealth.server.max_execution_time }}s</strong>
+          </div>
+        </div>
+
+        <div class="info-item" *ngIf="systemHealth.current_health?.uptime">
+          <i class='bx bx-trending-up'></i>
+          <div>
+            <span>Uptime</span>
+            <strong>{{ systemHealth.current_health.uptime }}</strong>
+          </div>
+        </div>
+      </div>
+    </ub-panel>
+
+
+  </ub-panel-area>
+
+  <ub-panel-area>
+    <!-- Painel: Endpoints Mais Lentos -->
+    <ub-panel [size]="50" title="Endpoints Mais Lentos">
+      <div class="endpoints-list" *ngIf="dashboard?.slowest_endpoints">
+        <div class="endpoint-item" *ngFor="let endpoint of dashboard.slowest_endpoints"
+             (click)="viewEndpointDetails(endpoint)">
+          <div class="endpoint-info">
+            <span class="endpoint-method" [class]="endpoint.method.toLowerCase()">
+              {{ endpoint.method }}
+            </span>
+            <span class="endpoint-path">{{ endpoint.endpoint }}</span>
+          </div>
+          <div class="endpoint-metrics">
+            <div class="endpoint-metric">
+              <i class='bx bx-time'></i>
+              <span>{{ endpoint.avg_response_time?.toFixed(2) }}ms</span>
+            </div>
+            <div class="endpoint-metric">
+              <i class='bx bx-bar-chart'></i>
+              <span>{{ endpoint.requests_count }} req</span>
+            </div>
+          </div>
+        </div>
+        <div class="empty-state" *ngIf="!dashboard?.slowest_endpoints?.length">
+          <i class='bx bx-info-circle'></i>
+          <p>Nenhum endpoint encontrado</p>
+        </div>
+      </div>
+    </ub-panel>
+
+    <!-- Painel: Endpoints Mais Acessados -->
+    <ub-panel [size]="50" title="Endpoints Mais Acessados">
+      <div class="endpoints-list" *ngIf="dashboard?.most_accessed_endpoints">
+        <div class="endpoint-item" *ngFor="let endpoint of dashboard.most_accessed_endpoints"
+             (click)="viewEndpointDetails(endpoint)">
+          <div class="endpoint-info">
+            <span class="endpoint-method" [class]="endpoint.method.toLowerCase()">
+              {{ endpoint.method }}
+            </span>
+            <span class="endpoint-path">{{ endpoint.endpoint }}</span>
+          </div>
+          <div class="endpoint-metrics">
+            <div class="endpoint-metric">
+              <i class='bx bx-bar-chart'></i>
+              <span>{{ endpoint.requests_count }} req</span>
+            </div>
+            <div class="endpoint-metric">
+              <i class='bx bx-time'></i>
+              <span>{{ endpoint.avg_response_time?.toFixed(2) }}ms</span>
+            </div>
+          </div>
+        </div>
+        <div class="empty-state" *ngIf="!dashboard?.most_accessed_endpoints?.length">
+          <i class='bx bx-info-circle'></i>
+          <p>Nenhum endpoint encontrado</p>
+        </div>
+      </div>
+    </ub-panel>
+
+    <!-- Painel: Queries Mais Lentas -->
+    <ub-panel [size]="50" title="Queries Mais Lentas">
+      <div class="queries-list" *ngIf="dashboard?.slowest_queries">
+        <div class="query-item" *ngFor="let query of dashboard.slowest_queries">
+          <div class="query-header">
+            <span class="query-type">{{ query.query_type }}</span>
+            <span class="query-table" *ngIf="query.table_name">{{ query.table_name }}</span>
+          </div>
+          <div class="query-metrics">
+            <div class="query-metric">
+              <i class='bx bx-time'></i>
+              <span>{{ query.avg_duration?.toFixed(2) }}ms</span>
+            </div>
+            <div class="query-metric">
+              <i class='bx bx-repeat'></i>
+              <span>{{ query.execution_count }}x</span>
+            </div>
+          </div>
+          <div class="query-sql" *ngIf="query.sample_query">
+            <code>{{ query.sample_query }}</code>
+          </div>
+        </div>
+        <div class="empty-state" *ngIf="!dashboard?.slowest_queries?.length">
+          <i class='bx bx-info-circle'></i>
+          <p>Nenhuma query encontrada</p>
+        </div>
+      </div>
+    </ub-panel>
+
+    <!-- Painel: Queries Mais Executadas -->
+    <ub-panel [size]="50" title="Queries Mais Executadas">
+      <div class="queries-list" *ngIf="dashboard?.most_frequent_queries">
+        <div class="query-item" *ngFor="let query of dashboard.most_frequent_queries">
+          <div class="query-header">
+            <span class="query-type">{{ query.query_type }}</span>
+            <span class="query-table" *ngIf="query.table_name">{{ query.table_name }}</span>
+          </div>
+          <div class="query-metrics">
+            <div class="query-metric">
+              <i class='bx bx-repeat'></i>
+              <span>{{ query.execution_count }}x</span>
+            </div>
+            <div class="query-metric">
+              <i class='bx bx-time'></i>
+              <span>{{ query.avg_duration?.toFixed(2) }}ms</span>
+            </div>
+          </div>
+          <div class="query-sql" *ngIf="query.sample_query">
+            <code>{{ query.sample_query }}</code>
+          </div>
+        </div>
+        <div class="empty-state" *ngIf="!dashboard?.most_frequent_queries?.length">
+          <i class='bx bx-info-circle'></i>
+          <p>Nenhuma query encontrada</p>
+        </div>
+      </div>
+    </ub-panel>
+  </ub-panel-area>
+
+  <!-- Modal de Análise de Endpoint -->
+  <div class="modal-overlay" *ngIf="showEndpointModal" (click)="closeEndpointModal()">
+    <div class="modal-content modal-large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Análise Detalhada do Endpoint</h2>
+        <ub-button icon="bx bx-x" (click)="closeEndpointModal()"></ub-button>
+      </div>
+
+      <div class="modal-body" *ngIf="endpointAnalysis">
+        <div class="endpoint-detail-header">
+          <span class="endpoint-method" [class]="selectedEndpoint?.method.toLowerCase()">
+            {{ selectedEndpoint?.method }}
+          </span>
+          <span class="endpoint-path">{{ selectedEndpoint?.endpoint }}</span>
+        </div>
+
+        <!-- Estatísticas -->
+        <div class="stats-grid">
+          <div class="stat-box">
+            <span class="stat-label">Total de Requisições</span>
+            <span class="stat-value">{{ endpointAnalysis.statistics?.total_requests }}</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Tempo Médio</span>
+            <span class="stat-value">{{ endpointAnalysis.statistics?.avg_response_time?.toFixed(2) }}ms</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Tempo Mínimo</span>
+            <span class="stat-value">{{ endpointAnalysis.statistics?.min_response_time }}ms</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">Tempo Máximo</span>
+            <span class="stat-value">{{ endpointAnalysis.statistics?.max_response_time }}ms</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">P95</span>
+            <span class="stat-value">{{ endpointAnalysis.statistics?.p95_response_time?.toFixed(2) }}ms</span>
+          </div>
+          <div class="stat-box">
+            <span class="stat-label">P99</span>
+            <span class="stat-value">{{ endpointAnalysis.statistics?.p99_response_time?.toFixed(2) }}ms</span>
+          </div>
+        </div>
+
+        <!-- Distribuição por Status -->
+        <div class="modal-section" *ngIf="endpointAnalysis.status_distribution?.length">
+          <h3>Distribuição por Status Code</h3>
+          <div class="status-distribution">
+            <div class="status-item" *ngFor="let status of endpointAnalysis.status_distribution">
+              <span class="status-code" [class]="status.status_code >= 400 ? 'error' : 'success'">
+                {{ status.status_code }}
+              </span>
+              <span class="status-count">{{ status.count }} requisições</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Queries Relacionadas -->
+        <div class="modal-section" *ngIf="endpointAnalysis.related_queries?.length">
+          <h3>Queries Relacionadas</h3>
+          <div class="related-queries">
+            <div class="related-query" *ngFor="let query of endpointAnalysis.related_queries">
+              <div class="query-header">
+                <span class="query-type">{{ query.query_type }}</span>
+                <span class="query-table" *ngIf="query.table_name">{{ query.table_name }}</span>
+              </div>
+              <div class="query-metrics">
+                <span>{{ query.avg_duration?.toFixed(2) }}ms média</span>
+                <span>{{ query.count }}x executada</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <ub-button severity="outline" icon="bx bx-x" (click)="closeEndpointModal()">
+          Fechar
+        </ub-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Cleanup -->
+  <div class="modal-overlay" *ngIf="showCleanupModal" (click)="cancelCleanup()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Limpar Métricas Antigas</h2>
+        <ub-button icon="bx bx-x" (click)="cancelCleanup()"></ub-button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-description">
+          <i class='bx bx-info-circle'></i>
+          Esta ação irá excluir permanentemente todas as métricas de performance com mais de X dias.
+          Esta operação não pode ser desfeita.
+        </p>
+
+        <div class="form-group">
+          <label for="cleanup-days">Manter métricas dos últimos (dias):</label>
+          <input
+            id="cleanup-days"
+            type="number"
+            [(ngModel)]="cleanupDays"
+            min="1"
+            max="365"
+            class="form-input"
+            placeholder="Ex: 30"
+          />
+          <small>Métricas com mais de {{ cleanupDays }} dias serão excluídas</small>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <ub-button severity="outline" icon="bx bx-x" (click)="cancelCleanup()">
+          Cancelar
+        </ub-button>
+        <ub-button severity="danger" icon="bx bx-trash" (click)="confirmCleanup()">
+          Confirmar Limpeza
+        </ub-button>
+      </div>
+    </div>
+  </div>
+</ub-content>

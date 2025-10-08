@@ -8,18 +8,9 @@
     </div>
 
     <div class="logs-header-actions">
-      <button class="btn btn-outline" (click)="toggleFilters()">
-        <i class='bx bx-filter'></i>
-        Filtros
-      </button>
-      <button class="btn btn-outline" (click)="load()">
-        <i class='bx bx-refresh'></i>
-        Atualizar
-      </button>
-      <button class="btn btn-danger" (click)="cleanupLogs()">
-        <i class='bx bx-trash'></i>
-        Limpar Antigos
-      </button>
+      <ub-button icon="bx bx-filter" severity="outline" (click)="toggleFilters()">Filtros</ub-button>
+     <ub-button icon="bx bx-refresh" severity="outline" (click)="load()">Atualizar</ub-button>
+      <ub-button icon="bx bx-trash" severity="danger" (click)="cleanupLogs()">Limpar Antigos</ub-button>
     </div>
   </div>
 
@@ -105,19 +96,13 @@
     </div>
 
     <div class="filters-actions">
-      <button class="btn btn-primary" (click)="applyFilters()">
-        <i class='bx bx-check'></i>
-        Aplicar Filtros
-      </button>
-      <button class="btn btn-outline" (click)="clearFilters()">
-        <i class='bx bx-x'></i>
-        Limpar Filtros
-      </button>
+      <ub-button icon="bx bx-check" severity="primary" (click)="applyFilters()">Aplicar Filtros</ub-button>
+      <ub-button icon="bx bx-x" severity="outline" (click)="clearFilters()">Limpar Filtros</ub-button>
     </div>
   </div>
 
   <ub-panel-area >
-    <ub-panel [size]="70">
+    <ub-panel [size]="70" title="Logs">
       <!-- Tabela de Logs -->
       <div class="logs-table-container">
         <ub-table
@@ -127,7 +112,7 @@
         ></ub-table>
       </div>
     </ub-panel>
-    <ub-panel [size]="30">
+    <ub-panel [size]="30" title="Estátisticas">
       <!-- Painel de Estatísticas -->
       <div class="stats-panel" *ngIf="stats">
         <div class="stats-grid">

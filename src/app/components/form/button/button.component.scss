@@ -1,15 +1,14 @@
 .btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
   padding: 10px 20px;
-  border: none;
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.3s ease, opacity 0.3s ease;
+  transition: all 0.2s;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 
   &:disabled {
     opacity: 0.7;
@@ -58,6 +57,23 @@
 
     &:hover:not(:disabled) {
       background-color: var(--info-color-dark);
+    }
+  }
+
+  &-outline {
+    background: white;
+    border: 1px solid #e5e7eb;
+    color: #374151;
+
+    &:hover {
+      background: #f9fafb;
+      border-color: #d1d5db;
+    }
+
+    &:disabled {
+      background: #f9fafb;
+      border-color: #e5e7eb;
+      color: #9ca3af;
     }
   }
 }

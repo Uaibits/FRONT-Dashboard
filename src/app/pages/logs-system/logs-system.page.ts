@@ -8,6 +8,7 @@ import { ConfirmationService } from '../../components/confirmation-modal/confirm
 import { ToastService } from '../../components/toast/toast.service';
 import {PanelComponent} from '../../components/content/panels/panel/panel.component';
 import {PanelAreaComponent} from '../../components/content/panels/panel-area.component';
+import {ButtonComponent} from '../../components/form/button/button.component';
 
 @Component({
   imports: [
@@ -16,7 +17,8 @@ import {PanelAreaComponent} from '../../components/content/panels/panel-area.com
     CommonModule,
     FormsModule,
     PanelComponent,
-    PanelAreaComponent
+    PanelAreaComponent,
+    ButtonComponent
   ],
   templateUrl: './logs-system.page.html',
   standalone: true,
