@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { InputComponent } from '../../../components/form/input/input.component';
 import { PasswordComponent } from '../../../components/form/password/password.component';
@@ -9,6 +9,7 @@ import { FormErrorHandlerService } from "../../../components/form/form-error-han
 import { ToastService } from '../../../components/toast/toast.service';
 import { AuthService } from '../../../security/auth.service';
 import { Utils } from '../../../services/utils.service';
+import {NgOptimizedImage} from '@angular/common';
 
 @Component({
   selector: 'app-login',
@@ -16,8 +17,8 @@ import { Utils } from '../../../services/utils.service';
     ReactiveFormsModule,
     InputComponent,
     PasswordComponent,
-    RouterLink,
-    ButtonComponent
+    ButtonComponent,
+    NgOptimizedImage
   ],
   templateUrl: './login.page.html',
   standalone: true,
@@ -53,9 +54,6 @@ export class LoginPage implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  /**
-   * Inicializa o formulário de login
-   */
   private initializeForm(): void {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -63,11 +61,7 @@ export class LoginPage implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * Verifica se o usuário já está autenticado
-   */
   private checkAuthenticationStatus(): void {
-    // Verifica autenticação usando observable para ter dados mais atualizados
     this.authService.isAuthenticated$
       .pipe(takeUntil(this.destroy$))
       .subscribe(isAuthenticated => {
@@ -77,26 +71,18 @@ export class LoginPage implements OnInit, OnDestroy {
       });
   }
 
-  /**
-   * Obtém a URL de retorno dos query parameters
-   */
   private getReturnUrl(): void {
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/home';
   }
 
-  /**
-   * Configura validação em tempo real do formulário
-   */
   private setupFormValidation(): void {
     this.loginForm.valueChanges
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
-        // Limpa erros quando o usuário começa a digitar
         if (Object.keys(this.errors).length > 0) {
           this.errors = {};
         }
 
-        // Atualiza erros de validação
         const formErrors = FormErrorHandlerService.getErrorMessages(this.loginForm);
         if (Object.keys(formErrors).length > 0) {
           this.errors = { ...this.errors, ...formErrors };
@@ -104,11 +90,7 @@ export class LoginPage implements OnInit, OnDestroy {
       });
   }
 
-  /**
-   * Manipula o envio do formulário de login
-   */
   async onLoginSubmit(): Promise<void> {
-    // Marca todos os campos como touched para mostrar erros
     this.loginForm.markAllAsTouched();
 
     if (!this.loginForm.valid) {
@@ -118,7 +100,7 @@ export class LoginPage implements OnInit, OnDestroy {
     }
 
     if (this.loading) {
-      return; // Evita múltiplos submits
+      return;
     }
 
     this.loading = true;
@@ -126,10 +108,8 @@ export class LoginPage implements OnInit, OnDestroy {
 
     try {
       await this.authService.login(this.loginForm.value);
-
       this.toast.success('Login efetuado com sucesso!');
 
-      // Pequeno delay para mostrar o toast antes de navegar
       setTimeout(() => {
         this.navigateToReturnUrl();
       }, 100);
@@ -137,7 +117,6 @@ export class LoginPage implements OnInit, OnDestroy {
     } catch (error: any) {
       console.error('Login error:', error);
 
-      // Trata erros específicos
       if (error.status === 401) {
         this.toast.error('Email ou senha inválidos.');
       } else if (error.status === 429) {
@@ -145,7 +124,6 @@ export class LoginPage implements OnInit, OnDestroy {
       } else if (error.status === 0) {
         this.toast.error('Erro de conexão. Verifique sua internet.');
       } else {
-        // Tenta usar o serviço de utils para tratar erros do formulário
         this.errors = this.utils.handleErrorsForm(error, this.loginForm);
 
         if (Object.keys(this.errors).length === 0) {
@@ -157,32 +135,8 @@ export class LoginPage implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Navega para a URL de retorno ou home
-   */
   private navigateToReturnUrl(): void {
     this.router.navigate([this.returnUrl]);
-  }
-
-  /**
-   * Limpa os erros do formulário
-   */
-  clearErrors(): void {
-    this.errors = {};
-  }
-
-  /**
-   * Verifica se um campo específico tem erro
-   */
-  hasFieldError(fieldName: string): boolean {
-    return !!this.errors[fieldName];
-  }
-
-  /**
-   * Obtém a mensagem de erro de um campo específico
-   */
-  getFieldError(fieldName: string): string {
-    return this.errors[fieldName] || '';
   }
 
   protected readonly FormErrorHandlerService = FormErrorHandlerService;

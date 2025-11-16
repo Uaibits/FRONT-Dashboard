@@ -1,26 +1,48 @@
 <div class="auth-container">
+  <div class="auth-background">
+    <div class="bg-shape shape-1"></div>
+    <div class="bg-shape shape-2"></div>
+    <div class="bg-shape shape-3"></div>
+  </div>
+
   <div class="auth-card">
-    <h2>Login</h2>
-    <form [formGroup]="loginForm" (ngSubmit)="onLoginSubmit()">
-      <ub-input
-        label="Email"
-        type="email"
-        placeholder="Digite seu email"
-        formControlName="email"
-        [error]="FormErrorHandlerService.getError('email', errors)"
-      ></ub-input>
+    <div class="auth-header">
+      <h1 class="company-name">Praise <span class="highlight">Tecnologia</span></h1>
+      <h2>Bem-vindo de volta</h2>
+      <p class="auth-subtitle">Faça login para continuar</p>
+    </div>
 
-      <ub-password
-        label="Senha"
-        placeholder="Digite sua senha"
-        formControlName="password"
-        [error]="FormErrorHandlerService.getError('password', errors)"
-      ></ub-password>
+    <form [formGroup]="loginForm" (ngSubmit)="onLoginSubmit()" class="auth-form">
+      <div class="form-fields">
+        <ub-input
+          label="Email"
+          type="email"
+          placeholder="seu@email.com"
+          formControlName="email"
+          [error]="FormErrorHandlerService.getError('email', errors)"
+        ></ub-input>
 
-      <ub-button type="submit" [disabled]="loginForm.invalid" [loading]="loading">Entrar</ub-button>
+        <ub-password
+          label="Senha"
+          placeholder="Digite sua senha"
+          formControlName="password"
+          [error]="FormErrorHandlerService.getError('password', errors)"
+        ></ub-password>
+      </div>
+
+      <div class="form-actions">
+        <ub-button
+          type="submit"
+          [disabled]="loginForm.invalid"
+          [loading]="loading"
+        >
+          Entrar
+        </ub-button>
+      </div>
     </form>
-    <div class="auth-toggle">
-      Ainda não possui uma conta? <a routerLink="/auth/registrar">Crie uma conta</a>
+
+    <div class="auth-footer">
+      <p class="help-text">Problemas para acessar? Entre em contato com o suporte</p>
     </div>
   </div>
 </div>
