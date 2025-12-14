@@ -33,13 +33,6 @@
     </div>
   }
 
-  @if (!companyId) {
-    <ub-alert type="warning">
-      Não encontramos nenhuma empresa vinculada à sua conta.
-      Para continuar e configurar integrações, associe-se a uma empresa.
-    </ub-alert>
-  }
-
   @if (erros && erros.length > 0) {
     <ub-alert type="danger">
       {{ getErrorsFormat() }}
@@ -49,9 +42,8 @@
   @if (integration && !loading) {
     <ub-dynamic-parameters
       [loading]="loading"
-      [disabled]="!companyId"
       [dynamicParams]="integration.parameters"
-      [paramsValue]="companyIntegration ? companyIntegration.configuration : {}"
+      [paramsValue]="configIntegration ? configIntegration.configuration : {}"
       (save)="save($event)"
     ></ub-dynamic-parameters>
   }

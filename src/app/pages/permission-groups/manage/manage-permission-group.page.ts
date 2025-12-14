@@ -6,7 +6,6 @@ import {InputComponent} from '../../../components/form/input/input.component';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {ActivatedRoute, Router} from '@angular/router';
 import {PermissionService} from '../../../services/permission.service';
-import {CompanyService} from '../../../services/company.service';
 import {FolderConfig, FolderViewComponent} from '../../../components/folder-view/folder-view.component';
 import {Utils} from '../../../services/utils.service';
 import {FormErrorHandlerService} from '../../../components/form/form-error-handler.service';
@@ -30,7 +29,6 @@ export class ManagePermissionGroupPage {
   protected errors: { [key: string]: string } = {};
   protected idGroup: string | undefined = undefined;
   protected permissions: any[] = [];
-  protected companies: any[] = [];
   protected accessLevels: any[] = [];
   protected loading: boolean = false;
   protected loadingAction: boolean = false;
@@ -46,7 +44,6 @@ export class ManagePermissionGroupPage {
   protected form = {
     description: "",
     name: "",
-    company_id: null,
     access_level: null,
     permissions: {}
   }
@@ -55,7 +52,6 @@ export class ManagePermissionGroupPage {
     private route: ActivatedRoute,
     private router: Router,
     private permissionService: PermissionService,
-    private companyService: CompanyService,
     private utils: Utils,
   ) {
     this.idGroup = this.route.snapshot.params['id'];
@@ -66,14 +62,12 @@ export class ManagePermissionGroupPage {
     this.loading = true;
     try {
 
-      const [permissions, companies, accessLevels] = await Promise.all([
+      const [permissions, accessLevels] = await Promise.all([
         this.permissionService.getPermissions(),
-        this.companyService.getCompanies(),
         this.permissionService.accessLevels()
       ])
 
       this.permissions = permissions;
-      this.companies = companies;
       this.accessLevels = accessLevels;
 
       if (this.accessLevels && this.accessLevels.length > 0) {

@@ -17,8 +17,7 @@ import {NgOptimizedImage} from '@angular/common';
     ReactiveFormsModule,
     InputComponent,
     PasswordComponent,
-    ButtonComponent,
-    NgOptimizedImage
+    ButtonComponent
   ],
   templateUrl: './login.page.html',
   standalone: true,

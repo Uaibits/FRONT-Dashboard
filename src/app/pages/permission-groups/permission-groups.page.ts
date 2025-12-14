@@ -20,8 +20,7 @@ export class PermissionGroupsPage implements OnInit {
   configTable: TableConfig = {
     columns: [
       { headerName: "Descrição", field: "description" },
-      { headerName: "Nome", field: "name" },
-      { headerName: "Empresa", field: "company.name" }
+      { headerName: "Nome", field: "name" }
     ],
     showAddButton: true,
     showEditButton: true,

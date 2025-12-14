@@ -16,10 +16,8 @@ import {ToastService} from '../../components/toast/toast.service';
 })
 export class ConfigIntegrationModal implements OnInit {
 
-  companyId: number | null = null;
-
   modalRef!: ModalRef;
-  companyIntegration: any | null = null;
+  configIntegration: any | null = null;
   integration: Integration | null = null;
   integration_name!: string;
   loading: boolean = false;
@@ -35,18 +33,12 @@ export class ConfigIntegrationModal implements OnInit {
     this.load();
   }
 
-  // CALLBACK que será chamado automaticamente quando companyId mudar
-  companyChange = (companyId: number | null) => {
-    this.loadIntegrationCompany();
-  };
-
   async load() {
     this.loading = true;
     try {
-      // Agora pode usar this.companyId na requisição se necessário
       this.integration = await this.integrationService.getIntegration(this.integration_name);
 
-      this.loadIntegrationCompany();
+      this.loadIntegrationConfig();
     } catch (error) {
       console.error('Erro ao carregar integração:', error);
     } finally {
@@ -54,19 +46,17 @@ export class ConfigIntegrationModal implements OnInit {
     }
   }
 
-  async loadIntegrationCompany() {
-    if (!this.companyId) return;
-
+  async loadIntegrationConfig() {
     try {
-      this.companyIntegration = null;
-      this.companyIntegration = await this.integrationService.getCompanyIntegration(this.integration_name, this.companyId);
+      this.configIntegration = null;
+      this.configIntegration = await this.integrationService.getConfigIntegration(this.integration_name);
     } catch (error) {
       console.error('Erro ao carregar integração da empresa:', error);
     }
   }
 
   async save(configs: any) {
-    if (this.companyIntegration) {
+    if (this.configIntegration) {
       await this.updateIntegration(configs)
     } else {
       await this.createIntegration(configs)
@@ -76,9 +66,9 @@ export class ConfigIntegrationModal implements OnInit {
   async createIntegration(configs: any) {
     this.loading = true;
     try {
-      await this.integrationService.createIntegration(this.integration_name, this.companyId!, configs);
+      await this.integrationService.createIntegration(this.integration_name, configs);
       this.toast.success('Integração salva com sucesso');
-      await this.loadIntegrationCompany();
+      await this.loadIntegrationConfig();
     } catch (responseError: any) {
       this.erros = [];
       if (responseError.error.errors) this.erros = responseError.error.errors;
@@ -91,9 +81,9 @@ export class ConfigIntegrationModal implements OnInit {
   async updateIntegration(configs: any) {
     this.loading = true;
     try {
-      await this.integrationService.updateIntegration(this.companyIntegration.id, configs);
+      await this.integrationService.updateIntegration(this.configIntegration.id, configs);
       this.toast.success('Integração atualizada com sucesso');
-      await this.loadIntegrationCompany();
+      await this.loadIntegrationConfig();
     } catch (responseError: any) {
       this.erros = [];
       if (responseError.error.errors) this.erros = responseError.error.errors;
@@ -127,11 +117,11 @@ export class ConfigIntegrationModal implements OnInit {
   }
 
   testIntegration() {
-    if (!this.companyIntegration) {
+    if (!this.configIntegration) {
       this.toast.error('Salve a integração antes de testar a conexão.');
       return;
     }
 
-    this.integrationService.openTestIntegrationModal(this.integration, this.companyIntegration.id);
+    this.integrationService.openTestIntegrationModal(this.integration, this.configIntegration.id);
   }
 }

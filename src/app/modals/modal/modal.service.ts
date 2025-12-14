@@ -11,7 +11,6 @@ export interface ModalConfig {
   backdrop?: boolean;
   keyboard?: boolean;
   className?: string;
-  useCompany?: boolean;
 }
 
 export interface ModalRef {
@@ -50,7 +49,6 @@ export class ModalService {
       backdrop: true,
       keyboard: true,
       size: 'xl',
-      useCompany: false,
       ...config
     };
 
@@ -58,6 +56,7 @@ export class ModalService {
     const contentComponentRef = modalComponentRef.instance.contentContainer.createComponent(config.component);
 
     // Salvar a referência do componente de conteúdo no modal
+    // @ts-ignore
     modalComponentRef.instance['contentComponentRef'] = contentComponentRef;
 
     // Promise de retorno

@@ -55,7 +55,6 @@ export interface DynamicQueryFilter {
 export class DynamicQueryFiltersComponent implements OnInit {
 
   @Input() queryKey!: string;
-  @Input() companyId?: number | null = null;
 
   filters: DynamicQueryFilter[] = [];
   filterTypes: FilterType[] = [];
@@ -105,7 +104,7 @@ export class DynamicQueryFiltersComponent implements OnInit {
   async loadFilters() {
     try {
       this.loading = true;
-      const response = await this.filtersService.getFilters(this.queryKey, this.companyId);
+      const response = await this.filtersService.getFilters(this.queryKey);
       this.filters = response.data || [];
     } catch (error) {
       this.toast.error(Utils.getErrorMessage(error, 'Erro ao carregar filtros'));
@@ -125,7 +124,7 @@ export class DynamicQueryFiltersComponent implements OnInit {
 
   async loadVariableSuggestions() {
     try {
-      const response = await this.filtersService.getVariableSuggestions(this.queryKey, this.companyId);
+      const response = await this.filtersService.getVariableSuggestions(this.queryKey);
       this.variableSuggestions = response.data?.suggestions || [];
     } catch (error) {
       console.warn('Erro ao carregar sugestões de variáveis:', error);
@@ -174,15 +173,13 @@ export class DynamicQueryFiltersComponent implements OnInit {
         await this.filtersService.updateFilter(
           this.queryKey,
           this.editingFilter.var_name,
-          formData,
-          this.companyId
+          formData
         );
         this.toast.success('Filtro atualizado com sucesso!');
       } else {
         await this.filtersService.createFilter(
           this.queryKey,
-          formData,
-          this.companyId
+          formData
         );
         this.toast.success('Filtro criado com sucesso!');
       }
@@ -204,7 +201,7 @@ export class DynamicQueryFiltersComponent implements OnInit {
 
     try {
       this.loading = true;
-      await this.filtersService.deleteFilter(this.queryKey, filter.var_name, this.companyId);
+      await this.filtersService.deleteFilter(this.queryKey, filter.var_name);
       this.toast.success('Filtro excluído com sucesso!');
       await this.loadFilters();
       await this.loadVariableSuggestions();
@@ -220,7 +217,7 @@ export class DynamicQueryFiltersComponent implements OnInit {
 
     try {
       const orderedVarNames = this.filters.map(f => f.var_name);
-      await this.filtersService.reorderFilters(this.queryKey, orderedVarNames, this.companyId);
+      await this.filtersService.reorderFilters(this.queryKey, orderedVarNames);
       this.toast.success('Ordem dos filtros atualizada!');
     } catch (error) {
       this.toast.error(Utils.getErrorMessage(error, 'Erro ao reordenar filtros'));

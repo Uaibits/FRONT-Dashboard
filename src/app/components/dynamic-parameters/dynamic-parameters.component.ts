@@ -82,7 +82,6 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
       this.buildForm();
     }
 
-    console.log('Changes detected:', changes);
     if (changes['paramsValue']) {
       this.paramsValue = changes['paramsValue'].currentValue || {};
       this.buildForm();

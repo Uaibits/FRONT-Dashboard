@@ -55,22 +55,19 @@
     <ub-tab label="Parâmetros">
       <app-service-parameters
         [dynamicQuery]="dynamicQuery"
-        [serviceSlug]="form.get('service_slug')?.value"
-        [companyId]="companyId">
+        [serviceSlug]="form.get('service_slug')?.value">
       </app-service-parameters>
     </ub-tab>
 
     <ub-tab label="Filtros">
       <app-dynamic-query-filters
-        [queryKey]="dynamicQueryKey!"
-        [companyId]="companyId">
+        [queryKey]="dynamicQueryKey!">
       </app-dynamic-query-filters>
     </ub-tab>
 
     <ub-tab label="Homologar">
       <app-dynamic-query-test
-        [dynamicQuery]="dynamicQuery"
-        [companyId]="companyId">
+        [dynamicQuery]="dynamicQuery">
       </app-dynamic-query-test>
     </ub-tab>
   }

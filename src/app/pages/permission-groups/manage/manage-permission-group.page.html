@@ -24,20 +24,6 @@
       ></ub-input>
     </div>
 
-    <div class="col-12 md:col-6">
-      <ub-dropdown
-        label="Empresa"
-        placeholder="Selecione a empresa do grupo de permissões"
-        helpText="Vincule o grupo a uma empresa"
-        [clearable]="true"
-        [options]="companies"
-        optionLabel="name"
-        optionValue="id"
-        [error]="FormErrorHandlerService.getError('company_id', errors)"
-        [(value)]="form.company_id">
-      </ub-dropdown>
-    </div>
-
     @if (accessLevels.length > 1) {
       <div class="col-12 md:col-6">
         <ub-dropdown

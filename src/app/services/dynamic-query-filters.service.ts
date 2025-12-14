@@ -21,10 +21,9 @@ export class DynamicQueryFiltersService {
   /**
    * Lista os filtros de uma consulta dinâmica
    */
-  async getFilters(queryKey: string, companyId?: number | null, onlyActive: boolean = true): Promise<any> {
+  async getFilters(queryKey: string, onlyActive: boolean = true): Promise<any> {
     try {
       const params = new URLSearchParams();
-      if (companyId) params.set('company_id', companyId.toString());
       if (!onlyActive) params.set('only_active', 'false');
 
       const queryString = params.toString() ? `?${params.toString()}` : '';
@@ -40,11 +39,9 @@ export class DynamicQueryFiltersService {
   /**
    * Cria um novo filtro para uma consulta
    */
-  async createFilter(queryKey: string, filterData: any, companyId?: number | null): Promise<any> {
+  async createFilter(queryKey: string, filterData: any): Promise<any> {
     try {
       const params = new URLSearchParams();
-      if (companyId) params.set('company_id', companyId.toString());
-
       const queryString = params.toString() ? `?${params.toString()}` : '';
 
       return await firstValueFrom(
@@ -58,10 +55,9 @@ export class DynamicQueryFiltersService {
   /**
    * Atualiza um filtro existente
    */
-  async updateFilter(queryKey: string, varName: string, filterData: any, companyId?: number | null): Promise<any> {
+  async updateFilter(queryKey: string, varName: string, filterData: any): Promise<any> {
     try {
       const params = new URLSearchParams();
-      if (companyId) params.set('company_id', companyId.toString());
 
       const queryString = params.toString() ? `?${params.toString()}` : '';
 
@@ -76,10 +72,9 @@ export class DynamicQueryFiltersService {
   /**
    * Remove um filtro
    */
-  async deleteFilter(queryKey: string, varName: string, companyId?: number | null): Promise<any> {
+  async deleteFilter(queryKey: string, varName: string): Promise<any> {
     try {
       const params = new URLSearchParams();
-      if (companyId) params.set('company_id', companyId.toString());
 
       const queryString = params.toString() ? `?${params.toString()}` : '';
 
@@ -94,10 +89,9 @@ export class DynamicQueryFiltersService {
   /**
    * Reordena os filtros de uma consulta
    */
-  async reorderFilters(queryKey: string, orderedVarNames: string[], companyId?: number | null): Promise<any> {
+  async reorderFilters(queryKey: string, orderedVarNames: string[]): Promise<any> {
     try {
       const params = new URLSearchParams();
-      if (companyId) params.set('company_id', companyId.toString());
 
       const queryString = params.toString() ? `?${params.toString()}` : '';
 
@@ -112,30 +106,11 @@ export class DynamicQueryFiltersService {
   }
 
   /**
-   * Obtém a configuração completa dos filtros para interface
-   */
-  async getFiltersConfig(queryKey: string, companyId?: number | null): Promise<any> {
-    try {
-      const params = new URLSearchParams();
-      if (companyId) params.set('company_id', companyId.toString());
-
-      const queryString = params.toString() ? `?${params.toString()}` : '';
-
-      return await firstValueFrom(
-        this.http.get<any>(`${this.API_URL}/queries/${queryKey}/filters/config${queryString}`)
-      );
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  /**
    * Obtém sugestões de variáveis baseadas na configuração da consulta
    */
-  async getVariableSuggestions(queryKey: string, companyId?: number | null): Promise<any> {
+  async getVariableSuggestions(queryKey: string): Promise<any> {
     try {
       const params = new URLSearchParams();
-      if (companyId) params.set('company_id', companyId.toString());
 
       const queryString = params.toString() ? `?${params.toString()}` : '';
 
@@ -176,10 +151,9 @@ export class DynamicQueryFiltersService {
   /**
    * Valida valores de filtros sem executar a consulta
    */
-  async validateFilterValues(queryKey: string, params: any, companyId?: number | null): Promise<any> {
+  async validateFilterValues(queryKey: string, params: any): Promise<any> {
     try {
       const urlParams = new URLSearchParams();
-      if (companyId) urlParams.set('company_id', companyId.toString());
 
       const queryString = urlParams.toString() ? `?${urlParams.toString()}` : '';
 

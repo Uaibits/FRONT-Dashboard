@@ -3,7 +3,6 @@ export interface User {
   id: number;
   email: string;
   name: string;
-  company_id: number | null;
   status: string;
   is_super_admin: boolean;
   last_login: string | null;
@@ -16,7 +15,6 @@ export interface PermissionGroup {
   name: string;
   description: string;
   is_system: boolean;
-  company_id: number | null;
 }
 
 export interface Permission {

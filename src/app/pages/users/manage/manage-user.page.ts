@@ -7,7 +7,6 @@ import {InputComponent} from '../../../components/form/input/input.component';
 import {Utils} from '../../../services/utils.service';
 import {ButtonComponent} from '../../../components/form/button/button.component';
 import {UserService} from '../../../services/user.service';
-import {CompanyService} from '../../../services/company.service';
 import {ToastService} from '../../../components/toast/toast.service';
 import {PasswordComponent} from '../../../components/form/password/password.component';
 import {DropdownComponent} from '../../../components/form/dropdown/dropdown.component';
@@ -25,8 +24,6 @@ import {User} from '../../../models/user';
     InputComponent,
     ButtonComponent,
     PasswordComponent,
-    DropdownComponent,
-    HasPermissionDirective,
     TabsComponent,
     TabComponent,
     UserAccessSettingsComponent,
@@ -43,14 +40,12 @@ export class ManageUserPage {
   errors: { [key: string]: string } = {};
   loading: boolean = false;
   loadingPage: boolean = false;
-  companies: any[] = []; // Lista de empresas para o campo de seleção
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private fb: FormBuilder,
     private userService: UserService,
-    private companyService: CompanyService,
     private utils: Utils,
     private toastService: ToastService
   ) {
@@ -60,8 +55,7 @@ export class ManageUserPage {
       name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.minLength(6), Validators.maxLength(100)]],
-      confirm_password: ['', [Validators.minLength(6), Validators.maxLength(100)]],
-      company_id: [null],
+      confirm_password: ['', [Validators.minLength(6), Validators.maxLength(100)]]
     });
 
     this.form.valueChanges.subscribe(() => {
@@ -82,13 +76,6 @@ export class ManageUserPage {
           ...userResponse
         });
       }
-
-      this.companies = await this.companyService.getCompanies();
-
-      // Observa mudanças no company_id
-      this.companyIdControl?.valueChanges.subscribe(() => {
-        // Isso irá disparar automaticamente a atualização no UserAccessSettingsComponent
-      });
 
     } catch (err: any) {
       this.toastService.error(Utils.getErrorMessage(err));
@@ -128,10 +115,6 @@ export class ManageUserPage {
   back() {
     const url = this.idUser ? '../../' : '../';
     this.router.navigate([url], {relativeTo: this.route});
-  }
-
-  get companyIdControl() {
-    return this.form.get('company_id');
   }
 
   protected readonly FormErrorHandlerService = FormErrorHandlerService;

@@ -36,7 +36,6 @@ export class ParametersPage implements OnInit {
   protected loading: boolean = false;
   protected loadingAction: boolean = false;
   protected showOptions: boolean = false;
-  protected comapanyId: number | null = null;
   protected permissions = {
     CREATE_PARAMETER: false,
     DELETE_PARAMETER: false
@@ -92,6 +91,7 @@ export class ParametersPage implements OnInit {
     default_value?: any;
     options: string[];
     access_level: number | null;
+    value: any;
   } = {
     key: "",
     description: "",
@@ -99,7 +99,8 @@ export class ParametersPage implements OnInit {
     type: "text",
     default_value: "",
     options: [],
-    access_level: null
+    access_level: null,
+    value: null
   };
 
   constructor(
@@ -121,7 +122,7 @@ export class ParametersPage implements OnInit {
       this.loading = true;
 
       const [parameters, accessLevels, categories] = await Promise.all([
-        this.parameterService.getParameters(this.comapanyId),
+        this.parameterService.getParameters(),
         this.permissionService.accessLevels(),
         this.parameterService.getParameterCategories()
       ]);
@@ -147,7 +148,8 @@ export class ParametersPage implements OnInit {
         type: item.type || "text",
         default_value: item.formatted_value || "",
         options: item.options || [],
-        access_level: item.access_level || null
+        access_level: item.access_level || null,
+        value: null
       }
       if (item && item.options) {
         this.optionValue = [...item.options];
@@ -185,17 +187,15 @@ export class ParametersPage implements OnInit {
   public async save() {
     this.loadingAction = true;
     try {
-      if (this.isUpdateCompanyValue()) {
-        await this.parameterService.updateValueCompany(this.itemSelected.id, this.comapanyId!, this.form.key, this.form.default_value);
+
+      if (this.itemSelected) {
+        // Update existing parameter
+        await this.parameterService.updateParameter(this.itemSelected.id, this.form);
       } else {
-        if (this.itemSelected) {
-          // Update existing parameter
-          await this.parameterService.updateParameter(this.itemSelected.id, this.form);
-        } else {
-          // Create new parameter
-          await this.parameterService.createParameter(this.form);
-        }
+        // Create new parameter
+        await this.parameterService.createParameter(this.form);
       }
+
       this.resetForm();
       await this.load();
     } catch (error: any) {
@@ -214,7 +214,8 @@ export class ParametersPage implements OnInit {
       type: "text",
       default_value: "",
       options: [],
-      access_level: null
+      access_level: null,
+      value: null
     };
     this.optionValue = [];
     this.errors = {};
@@ -222,8 +223,4 @@ export class ParametersPage implements OnInit {
   }
 
   protected readonly FormErrorHandlerService = FormErrorHandlerService;
-
-  isUpdateCompanyValue() {
-    return this.comapanyId && this.itemSelected;
-  }
 }

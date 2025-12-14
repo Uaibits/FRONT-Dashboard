@@ -52,9 +52,9 @@ export class IntegrationService {
     }
   }
 
-  async getCompanyIntegration(integration_name: string, companyId: number) {
+  async getConfigIntegration(integration_name: string) {
     try {
-      const route = `${this.API_URL}/integration/${integration_name}${companyId ? `?company_id=${companyId}` : ''}`;
+      const route = `${this.API_URL}/integration/${integration_name}`;
       const response = await firstValueFrom(this.http.get<any>(route));
       return response.data;
     } catch (err: any) {
@@ -63,9 +63,8 @@ export class IntegrationService {
     }
   }
 
-  createIntegration(integration_name: string, companyId: number, configuration: any) {
+  createIntegration(integration_name: string, configuration: any) {
     return firstValueFrom(this.http.post<any>(`${this.API_URL}/integration/create`, {
-      company_id: companyId,
       integration_name,
       configuration
     }));
@@ -81,7 +80,6 @@ export class IntegrationService {
     return this.modalService.open({
       title: `Integração ${integration.name}`,
       component: ConfigIntegrationModal,
-      useCompany: true,
       data: {
         integration_name: integration.integration_name
       }

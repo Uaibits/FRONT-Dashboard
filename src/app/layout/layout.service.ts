@@ -27,13 +27,6 @@ export class LayoutService {
       permission: 'user.view'
     },
     {
-      title: 'Empresas',
-      path: '/companies',
-      icon: 'bx bx-building',
-      description: 'Visualize e edite informações das empresas vinculadas',
-      permission: 'company.view'
-    },
-    {
       title: 'Integrações',
       path: '/integrations',
       icon: 'bx bx-plug',

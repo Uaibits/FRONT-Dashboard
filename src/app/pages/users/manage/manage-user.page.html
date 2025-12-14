@@ -41,19 +41,6 @@
             ></ub-password>
           </div>
 
-          <div class="col-12 md:col-6" *hasPermission="'company.edit_other'">
-            <ub-dropdown
-              label="Empresa"
-              placeholder="Selecione a empresa do usuário"
-              formControlName="company_id"
-              optionValue="id"
-              optionLabel="name"
-              [clearable]="true"
-              [options]="companies"
-              [error]="FormErrorHandlerService.getError('company_id', errors)"
-            ></ub-dropdown>
-          </div>
-
         </div>
 
         <div class="flex justify-content-end">
@@ -67,7 +54,6 @@
         <user-access-settings
           (reload)="reloadPage()"
           [user]="user"
-          [companyId]="form.get('company_id')?.value"
           [(loading)]="loadingPage"
         ></user-access-settings>
       </ub-tab>

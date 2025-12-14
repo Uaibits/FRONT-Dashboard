@@ -25,32 +25,28 @@ export class DynamicQueryService {
   ) {
   }
 
-  getDynamicQueries(companyId?: string | number | null): Promise<any> {
-    return firstValueFrom(this.http.get<any>(`${this.API_URL}/queries${companyId ? '?company_id=' + companyId : ''}`))
+  getDynamicQueries(): Promise<any> {
+    return firstValueFrom(this.http.get<any>(`${this.API_URL}/queries`))
   }
 
-  async getDynamicQuery(key: string, companyId?: string | number | null): Promise<any> {
+  async getDynamicQuery(key: string): Promise<any> {
     try {
-      return await firstValueFrom(this.http.get<any>(`${this.API_URL}/queries/${key}${companyId ? '?company_id=' + companyId : ''}`));
+      return await firstValueFrom(this.http.get<any>(`${this.API_URL}/queries/${key}`));
     } catch (error) {
       this.toast.error(Utils.getErrorMessage(error, 'Erro ao buscar consulta dinâmica'));
       throw error;
     }
   }
 
-  createDynamicQuery(data: any, companyId?: string | number | null): Promise<any> {
-    return firstValueFrom(this.http.post<any>(`${this.API_URL}/queries/create${companyId ? '?company_id=' + companyId : ''}`, data));
+  createDynamicQuery(data: any): Promise<any> {
+    return firstValueFrom(this.http.post<any>(`${this.API_URL}/queries/create`, data));
   }
 
-  updateDynamicQuery(key: string, data: any, companyId?: string | number | null): Promise<any> {
-    return firstValueFrom(this.http.put<any>(`${this.API_URL}/queries/${key}/update${companyId ? '?company_id=' + companyId : ''}`, data));
+  updateDynamicQuery(key: string, data: any): Promise<any> {
+    return firstValueFrom(this.http.put<any>(`${this.API_URL}/queries/${key}/update`, data));
   }
 
-  validateDynamicQuery(key: string, companyId?: string | number | null): Promise<any> {
-    return firstValueFrom(this.http.post<any>(`${this.API_URL}/queries/${key}/validate${companyId ? '?company_id=' + companyId : ''}`, {}));
-  }
-
-  async executeDynamicQuery(dynamicQuery: DynamicQuery, params: any, companyId?: string | number | null): Promise<any> {
+  async executeDynamicQuery(dynamicQuery: DynamicQuery, params: any): Promise<any> {
     let filters = dynamicQuery.active_filters || [];
     filters = filters.filter(f => f.visible);
 
@@ -76,16 +72,16 @@ export class DynamicQueryService {
     // só executa aqui, depois do preenchimento
     return firstValueFrom(
       this.http.post<any>(
-        `${this.API_URL}/queries/${dynamicQuery.key}/execute${companyId ? '?company_id=' + companyId : ''}`,
+        `${this.API_URL}/queries/${dynamicQuery.key}/execute`,
         params
       )
     );
   }
 
 
-  async deleteDynamicQuery(key: string, companyId?: string | number | null): Promise<any> {
+  async deleteDynamicQuery(key: string): Promise<any> {
     try {
-      const response = await firstValueFrom(this.http.delete<any>(`${this.API_URL}/queries/${key}/delete${companyId ? '?company_id=' + companyId : ''}`));
+      const response = await firstValueFrom(this.http.delete<any>(`${this.API_URL}/queries/${key}/delete`));
       this.toast.success('Consulta dinâmica excluída com sucesso!');
       return response;
     } catch (error) {
@@ -94,13 +90,12 @@ export class DynamicQueryService {
     }
   }
 
-  openDynamicQueryModal(dynamicQuery?: DynamicQuery, companyId?: number | string | null) {
+  openDynamicQueryModal(dynamicQuery?: DynamicQuery) {
     return this.modalService.open({
       title: 'Configurar Consulta Dinâmica',
       component: DynamicQueryModal,
       data: {
-        dynamicQueryKey: dynamicQuery ? dynamicQuery.key : null,
-        companyId: companyId,
+        dynamicQueryKey: dynamicQuery ? dynamicQuery.key : null
       }
     });
   }

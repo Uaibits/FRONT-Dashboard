@@ -127,22 +127,6 @@
       }
     }
 
-    .select-company {
-      min-width: 250px;
-
-      ::ng-deep ub-dropdown {
-        .dropdown-container {
-          border-radius: 12px;
-          border-color: rgba(148, 163, 184, 0.2);
-          transition: all 0.3s ease;
-
-          &:focus-within {
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-          }
-        }
-      }
-    }
   }
 
   .content {

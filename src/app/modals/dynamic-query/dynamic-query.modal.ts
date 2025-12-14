@@ -25,7 +25,6 @@ export interface DynamicQuery {
   key: string;
   name: string;
   description: string | null;
-  company_id: number | null;
   service_slug: string;
   service_params: { [key: string]: any };
   query_config: any;
@@ -58,7 +57,6 @@ export class DynamicQueryModal implements OnInit {
   modalRef!: ModalRef;
   dynamicQueryKey: string | null = null;
   dynamicQuery: DynamicQuery | null = null;
-  companyId: number | null = null;
   form: FormGroup;
   errors: { [key: string]: string } = {};
   loading: boolean = false;
@@ -97,7 +95,7 @@ export class DynamicQueryModal implements OnInit {
   protected async loadDynamicQuery() {
     if (this.dynamicQueryKey) {
       try {
-        const responseQuery = await this.dynamicQueryService.getDynamicQuery(this.dynamicQueryKey, this.companyId);
+        const responseQuery = await this.dynamicQueryService.getDynamicQuery(this.dynamicQueryKey);
         this.dynamicQuery = responseQuery.data ? responseQuery.data.query : null;
 
         if (!this.dynamicQuery) {
@@ -120,7 +118,7 @@ export class DynamicQueryModal implements OnInit {
 
   protected async loadServices() {
     try {
-      const response = await this.servicesService.getServices('query', this.companyId);
+      const response = await this.servicesService.getServices('query');
       this.services = response.data;
     } catch (error) {
       this.toast.error(Utils.getErrorMessage(error, 'Erro ao carregar serviços'));
@@ -145,7 +143,7 @@ export class DynamicQueryModal implements OnInit {
 
   async createDynamicQuery(data: any) {
     try {
-      const response = await this.dynamicQueryService.createDynamicQuery(data, this.companyId);
+      const response = await this.dynamicQueryService.createDynamicQuery(data);
       this.toast.success('Consulta dinâmica criada com sucesso!');
 
       // Atualiza os dados locais para permitir acesso às outras abas
@@ -160,7 +158,7 @@ export class DynamicQueryModal implements OnInit {
 
   async updateDynamicQuery(data: any) {
     try {
-      const response = await this.dynamicQueryService.updateDynamicQuery(this.dynamicQueryKey!, data, this.companyId);
+      const response = await this.dynamicQueryService.updateDynamicQuery(this.dynamicQueryKey!, data);
       this.toast.success('Consulta dinâmica atualizada com sucesso!');
 
       // Atualiza os dados locais

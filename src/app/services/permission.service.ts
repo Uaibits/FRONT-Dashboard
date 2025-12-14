@@ -40,10 +40,9 @@ export class PermissionService {
     }
   }
 
-  async getPermissionsGroup(idCompany: string | null = null): Promise<any[]> {
+  async getPermissionsGroup(): Promise<any[]> {
     try {
       let url = `${this.API_URL}/permission/group`;
-      if (idCompany) url += `?idCompany=${idCompany}`;
       const response = await firstValueFrom(this.http.get<any>(url));
       return response.data || [];
     } catch (err: any) {

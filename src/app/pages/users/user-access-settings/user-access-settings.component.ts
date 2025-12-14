@@ -24,18 +24,6 @@ import {Utils} from '../../../services/utils.service';
 export class UserAccessSettingsComponent implements OnInit, OnDestroy, OnChanges {
 
   @Input({required: true}) user!: User;
-
-  private _companyId: string | null = null;
-  @Input()
-  set companyId(value: string | null) {
-    this._companyId = value;
-    this.companyId$.next(value);
-  }
-
-  get companyId(): string | null {
-    return this._companyId;
-  }
-
   @Input() loading: boolean = false;
   @Output() loadingChange = new EventEmitter<boolean>();
   @Output() reload = new EventEmitter<void>();
@@ -57,7 +45,6 @@ export class UserAccessSettingsComponent implements OnInit, OnDestroy, OnChanges
     selectionType: 'toggle'
   };
 
-  private companyId$ = new BehaviorSubject<string | null>(null);
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -72,32 +59,12 @@ export class UserAccessSettingsComponent implements OnInit, OnDestroy, OnChanges
   }
 
   ngOnInit() {
-    this.setupCompanyIdSubscription();
     this.loadPermissions();
   }
 
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  private setupCompanyIdSubscription(): void {
-    this.companyId$.pipe(
-      takeUntil(this.destroy$),
-      switchMap(companyId => {
-        this.setLoading(true);
-        return this.permissionService.getPermissionsGroup(companyId);
-      })
-    ).subscribe({
-      next: groups => {
-        this.groups = groups;
-        this.setLoading(false);
-      },
-      error: error => {
-        console.error('Error loading permission groups:', error);
-        this.setLoading(false);
-      }
-    });
   }
 
   private async loadPermissions(): Promise<void> {

@@ -8,8 +8,6 @@ import {NavbarComponent} from './layout/navbar/navbar.component';
 import {UsersPage} from './pages/users/users-page.component';
 import {ManageUserPage} from './pages/users/manage/manage-user.page';
 import {PermissionGuard} from './security/permission.guard';
-import {CompaniesPage} from './pages/companies/companies.page';
-import {ManageCompanyPage} from './pages/companies/manage/manage-company.page';
 import {PermissionsPage} from './pages/permissions/permissions.page';
 import {PermissionGroupsPage} from './pages/permission-groups/permission-groups.page';
 import {ManagePermissionGroupPage} from './pages/permission-groups/manage/manage-permission-group.page';
@@ -74,33 +72,6 @@ export const routes: Routes = [
             component: ManageUserPage,
             data: {
               permission: 'user.edit',
-            }
-          }
-        ]
-      },
-      {
-        path: 'companies',
-        canActivate: [PermissionGuard],
-        data: {
-          permission: 'company.view',
-        },
-        children: [
-          {
-            path: "",
-            component: CompaniesPage
-          },
-          {
-            path: "manage",
-            component: ManageCompanyPage,
-            data: {
-              permission: 'company.create',
-            }
-          },
-          {
-            path: "manage/:id",
-            component: ManageCompanyPage,
-            data: {
-              permission: 'company.edit',
             }
           }
         ]

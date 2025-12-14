@@ -36,7 +36,6 @@ import {DynamicParametersComponent, DynamicParams} from '../../../components/dyn
 export class ServiceParametersComponent implements OnInit, OnChanges, ControlValueAccessor {
 
   @Input({required: true}) serviceSlug: string | null = null;
-  @Input() companyId: number | null = null;
   @Input() disabled: boolean = false;
   @Input() dynamicQuery: any | null = null;
 
@@ -75,7 +74,7 @@ export class ServiceParametersComponent implements OnInit, OnChanges, ControlVal
 
     this.loading = true;
     try {
-      const response = await this.servicesService.getServiceParams(this.serviceSlug, this.companyId);
+      const response = await this.servicesService.getServiceParams(this.serviceSlug);
       this.serviceParams = response.data || {};
 
       // Se há um dynamicQuery com service_params, atualiza o valor atual
@@ -112,8 +111,7 @@ export class ServiceParametersComponent implements OnInit, OnChanges, ControlVal
     try {
       await this.dynamicQueryService.updateDynamicQuery(
         this.dynamicQuery.key!,
-        { service_params: data },
-        this.companyId
+        { service_params: data }
       );
 
       this.toast.success('Parâmetros salvos com sucesso!');

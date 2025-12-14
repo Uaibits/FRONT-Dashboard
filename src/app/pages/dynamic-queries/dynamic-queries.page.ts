@@ -18,7 +18,6 @@ import {DynamicQuery} from '../../modals/dynamic-query/dynamic-query.modal';
 })
 export class DynamicQueriesPage implements OnInit {
 
-  protected companyId: number | null = null;
   protected loading: boolean = false;
   protected data: DynamicQuery[] = [];
   protected configTable: TableConfig = {
@@ -34,10 +33,6 @@ export class DynamicQueriesPage implements OnInit {
       {
         headerName: "Descrição",
         field: "description"
-      },
-      {
-        headerName: "Global",
-        field: "is_global",
       }
     ],
     showAddButton: true,
@@ -58,7 +53,7 @@ export class DynamicQueriesPage implements OnInit {
   protected async loadData() {
     this.loading = true;
     try {
-      const response = await this.dynamicQueryService.getDynamicQueries(this.companyId);
+      const response = await this.dynamicQueryService.getDynamicQueries();
       this.data = response.data;
     } catch (error) {
       this.toast.error(Utils.getErrorMessage(error))
@@ -68,16 +63,16 @@ export class DynamicQueriesPage implements OnInit {
   }
 
   openConfig(query?: any) {
-    const modal = this.dynamicQueryService.openDynamicQueryModal(query, this.companyId);
+    const modal = this.dynamicQueryService.openDynamicQueryModal(query);
 
-    modal.then(() => {
-      this.loadData();
+    modal.then((value) => {
+      if (value !== undefined) this.loadData();
     });
   }
 
   deleteDynamicQuery(event: any) {
     this.loading = true;
-    this.dynamicQueryService.deleteDynamicQuery(event.key, this.companyId).then(() => {
+    this.dynamicQueryService.deleteDynamicQuery(event.key).then(() => {
       this.loadData();
     }).finally(() => this.loading = false);
   }

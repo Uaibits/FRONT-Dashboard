@@ -29,7 +29,6 @@ interface TestResult {
 export class DynamicQueryTestComponent {
 
   @Input() dynamicQuery: DynamicQuery | null = null;
-  @Input() companyId: number | null = null;
 
   testLoading: boolean = false;
   testResult: TestResult | null = null;
@@ -52,8 +51,7 @@ export class DynamicQueryTestComponent {
     try {
       const response = await this.dynamicQueryService.executeDynamicQuery(
         this.dynamicQuery,
-        this.testParameters,
-        this.companyId
+        this.testParameters
       );
 
       this.testResult = response;
