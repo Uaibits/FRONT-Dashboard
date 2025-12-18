@@ -7,15 +7,10 @@ import { ContentComponent } from '../../../components/content/content.component'
 import { DashboardService } from '../../../services/dashboard.service';
 import { ToastService } from '../../../components/toast/toast.service';
 import { Utils } from '../../../services/utils.service';
-import { InputComponent } from '../../../components/form/input/input.component';
-import { DropdownComponent } from '../../../components/form/dropdown/dropdown.component';
-import { MultiselectComponent } from '../../../components/form/multiselect/multiselect.component';
-import { ToggleSwitchComponent } from '../../../components/form/toggle-switch/toggle-switch.component';
-import { ButtonComponent } from '../../../components/form/button/button.component';
-import {DashboardMetricCardComponent} from './dashboard-metric-card.component';
-import {DashboardChartComponent} from './dashboard-chart.component';
-import {DashboardTableComponent} from './dashboard-table.component';
-
+import { DashboardFiltersComponent } from './dashboard-filters.component';
+import { DashboardMetricCardComponent } from './dashboard-metric-card.component';
+import { DashboardChartComponent } from './dashboard-chart.component';
+import { DashboardTableComponent } from './dashboard-table.component';
 
 @Component({
   selector: 'app-dashboard-view',
@@ -23,11 +18,7 @@ import {DashboardTableComponent} from './dashboard-table.component';
     CommonModule,
     FormsModule,
     ContentComponent,
-    InputComponent,
-    DropdownComponent,
-    MultiselectComponent,
-    ToggleSwitchComponent,
-    ButtonComponent,
+    DashboardFiltersComponent,
     DashboardMetricCardComponent,
     DashboardChartComponent,
     DashboardTableComponent
@@ -58,7 +49,6 @@ export class DashboardViewPage implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(params => {
         this.dashboardKey = params['key'];
-        this.initializeFilters();
         this.loadDashboard();
       });
   }
@@ -92,32 +82,35 @@ export class DashboardViewPage implements OnInit, OnDestroy {
 
   initializeFilters() {
     if (this.structure?.filters) {
+      const newFilterValues: { [key: string]: any } = {};
+
       this.structure.filters.forEach((filter: any) => {
         if (!this.filterValues.hasOwnProperty(filter.var_name)) {
           switch (filter.type) {
             case 'text':
-              this.filterValues[filter.var_name] = filter.default_value || '';
+            case 'date':
+              newFilterValues[filter.var_name] = filter.default_value || '';
               break;
             case 'number':
-              this.filterValues[filter.var_name] = filter.default_value || null;
+              newFilterValues[filter.var_name] = filter.default_value ? Number(filter.default_value) : null;
               break;
             case 'boolean':
-              this.filterValues[filter.var_name] = filter.default_value || false;
+              newFilterValues[filter.var_name] = Boolean(filter.default_value) || false;
               break;
-            case 'date':
-              this.filterValues[filter.var_name] = filter.default_value || null;
+            case 'select':
+            case 'multiselect':
+              newFilterValues[filter.var_name] = filter.default_value || null;
               break;
             default:
-              this.filterValues[filter.var_name] = filter.default_value || null;
+              newFilterValues[filter.var_name] = filter.default_value || null;
           }
+        } else {
+          newFilterValues[filter.var_name] = this.filterValues[filter.var_name];
         }
       });
-    }
-  }
 
-  getFilterOptions(options: any) {
-    if (!options) return [];
-    return Object.keys(options).map(key => ({ value: key, label: options[key] }));
+      this.filterValues = newFilterValues;
+    }
   }
 
   applyFilters() {
@@ -132,10 +125,6 @@ export class DashboardViewPage implements OnInit, OnDestroy {
 
   refreshDashboard() {
     this.loadDashboard();
-  }
-
-  toggleSidebar() {
-    this.sidebarCollapsed = !this.sidebarCollapsed;
   }
 
   goBack() {

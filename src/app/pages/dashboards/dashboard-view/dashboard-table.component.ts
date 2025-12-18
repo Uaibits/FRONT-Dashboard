@@ -1,258 +1,429 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {ToastService} from '../../../components/toast/toast.service';
-import {DashboardService, DashboardWidget} from '../../../services/dashboard.service';
-import {Utils} from '../../../services/utils.service';
+import { FormsModule } from '@angular/forms';
+import { ToastService } from '../../../components/toast/toast.service';
+import { DashboardService, DashboardWidget } from '../../../services/dashboard.service';
+import { Utils } from '../../../services/utils.service';
+
+interface TableData {
+  columns: string[];
+  rows: any[];
+}
+
+interface ColumnFilter {
+  [key: string]: string;
+}
 
 @Component({
   selector: 'app-dashboard-table',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   template: `
-    <div class="table-card" [class.loading]="loading">
-
-      <div class="table-header">
-        <h3 class="table-title">
+    <div class="table-container" [class.loading]="loading">
+      <!-- Header -->
+      <div class="header">
+        <div class="header-left">
           <i class="bx bx-table"></i>
-          {{ widget.title }}
-        </h3>
-        <div class="table-actions">
+          <h3>{{ widget.title }}</h3>
+          @if (tableData && tableData.rows) {
+            <span class="count">
+              {{ getFilteredData().length }} / {{ tableData.rows.length }}
+            </span>
+          }
+        </div>
+
+        <div class="header-actions">
+          <button class="btn-icon" (click)="toggleFilters()"
+                  [class.active]="showFilters"
+                  title="Filtros">
+            <i class="bx bx-filter"></i>
+          </button>
+
+          @if (hasActiveFilters()) {
+            <button class="btn-icon" (click)="clearFilters()"
+                    title="Limpar filtros">
+              <i class="bx bx-x"></i>
+            </button>
+          }
+
           @if (config.enable_export) {
-            <button class="action-btn" (click)="exportData()" title="Exportar">
+            <button class="btn-icon" (click)="exportData()"
+                    title="Exportar CSV">
               <i class="bx bx-download"></i>
             </button>
           }
-          <button class="action-btn" (click)="loadData()" [disabled]="loading" title="Atualizar">
-            <i class="bx bx-refresh"></i>
+
+          <button class="btn-icon" (click)="loadData()"
+                  [disabled]="loading"
+                  title="Atualizar">
+            <i class="bx bx-refresh" [class.spinning]="loading"></i>
           </button>
         </div>
       </div>
 
+      <!-- Loading State -->
       @if (loading) {
-        <div class="table-loading">
+        <div class="state-container">
           <i class="bx bx-loader-alt bx-spin"></i>
-          <span>Carregando dados...</span>
+          <span>Carregando...</span>
         </div>
       }
 
+      <!-- Error State -->
       @if (!loading && error) {
-        <div class="table-error">
+        <div class="state-container error">
           <i class="bx bx-error-circle"></i>
           <p>{{ error }}</p>
-          <button class="retry-btn" (click)="loadData()">Tentar novamente</button>
+          <button class="btn-primary" (click)="loadData()">Tentar novamente</button>
         </div>
       }
 
+      <!-- Table -->
       @if (!loading && !error && tableData) {
         <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
+          @if (tableData.rows.length > 0) {
+            <table>
+              <thead>
+              <tr class="header-row">
                 @for (column of tableData.columns; track column) {
                   <th (click)="sortBy(column)" class="sortable">
-                    {{ getColumnLabel(column) }}
-                    @if (sortColumn === column) {
-                      <i class="bx" [class.bx-chevron-up]="sortDirection === 'asc'"
-                         [class.bx-chevron-down]="sortDirection === 'desc'"></i>
-                    }
+                    <div class="th-content">
+                      <span class="th-label">{{ getColumnLabel(column) }}</span>
+                      <i class="bx sort-icon"
+                         [class.bx-chevron-up]="sortColumn === column && sortDirection === 'asc'"
+                         [class.bx-chevron-down]="sortColumn === column && sortDirection === 'desc'"
+                         [class.bx-minus]="sortColumn !== column"></i>
+                    </div>
                   </th>
                 }
               </tr>
-            </thead>
-            <tbody>
-              @for (row of getSortedData(); track $index) {
-                <tr>
-                  @for (column of tableData.columns; track column) {
-                    <td>{{ formatCell(row[column]) }}</td>
-                  }
-                </tr>
-              }
-              @if (getSortedData().length === 0) {
-                <tr>
-                  <td [attr.colspan]="tableData.columns.length" class="no-data">
-                    <i class="bx bx-data"></i>
-                    <span>Nenhum dado disponível</span>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
+                @if (showFilters) {
+                  <tr class="filter-row">
+                    @for (column of tableData.columns; track column) {
+                      <th>
+                        <input
+                          type="text"
+                          [(ngModel)]="columnFilters[column]"
+                          (ngModelChange)="applyFilters()"
+                          (click)="$event.stopPropagation()"
+                          placeholder="Filtrar..."
+                          class="filter-input">
+                      </th>
+                    }
+                  </tr>
+                }
+              </thead>
+              <tbody>
+                @for (row of getDisplayData(); track $index) {
+                  <tr>
+                    @for (column of tableData.columns; track column) {
+                      <td [title]="row[column]">
+                        {{ row[column] }}
+                      </td>
+                    }
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
 
-        @if (tableData.rows.length > 0) {
-          <div class="table-footer">
-            <span class="table-count">
-              <i class="bx bx-list-ul"></i>
-              Total: {{ tableData.rows.length }} registros
-            </span>
-          </div>
-        }
+          <!-- Empty State -->
+          @if (tableData.rows.length === 0) {
+            <div class="state-container empty">
+              <i class="bx bx-data"></i>
+              <span>Nenhum dado disponível</span>
+            </div>
+          }
+
+          <!-- No Results State -->
+          @if (tableData.rows.length > 0 && getFilteredData().length === 0) {
+            <div class="state-container empty">
+              <i class="bx bx-search"></i>
+              <span>Nenhum resultado encontrado</span>
+              <button class="btn-text" (click)="clearFilters()">Limpar filtros</button>
+            </div>
+          }
+        </div>
       }
     </div>
   `,
   styles: [`
-    .table-card {
-      background: var(--bg-white);
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      transition: all 0.3s ease;
+    .table-container {
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
       overflow: hidden;
       display: flex;
       flex-direction: column;
-
-      &:hover {
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-      }
+      height: 100%;
+      transition: opacity 0.2s;
 
       &.loading {
-        opacity: 0.7;
+        opacity: 0.6;
       }
     }
 
-    .table-header {
+    .header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 1.5rem;
-      border-bottom: 1px solid var(--input-border-color);
-      background: var(--background-color);
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid #e5e7eb;
+      gap: 1rem;
+      flex-wrap: wrap;
+      min-height: 60px;
+      flex-shrink: 0;
 
-      .table-title {
+      .header-left {
         display: flex;
         align-items: center;
         gap: 0.75rem;
-        margin: 0;
-        font-size: 16px;
-        font-weight: 600;
-        color: var(--text-color);
+        flex: 1;
+        min-width: 0;
 
         i {
-          font-size: 22px;
-          color: var(--secondary-color);
+          font-size: 20px;
+          color: #6b7280;
+          flex-shrink: 0;
+        }
+
+        h3 {
+          margin: 0;
+          font-size: 15px;
+          font-weight: 600;
+          color: #111827;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .count {
+          padding: 0.125rem 0.5rem;
+          background: #f3f4f6;
+          border-radius: 12px;
+          font-size: 12px;
+          font-weight: 500;
+          color: #6b7280;
+          white-space: nowrap;
         }
       }
 
-      .table-actions {
+      .header-actions {
         display: flex;
-        gap: 0.5rem;
-
-        .action-btn {
-          background: var(--bg-white);
-          border: 1px solid var(--input-border-color);
-          padding: 0.5rem;
-          border-radius: var(--border-radius);
-          cursor: pointer;
-          color: var(--text-muted);
-          transition: all 0.2s;
-
-          i {
-            font-size: 18px;
-            display: block;
-          }
-
-          &:hover:not(:disabled) {
-            background: var(--secondary-color);
-            border-color: var(--secondary-color);
-            color: var(--text-color);
-          }
-
-          &:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-          }
-        }
+        gap: 0.375rem;
+        flex-shrink: 0;
       }
     }
 
-    .table-loading {
+    .btn-icon {
+      width: 32px;
+      height: 32px;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 3rem;
-      gap: 0.75rem;
-      color: var(--text-muted);
+      background: transparent;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #6b7280;
+      transition: all 0.15s;
+      padding: 0;
 
       i {
-        font-size: 48px;
+        font-size: 18px;
       }
 
-      span {
-        font-size: 14px;
+      &:hover:not(:disabled) {
+        background: #f9fafb;
+        border-color: #d1d5db;
+        color: #111827;
+      }
+
+      &.active {
+        background: #eff6ff;
+        border-color: #3b82f6;
+        color: #3b82f6;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .spinning {
+        animation: spin 1s linear infinite;
       }
     }
 
-    .table-error {
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .state-container {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 3rem;
-      gap: 1rem;
-      color: var(--danger-color);
+      padding: 3rem 1.5rem;
+      gap: 0.75rem;
+      color: #6b7280;
       text-align: center;
 
       i {
         font-size: 48px;
+        opacity: 0.5;
       }
 
-      p {
+      span, p {
         margin: 0;
         font-size: 14px;
       }
 
-      .retry-btn {
-        padding: 0.75rem 1.5rem;
-        background: var(--danger-color);
-        color: white;
-        border: none;
-        border-radius: var(--border-radius);
-        cursor: pointer;
-        font-weight: 500;
-        transition: all 0.2s;
+      &.error {
+        color: #dc2626;
 
-        &:hover {
-          opacity: 0.9;
+        i {
+          opacity: 1;
         }
+      }
+
+      &.empty {
+        padding: 4rem 1.5rem;
+      }
+    }
+
+    .btn-primary {
+      padding: 0.625rem 1.25rem;
+      background: #3b82f6;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+
+      &:hover {
+        background: #2563eb;
+      }
+    }
+
+    .btn-text {
+      padding: 0.5rem 1rem;
+      background: transparent;
+      color: #3b82f6;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+
+      &:hover {
+        background: #eff6ff;
       }
     }
 
     .table-wrapper {
-      overflow-x: auto;
-      max-height: 600px;
+      overflow: auto;
+      flex: 1;
+      min-height: 0;
+      -webkit-overflow-scrolling: touch;
 
       table {
         width: 100%;
+        min-width: 600px;
         border-collapse: collapse;
-        font-size: 14px;
+        font-size: 13px;
 
         thead {
-          background: var(--background-color);
           position: sticky;
           top: 0;
-          z-index: 2;
+          z-index: 10;
 
-          th {
-            padding: 1rem;
-            text-align: left;
-            font-weight: 600;
-            color: var(--text-color);
-            border-bottom: 2px solid var(--input-border-color);
-            white-space: nowrap;
+          .header-row {
+            background: #f9fafb;
 
-            &.sortable {
-              cursor: pointer;
+            th {
+              padding: 0.875rem 1rem;
+              text-align: left;
+              font-weight: 600;
+              color: #374151;
+              border-bottom: 2px solid #e5e7eb;
+              white-space: nowrap;
               user-select: none;
-              transition: all 0.2s;
 
-              &:hover {
-                background: rgba(247, 194, 18, 0.1);
+              &.sortable {
+                cursor: pointer;
+                transition: background 0.15s;
+
+                &:hover {
+                  background: #f3f4f6;
+                }
               }
 
-              i {
-                margin-left: 0.5rem;
-                font-size: 14px;
-                vertical-align: middle;
+              .th-content {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 0.5rem;
+
+                .th-label {
+                  flex: 1;
+                  min-width: 0;
+                }
+
+                .sort-icon {
+                  font-size: 16px;
+                  color: #9ca3af;
+                  transition: color 0.15s;
+                  flex-shrink: 0;
+                }
+
+                .sort-icon.bx-chevron-up,
+                .sort-icon.bx-chevron-down {
+                  color: #3b82f6;
+                }
+
+                .sort-icon.bx-minus {
+                  opacity: 0;
+                }
+              }
+
+              &:hover .th-content .sort-icon.bx-minus {
+                opacity: 0.5;
+              }
+            }
+          }
+
+          .filter-row {
+            background: #fff;
+
+            th {
+              padding: 0.5rem 1rem;
+              border-bottom: 1px solid #e5e7eb;
+
+              .filter-input {
+                width: 100%;
+                padding: 0.5rem 0.75rem;
+                border: 1px solid #e5e7eb;
+                border-radius: 6px;
+                font-size: 12px;
+                background: #fff;
+                transition: all 0.15s;
+                font-family: inherit;
+
+                &:focus {
+                  outline: none;
+                  border-color: #3b82f6;
+                  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+                }
+
+                &::placeholder {
+                  color: #9ca3af;
+                  font-size: 12px;
+                }
               }
             }
           }
@@ -260,58 +431,118 @@ import {Utils} from '../../../services/utils.service';
 
         tbody {
           tr {
-            transition: background 0.2s;
+            transition: background 0.1s;
 
             &:hover {
-              background: rgba(247, 194, 18, 0.05);
+              background: #f9fafb;
             }
 
-            &:nth-child(even) {
-              background: rgba(0, 0, 0, 0.02);
-
-              &:hover {
-                background: rgba(247, 194, 18, 0.05);
-              }
+            &:not(:last-child) td {
+              border-bottom: 1px solid #f3f4f6;
             }
 
             td {
-              padding: 1rem;
-              border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-              color: var(--text-color);
-
-              &.no-data {
-                text-align: center;
-                padding: 3rem;
-                color: var(--text-muted);
-
-                i {
-                  display: block;
-                  font-size: 48px;
-                  margin-bottom: 0.5rem;
-                  opacity: 0.3;
-                }
-              }
+              padding: 0.875rem 1rem;
+              color: #111827;
+              max-width: 300px;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
             }
           }
         }
       }
     }
 
-    .table-footer {
-      padding: 1rem 1.5rem;
-      border-top: 1px solid var(--input-border-color);
-      background: var(--background-color);
+    /* Responsividade */
+    @media (max-width: 1024px) {
+      .table-wrapper table {
+        min-width: 800px;
+      }
+    }
 
-      .table-count {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 13px;
-        color: var(--text-muted);
-        font-weight: 500;
+    @media (max-width: 768px) {
+      .header {
+        .header-left {
+          h3 {
+            font-size: 14px;
+          }
 
-        i {
-          font-size: 16px;
+          .count {
+            font-size: 11px;
+          }
+        }
+      }
+
+      .table-wrapper {
+        table {
+          min-width: 700px;
+          font-size: 12px;
+
+          thead {
+            .header-row th,
+            .filter-row th {
+              padding: 0.75rem 0.875rem;
+            }
+
+            .filter-row th .filter-input {
+              padding: 0.375rem 0.625rem;
+              font-size: 11px;
+            }
+          }
+
+          tbody td {
+            padding: 0.75rem 0.875rem;
+          }
+        }
+      }
+    }
+
+    @media (max-width: 480px) {
+      .header {
+        padding: 0.875rem 1rem;
+
+        .header-left {
+          i {
+            font-size: 18px;
+          }
+
+          h3 {
+            font-size: 13px;
+          }
+        }
+
+        .btn-icon {
+          width: 28px;
+          height: 28px;
+
+          i {
+            font-size: 16px;
+          }
+        }
+      }
+
+      .table-wrapper {
+        table {
+          min-width: 600px;
+
+          thead {
+            .header-row th,
+            .filter-row th {
+              padding: 0.625rem 0.75rem;
+              font-size: 11px;
+            }
+
+            .filter-row th .filter-input {
+              padding: 0.375rem 0.5rem;
+              font-size: 10px;
+            }
+          }
+
+          tbody td {
+            padding: 0.625rem 0.75rem;
+            font-size: 11px;
+          }
         }
       }
     }
@@ -321,12 +552,19 @@ export class DashboardTableComponent implements OnInit, OnChanges {
   @Input() widget!: DashboardWidget;
   @Input() filters: any = {};
 
-  loading: boolean = false;
+  loading = false;
   error: string | null = null;
-  tableData: { columns: string[]; rows: any[] } | null = null;
+  tableData: TableData | null = null;
   config: any = {};
+
+  // Sorting
   sortColumn: string | null = null;
   sortDirection: 'asc' | 'desc' = 'asc';
+
+  // Filtering
+  showFilters = false;
+  columnFilters: ColumnFilter = {};
+  filteredData: any[] = [];
 
   constructor(
     private dashboardService: DashboardService,
@@ -351,43 +589,51 @@ export class DashboardTableComponent implements OnInit, OnChanges {
     this.error = null;
 
     try {
-      const response = await this.dashboardService.getWidgetData(this.widget.id, this.filters);
+      const response = await this.dashboardService.getWidgetData(
+        this.widget.id,
+        this.filters
+      );
 
       if (response.success && response.data) {
         const rawData = Utils.keysToUpperCase(response.data.data.data);
         this.parseTableData(rawData);
+        this.applyFilters();
       }
     } catch (error: any) {
-      this.error = error?.message || 'Erro ao carregar dados da tabela';
+      this.error = error?.message || 'Erro ao carregar dados';
     } finally {
       this.loading = false;
     }
   }
 
   parseTableData(data: any) {
-    if (!data || !Array.isArray(data) || data.length === 0) {
+    if (!Array.isArray(data) || data.length === 0) {
       this.tableData = { columns: [], rows: [] };
       return;
     }
 
     const columns = Object.keys(data[0]);
     this.tableData = { columns, rows: data };
+
+    // Initialize filters
+    columns.forEach(col => {
+      if (!(col in this.columnFilters)) {
+        this.columnFilters[col] = '';
+      }
+    });
   }
 
   getColumnLabel(column: string): string {
-    // Tenta pegar do metadata se disponível
     const metadata = this.widget.dynamic_query?.fields_metadata?.[column];
-    if (metadata?.label) {
-      return metadata.label;
-    }
+    if (metadata?.label) return metadata.label;
 
-    // Formata o nome da coluna
     return column
       .split('_')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ');
   }
 
+  // Sorting
   sortBy(column: string) {
     if (this.sortColumn === column) {
       this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
@@ -397,67 +643,115 @@ export class DashboardTableComponent implements OnInit, OnChanges {
     }
   }
 
-  getSortedData(): any[] {
-    if (!this.tableData || !this.sortColumn) {
-      return this.tableData?.rows || [];
-    }
+  getSortedData(data: any[]): any[] {
+    if (!this.sortColumn) return data;
 
-    return [...this.tableData.rows].sort((a, b) => {
+    return [...data].sort((a, b) => {
       const aValue = a[this.sortColumn!];
       const bValue = b[this.sortColumn!];
 
       if (aValue === bValue) return 0;
 
-      const comparison = aValue < bValue ? -1 : 1;
+      let comparison: number;
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        comparison = aValue - bValue;
+      } else {
+        comparison = String(aValue).localeCompare(String(bValue));
+      }
+
       return this.sortDirection === 'asc' ? comparison : -comparison;
     });
   }
 
-  formatCell(value: any): string {
-    if (value === null || value === undefined) return '-';
-
-    if (typeof value === 'number') {
-      return new Intl.NumberFormat('pt-BR', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2
-      }).format(value);
-    }
-
-    return String(value);
+  // Filtering
+  toggleFilters() {
+    this.showFilters = !this.showFilters;
   }
 
+  applyFilters() {
+    if (!this.tableData) {
+      this.filteredData = [];
+      return;
+    }
+
+    this.filteredData = this.tableData.rows.filter(row => {
+      return Object.keys(this.columnFilters).every(column => {
+        const filterValue = this.columnFilters[column]?.toLowerCase().trim();
+        if (!filterValue) return true;
+
+        const cellValue = String(row[column] ?? '').toLowerCase();
+        return cellValue.includes(filterValue);
+      });
+    });
+  }
+
+  getFilteredData(): any[] {
+    return this.filteredData;
+  }
+
+  getDisplayData(): any[] {
+    return this.getSortedData(this.getFilteredData());
+  }
+
+  hasActiveFilters(): boolean {
+    return Object.values(this.columnFilters).some(value => value.trim() !== '');
+  }
+
+  clearFilters() {
+    Object.keys(this.columnFilters).forEach(key => {
+      this.columnFilters[key] = '';
+    });
+    this.applyFilters();
+  }
+
+  // Export
   exportData() {
-    if (!this.tableData || this.tableData.rows.length === 0) {
+    if (!this.tableData?.rows.length) {
       this.toast.warning('Nenhum dado para exportar');
       return;
     }
 
-    const csv = this.convertToCSV(this.tableData);
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const dataToExport = this.hasActiveFilters()
+      ? this.getFilteredData()
+      : this.tableData.rows;
+
+    if (dataToExport.length === 0) {
+      this.toast.warning('Nenhum dado filtrado para exportar');
+      return;
+    }
+
+    const csv = this.convertToCSV(this.tableData.columns, dataToExport);
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
 
+    const fileName = `${this.widget.key || 'table'}_${new Date().toISOString().split('T')[0]}.csv`;
+
     link.setAttribute('href', url);
-    link.setAttribute('download', `${this.widget.key || 'table'}_${Date.now()}.csv`);
-    link.style.visibility = 'hidden';
+    link.setAttribute('download', fileName);
+    link.style.display = 'none';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 
-    this.toast.success('Dados exportados com sucesso');
+    this.toast.success(`${dataToExport.length} registros exportados`);
   }
 
-  convertToCSV(data: { columns: string[]; rows: any[] }): string {
-    const header = data.columns.join(',');
-    const rows = data.rows.map(row =>
-      data.columns.map(col => {
+  convertToCSV(columns: string[], rows: any[]): string {
+    const header = columns.map(col => this.getColumnLabel(col)).join(';');
+    const dataRows = rows.map(row =>
+      columns.map(col => {
         const value = row[col];
-        return typeof value === 'string' && value.includes(',')
-          ? `"${value}"`
-          : value;
-      }).join(',')
+        if (value === null || value === undefined) return '';
+
+        const strValue = String(value);
+        return strValue.includes(';') || strValue.includes('"') || strValue.includes('\n')
+          ? `"${strValue.replace(/"/g, '""')}"`
+          : strValue;
+      }).join(';')
     );
 
-    return [header, ...rows].join('\n');
+    return [header, ...dataRows].join('\n');
   }
 }
