@@ -1,0 +1,93 @@
+<div class="chart-card" [class.loading]="loading">
+
+  <!-- Loading State -->
+  @if (loading) {
+    <div class="chart-loading">
+      <div class="spinner"></div>
+      <span class="loading-text">Carregando dados...</span>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (!loading && error) {
+    <div class="chart-error">
+      <i class="bx bx-error-circle"></i>
+      <span class="error-text">{{ error }}</span>
+      <button class="retry-btn" (click)="loadData()">
+        <i class="bx bx-refresh"></i>
+        Tentar novamente
+      </button>
+    </div>
+  }
+
+  <!-- Chart Content -->
+  @if (!loading && !error && chartOptions) {
+    <div class="chart-header">
+      <div class="header-content">
+        <h3 class="chart-title">{{ widget.title || '' }}</h3>
+        <button class="refresh-btn" (click)="loadData()" [disabled]="loading">
+          <i class="bx bx-refresh"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="chart-wrapper">
+      <apx-chart
+        #chart
+        [series]="chartOptions.series"
+        [chart]="chartOptions.chart"
+        [xaxis]="chartOptions.xaxis"
+        [yaxis]="chartOptions.yaxis"
+        [stroke]="chartOptions.stroke"
+        [dataLabels]="chartOptions.dataLabels"
+        [legend]="chartOptions.legend"
+        [colors]="chartOptions.colors"
+        [grid]="chartOptions.grid"
+        [plotOptions]="chartOptions.plotOptions!"
+        [tooltip]="chartOptions.tooltip"
+        [labels]="chartOptions.labels!"
+        [fill]="chartOptions.fill!">
+      </apx-chart>
+    </div>
+
+    <!-- Custom Legend -->
+    @if (showCustomLegend()) {
+      <div class="custom-legend">
+        <div class="legend-header">
+          <span class="legend-title">Legenda</span>
+          @if (legendItems.length > 5) {
+            <button
+              class="expand-btn"
+              (click)="toggleLegendExpanded()">
+              <i [class]="legendExpanded ? 'bx bx-chevron-up' : 'bx bx-chevron-down'"></i>
+            </button>
+          }
+        </div>
+
+        <div class="legend-content" [class.expanded]="legendExpanded">
+          @for (item of getVisibleLegendItems(); let i = $index; track i) {
+            <div
+              class="legend-item">
+              <div class="item-indicator">
+                <span class="indicator-dot" [style.background]="item.color"></span>
+              </div>
+              <div class="item-info">
+                <span class="item-label" [title]="item.label">{{ item.label }}</span>
+                <span class="item-value">{{ item.value }}</span>
+              </div>
+            </div>
+          }
+        </div>
+
+        @if (shouldShowTotal()) {
+          <div class="legend-footer">
+            <div class="total-item">
+              <span class="total-label">Total</span>
+              <span class="total-value">{{ getTotalValue() }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

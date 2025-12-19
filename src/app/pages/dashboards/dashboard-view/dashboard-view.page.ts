@@ -9,8 +9,8 @@ import { ToastService } from '../../../components/toast/toast.service';
 import { Utils } from '../../../services/utils.service';
 import { DashboardFiltersComponent } from './dashboard-filters.component';
 import { DashboardMetricCardComponent } from './dashboard-metric-card.component';
-import { DashboardChartComponent } from './dashboard-chart.component';
 import { DashboardTableComponent } from './dashboard-table.component';
+import {DashboardChartComponent} from './dashboard-chart/dashboard-chart.component';
 
 @Component({
   selector: 'app-dashboard-view',
@@ -20,8 +20,8 @@ import { DashboardTableComponent } from './dashboard-table.component';
     ContentComponent,
     DashboardFiltersComponent,
     DashboardMetricCardComponent,
-    DashboardChartComponent,
-    DashboardTableComponent
+    DashboardTableComponent,
+    DashboardChartComponent
   ],
   templateUrl: './dashboard-view.page.html',
   standalone: true,

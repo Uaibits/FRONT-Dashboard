@@ -1,0 +1,521 @@
+// ============================================
+// Chart Card Container
+// ============================================
+.chart-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 0;
+  border: 1px solid #f0f0f5;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+  &:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    border-color: #e0e0eb;
+    transform: translateY(-2px);
+  }
+
+  &.loading {
+    pointer-events: none;
+  }
+}
+
+// ============================================
+// Loading State
+// ============================================
+.chart-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 1rem;
+  padding: 3rem;
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f0f0f5;
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  .loading-text {
+    color: #6c757d;
+    font-size: 13px;
+    font-weight: 500;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// ============================================
+// Error State
+// ============================================
+.chart-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  gap: 1rem;
+  padding: 3rem;
+
+  i {
+    font-size: 48px;
+    color: #ef4444;
+    opacity: 0.8;
+  }
+
+  .error-text {
+    color: #6c757d;
+    font-size: 14px;
+    text-align: center;
+    max-width: 300px;
+  }
+
+  .retry-btn {
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 0.625rem 1.25rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+
+    &:hover {
+      background: #dc2626;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    i {
+      font-size: 16px;
+      color: white;
+    }
+  }
+}
+
+// ============================================
+// Chart Header
+// ============================================
+.chart-header {
+  padding: 1.5rem 1.5rem 1rem;
+  border-bottom: 1px solid #f0f0f5;
+
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .chart-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e293b;
+    letter-spacing: -0.01em;
+  }
+
+  .refresh-btn {
+    background: transparent;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #94a3b8;
+    transition: all 0.2s;
+
+    i {
+      font-size: 18px;
+      display: block;
+    }
+
+    &:hover:not(:disabled) {
+      background: #f8fafc;
+      color: #667eea;
+      transform: rotate(180deg);
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+}
+
+// ============================================
+// Chart Wrapper
+// ============================================
+.chart-wrapper {
+  flex: 1;
+  padding: 1rem 0.5rem;
+  min-height: 280px;
+}
+
+// ============================================
+// Custom Legend
+// ============================================
+.custom-legend {
+  border-top: 1px solid #f0f0f5;
+  background: #fafbfc;
+}
+
+.legend-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem 0.75rem;
+
+  .legend-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .expand-btn {
+    background: transparent;
+    border: none;
+    padding: 0.25rem;
+    cursor: pointer;
+    color: #94a3b8;
+    transition: all 0.2s;
+
+    &:hover {
+      color: #667eea;
+    }
+
+    i {
+      font-size: 18px;
+      display: block;
+    }
+  }
+}
+
+.legend-content {
+  max-height: 0;
+  overflow: hidden;
+  padding: 0 1.5rem;
+  transition: max-height 0.3s ease-out;
+
+  &.expanded {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+  }
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f0f0f5;
+  transition: all 0.2s;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: #ffffff;
+    margin: 0 -0.5rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    border-radius: 8px;
+  }
+
+  .item-indicator {
+    display: flex;
+    align-items: center;
+
+    .indicator-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: block;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+  }
+
+  .item-info {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 0;
+
+    .item-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: #475569;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-right: 1rem;
+    }
+
+    .item-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1e293b;
+      white-space: nowrap;
+    }
+  }
+}
+
+.legend-footer {
+  padding: 1rem 1.5rem;
+  border-top: 2px solid #e2e8f0;
+  background: #ffffff;
+
+  .total-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .total-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .total-value {
+      font-size: 18px;
+      font-weight: 800;
+      color: #1e293b;
+    }
+  }
+}
+
+// ============================================
+// ApexCharts Overrides
+// ============================================
+:host ::ng-deep {
+  .apexcharts-canvas {
+    // Tooltip Styling
+    .apexcharts-tooltip {
+      border: none !important;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+      border-radius: 12px !important;
+      overflow: hidden;
+      backdrop-filter: blur(10px);
+
+      &.apexcharts-theme-light {
+        background: rgba(255, 255, 255, 0.95) !important;
+      }
+
+      .apexcharts-tooltip-title {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        color: white !important;
+        border: none !important;
+        font-weight: 600 !important;
+        padding: 0.75rem 1rem !important;
+        font-size: 12px !important;
+      }
+
+      .apexcharts-tooltip-series-group {
+        padding: 0.5rem 1rem !important;
+
+        &:last-child {
+          padding-bottom: 0.75rem !important;
+        }
+      }
+
+      .apexcharts-tooltip-text-y-value {
+        font-weight: 700 !important;
+        color: #1e293b !important;
+      }
+    }
+
+    // Hide Default Legend
+    .apexcharts-legend {
+      display: none !important;
+    }
+
+    // Menu Styling
+    .apexcharts-menu {
+      border: none !important;
+      border-radius: 12px !important;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
+      background: white !important;
+
+      .apexcharts-menu-item:hover {
+        background: #f8fafc !important;
+      }
+    }
+
+    // Grid Lines
+    .apexcharts-gridline {
+      stroke: #f1f5f9 !important;
+      stroke-dasharray: 4 !important;
+    }
+
+    // Axis Ticks
+    .apexcharts-xaxis-tick,
+    .apexcharts-yaxis-tick {
+      stroke: #e2e8f0 !important;
+    }
+
+    // Bar Chart Styling
+    .apexcharts-bar-series {
+      .apexcharts-bar-area {
+        transition: all 0.2s ease;
+
+        &:hover {
+          filter: brightness(1.1);
+        }
+      }
+    }
+
+    // Line Chart Styling
+    .apexcharts-line-series {
+      .apexcharts-marker {
+        transition: all 0.2s ease;
+
+        &:hover {
+          r: 6 !important;
+        }
+      }
+    }
+
+    // Pie/Donut Chart Styling
+    .apexcharts-pie-series,
+    .apexcharts-donut-series {
+      path {
+        stroke: #ffffff;
+        stroke-width: 3;
+        transition: all 0.3s ease;
+
+        &:hover {
+          filter: brightness(1.1);
+          transform: scale(1.05);
+          transform-origin: center;
+        }
+      }
+    }
+  }
+}
+
+// ============================================
+// Responsive Design
+// ============================================
+@media (max-width: 768px) {
+  .chart-card {
+    min-height: 350px;
+  }
+
+  .chart-header {
+    padding: 1.25rem 1.25rem 0.75rem;
+
+    .chart-title {
+      font-size: 15px;
+    }
+  }
+
+  .chart-wrapper {
+    min-height: 240px;
+    padding: 1rem 0.25rem;
+  }
+
+  .legend-content {
+    &.expanded {
+      max-height: 300px;
+    }
+  }
+
+  .legend-item {
+    .item-info {
+      .item-label {
+        font-size: 12px;
+      }
+
+      .item-value {
+        font-size: 13px;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .chart-card {
+    min-height: 320px;
+    border-radius: 12px;
+  }
+
+  .chart-header {
+    padding: 1rem 1rem 0.5rem;
+
+    .chart-title {
+      font-size: 14px;
+    }
+
+    .refresh-btn {
+      i {
+        font-size: 16px;
+      }
+    }
+  }
+
+  .chart-wrapper {
+    min-height: 200px;
+  }
+
+  .legend-header {
+    padding: 0.75rem 1rem 0.5rem;
+
+    .legend-title {
+      font-size: 11px;
+    }
+  }
+
+  .legend-content {
+    padding: 0 1rem;
+  }
+
+  .legend-footer {
+    padding: 0.75rem 1rem;
+
+    .total-item {
+      .total-label {
+        font-size: 12px;
+      }
+
+      .total-value {
+        font-size: 16px;
+      }
+    }
+  }
+}

@@ -37,7 +37,7 @@ export interface DashboardSection {
 }
 
 export interface DashboardWidget {
-  id?: number;
+  id: number;
   section_id: number;
   dynamic_query_id?: number | null;
   key: string;
@@ -271,7 +271,6 @@ export class DashboardService {
         })
       );
     } catch (error) {
-      this.toast.error(Utils.getErrorMessage(error, 'Erro ao carregar dados do widget'));
       throw error;
     }
   }
