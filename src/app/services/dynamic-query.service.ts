@@ -74,7 +74,7 @@ export class DynamicQueryService {
     return firstValueFrom(
       this.http.post<any>(
         `${this.API_URL}/queries/${dynamicQuery.key}/execute`,
-        params
+        {params}
       )
     );
   }

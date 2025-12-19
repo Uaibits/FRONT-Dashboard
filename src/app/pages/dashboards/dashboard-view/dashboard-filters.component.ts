@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { InputComponent } from '../../../components/form/input/input.component';
@@ -49,7 +49,7 @@ import { ButtonComponent } from '../../../components/form/button/button.componen
                         [helpText]="filter.description"
                         [placeholder]="'Digite ' + filter.name"
                         [required]="filter.required"
-                        [(ngModel)]="filterValues[filter.var_name]"
+                        [(ngModel)]="localFilterValues[filter.var_name]"
                       ></ub-input>
                     }
                     @case ('number') {
@@ -59,7 +59,7 @@ import { ButtonComponent } from '../../../components/form/button/button.componen
                         [helpText]="filter.description"
                         [placeholder]="'Digite ' + filter.name"
                         [required]="filter.required"
-                        [(ngModel)]="filterValues[filter.var_name]"
+                        [(ngModel)]="localFilterValues[filter.var_name]"
                       ></ub-input>
                     }
                     @case ('date') {
@@ -69,7 +69,7 @@ import { ButtonComponent } from '../../../components/form/button/button.componen
                         [helpText]="filter.description"
                         [placeholder]="'Selecione ' + filter.name"
                         [required]="filter.required"
-                        [(ngModel)]="filterValues[filter.var_name]"
+                        [(ngModel)]="localFilterValues[filter.var_name]"
                       ></ub-input>
                     }
                     @case ('boolean') {
@@ -77,7 +77,7 @@ import { ButtonComponent } from '../../../components/form/button/button.componen
                         [label]="filter.name"
                         [helpText]="filter.description"
                         [required]="filter.required"
-                        [(ngModel)]="filterValues[filter.var_name]"
+                        [(ngModel)]="localFilterValues[filter.var_name]"
                       ></ub-toggle-switch>
                     }
                     @case ('select') {
@@ -86,7 +86,7 @@ import { ButtonComponent } from '../../../components/form/button/button.componen
                         [helpText]="filter.description"
                         [placeholder]="'Selecione ' + filter.name"
                         [required]="filter.required"
-                        [(ngModel)]="filterValues[filter.var_name]"
+                        [(ngModel)]="localFilterValues[filter.var_name]"
                         [options]="getFilterOptions(filter.options)"
                         optionLabel="label"
                         optionValue="value"
@@ -94,12 +94,11 @@ import { ButtonComponent } from '../../../components/form/button/button.componen
                     }
                     @case ('multiselect') {
                       <ub-multiselect
-                        size="small"
                         [label]="filter.name"
                         [helpText]="filter.description"
                         [placeholder]="'Selecione ' + filter.name"
                         [required]="filter.required"
-                        [(ngModel)]="filterValues[filter.var_name]"
+                        [(ngModel)]="localFilterValues[filter.var_name]"
                         [options]="getFilterOptions(filter.options)"
                         optionLabel="label"
                         optionValue="value"
@@ -110,10 +109,18 @@ import { ButtonComponent } from '../../../components/form/button/button.componen
               }
             </div>
 
+            @if (!areRequiredFiltersFilled()) {
+              <div class="validation-message">
+                <i class="bx bx-info-circle"></i>
+                <span>Preencha todos os campos obrigatórios</span>
+              </div>
+            }
+
             <div class="filters-actions">
               <ub-button
                 [loading]="loading"
-                (click)="apply.emit(filterValues)"
+                [disabled]="!areRequiredFiltersFilled()"
+                (click)="applyFilters()"
                 class="apply-btn">
                 <i class="bx bx-check"></i>
                 Aplicar
@@ -237,6 +244,23 @@ import { ButtonComponent } from '../../../components/form/button/button.componen
       }
     }
 
+    .validation-message {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.625rem 0.75rem;
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 4px;
+      color: #856404;
+      font-size: 12px;
+
+      i {
+        font-size: 16px;
+        flex-shrink: 0;
+      }
+    }
+
     .filters-actions {
       display: flex;
       gap: 0.75rem;
@@ -294,7 +318,7 @@ import { ButtonComponent } from '../../../components/form/button/button.componen
     }
   `]
 })
-export class DashboardFiltersComponent implements OnInit {
+export class DashboardFiltersComponent implements OnInit, OnChanges {
   @Input() filters: any[] = [];
   @Input() filterValues: { [key: string]: any } = {};
   @Input() loading: boolean = false;
@@ -305,10 +329,23 @@ export class DashboardFiltersComponent implements OnInit {
   @Output() clear = new EventEmitter<void>();
   @Output() filterValuesChange = new EventEmitter<{ [key: string]: any }>();
 
+  // Cópia local dos valores - ESTA É A CHAVE!
+  localFilterValues: { [key: string]: any } = {};
+
   ngOnInit() {
-    if (this.filterValues) {
-      this.filterValues = { ...this.filterValues };
+    this.initializeLocalValues();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    // Atualiza valores locais quando o pai mudar os filterValues
+    if (changes['filterValues'] && !changes['filterValues'].firstChange) {
+      this.initializeLocalValues();
     }
+  }
+
+  private initializeLocalValues() {
+    // Cria uma cópia profunda dos valores vindos do pai
+    this.localFilterValues = JSON.parse(JSON.stringify(this.filterValues || {}));
   }
 
   toggleCollapse() {
@@ -317,12 +354,48 @@ export class DashboardFiltersComponent implements OnInit {
   }
 
   clearFilters() {
-    this.filterValues = {};
+    // Limpa os valores locais
+    this.localFilterValues = {};
+
+    // Emite para o pai
     this.clear.emit();
-    this.filterValuesChange.emit(this.filterValues);
+  }
+
+  applyFilters() {
+    if (this.areRequiredFiltersFilled()) {
+      // Apenas quando clicar em aplicar que envia os valores para o pai
+      this.apply.emit({ ...this.localFilterValues });
+      this.filterValuesChange.emit({ ...this.localFilterValues });
+    }
+  }
+
+  areRequiredFiltersFilled(): boolean {
+    const requiredFilters = this.filters.filter(f => f.required);
+
+    return requiredFilters.every(filter => {
+      const value = this.localFilterValues[filter.var_name];
+
+      // Para campos boolean, sempre considera válido (true ou false)
+      if (filter.type === 'boolean') {
+        return value !== null && value !== undefined;
+      }
+
+      // Para outros tipos, verifica se tem valor válido
+      if (value === null || value === undefined || value === '') {
+        return false;
+      }
+
+      // Para arrays (multiselect), verifica se tem pelo menos um item
+      if (Array.isArray(value)) {
+        return value.length > 0;
+      }
+
+      return true;
+    });
   }
 
   hasActiveFilters(): boolean {
+    // Mostra badge baseado nos filtros APLICADOS (do pai)
     return Object.values(this.filterValues || {}).some(value =>
       value !== null && value !== undefined && value !== '' &&
       (!Array.isArray(value) || value.length > 0)
@@ -330,6 +403,7 @@ export class DashboardFiltersComponent implements OnInit {
   }
 
   countActiveFilters(): number {
+    // Conta filtros APLICADOS (do pai)
     return Object.values(this.filterValues || {}).filter(value =>
       value !== null && value !== undefined && value !== '' &&
       (!Array.isArray(value) || value.length > 0)

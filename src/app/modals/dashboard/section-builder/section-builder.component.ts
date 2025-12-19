@@ -1,13 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { ModalRef } from '../../../modal/modal.service';
-import {DashboardSection, DashboardService} from '../../../../services/dashboard.service';
-import { InputComponent } from '../../../../components/form/input/input.component';
-import { TextareaComponent } from '../../../../components/form/textarea/textarea.component';
-import { ButtonComponent } from '../../../../components/form/button/button.component';
-import { ToastService } from '../../../../components/toast/toast.service';
-import {ToggleSwitchComponent} from '../../../../components/form/toggle-switch/toggle-switch.component';
+import { ModalRef } from '../../modal/modal.service';
+import {DashboardSection, DashboardService} from '../../../services/dashboard.service';
+import { InputComponent } from '../../../components/form/input/input.component';
+import { TextareaComponent } from '../../../components/form/textarea/textarea.component';
+import { ButtonComponent } from '../../../components/form/button/button.component';
+import { ToastService } from '../../../components/toast/toast.service';
+import {ToggleSwitchComponent} from '../../../components/form/toggle-switch/toggle-switch.component';
 
 @Component({
   selector: 'app-section-builder-modal',

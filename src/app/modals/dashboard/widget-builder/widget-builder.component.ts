@@ -1,24 +1,24 @@
 import {Component, OnInit} from '@angular/core';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {CommonModule} from '@angular/common';
-import {InputComponent} from '../../../../components/form/input/input.component';
-import {TextareaComponent} from '../../../../components/form/textarea/textarea.component';
-import {DropdownComponent} from '../../../../components/form/dropdown/dropdown.component';
-import {ButtonComponent} from '../../../../components/form/button/button.component';
-import {ToggleSwitchComponent} from '../../../../components/form/toggle-switch/toggle-switch.component';
-import {TabsComponent} from '../../../../components/tabs/tabs.component';
-import {TabComponent} from '../../../../components/tabs/tab/tab.component';
-import {ModalRef} from '../../../modal/modal.service';
-import {DashboardService, DashboardWidget} from '../../../../services/dashboard.service';
-import {ToastService} from '../../../../components/toast/toast.service';
-import {Utils} from '../../../../services/utils.service';
-import {DynamicQueryService} from '../../../../services/dynamic-query.service';
-import {ObjectEditorComponent} from '../../../../components/form/object-editor/object-editor.component';
+import {InputComponent} from '../../../components/form/input/input.component';
+import {TextareaComponent} from '../../../components/form/textarea/textarea.component';
+import {DropdownComponent} from '../../../components/form/dropdown/dropdown.component';
+import {ButtonComponent} from '../../../components/form/button/button.component';
+import {ToggleSwitchComponent} from '../../../components/form/toggle-switch/toggle-switch.component';
+import {TabsComponent} from '../../../components/tabs/tabs.component';
+import {TabComponent} from '../../../components/tabs/tab/tab.component';
+import {ModalRef} from '../../modal/modal.service';
+import {DashboardService, DashboardWidget} from '../../../services/dashboard.service';
+import {ToastService} from '../../../components/toast/toast.service';
+import {Utils} from '../../../services/utils.service';
+import {DynamicQueryService} from '../../../services/dynamic-query.service';
+import {ObjectEditorComponent} from '../../../components/form/object-editor/object-editor.component';
 import {
   DynamicParametersComponent,
   DynamicParams
-} from '../../../../components/dynamic-parameters/dynamic-parameters.component';
-import {DynamicQueryComponent} from "../../../../components/dynamic-query/dynamic-query.component";
+} from '../../../components/dynamic-parameters/dynamic-parameters.component';
+import {DynamicQueryComponent} from "../../../components/dynamic-query/dynamic-query.component";
 
 @Component({
   selector: 'app-widget-builder',

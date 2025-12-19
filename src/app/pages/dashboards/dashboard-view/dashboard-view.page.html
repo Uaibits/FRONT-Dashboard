@@ -1,15 +1,15 @@
-<ub-content [title]="dashboard?.name || 'Dashboard'" [loading]="loading">
+<ub-content [title]="dashboard?.name || 'Dashboard'">
   <div class="dashboard-layout">
 
     <!-- Painel de Filtros Componentizado -->
     <app-dashboard-filters
       [filters]="structure?.filters || []"
-      [(filterValues)]="filterValues"
-      [(collapsed)]="sidebarCollapsed"
+      [filterValues]="filterValues"
       [loading]="loading"
-      (apply)="applyFilters()"
-      (clear)="clearFilters()">
-    </app-dashboard-filters>
+      [(collapsed)]="sidebarCollapsed"
+      (apply)="applyFilters($event)"
+      (clear)="clearFilters()"
+    ></app-dashboard-filters>
 
     <!-- Conteúdo Principal -->
     <div class="dashboard-main" [class.sidebar-collapsed]="sidebarCollapsed">
@@ -33,65 +33,77 @@
         </div>
       </div>
 
-      <!-- Seções do Dashboard -->
-      @for (section of structure?.sections; track section.section.id) {
-        <div class="dashboard-section">
-
-          <!-- Header Compacto da Seção -->
-          <div class="section-header">
-            <h3 class="section-title">
-              {{ section.section.title }}
-            </h3>
-            @if (section.section.description) {
-              <div class="section-description">{{ section.section.description }}</div>
-            }
+      <!-- Aviso de Filtros Obrigatórios -->
+      @if (filtersInitialized && !canLoadData()) {
+        <div class="filters-warning">
+          <i class="bx bx-info-circle"></i>
+          <div class="warning-content">
+            <strong>Filtros Obrigatórios</strong>
+            <p>Preencha os seguintes filtros para visualizar os dados:
+              <strong>{{ getMissingRequiredFilters().join(', ') }}</strong>
+            </p>
           </div>
-
-          <!-- Metric Cards -->
-          @if (getMetricWidgets(section.widgets).length > 0) {
-            <div class="metrics-grid">
-              @for (widget of getMetricWidgets(section.widgets); track widget.id) {
-                <app-dashboard-metric-card
-                  [widget]="widget"
-                  [filters]="filterValues">
-                </app-dashboard-metric-card>
-              }
-            </div>
-          }
-
-          <!-- Charts -->
-          @if (getChartWidgets(section.widgets).length > 0) {
-            <div class="charts-grid">
-              @for (widget of getChartWidgets(section.widgets); track widget.id) {
-                <app-dashboard-chart
-                  [widget]="widget"
-                  [filters]="filterValues">
-                </app-dashboard-chart>
-              }
-            </div>
-          }
-
-          <!-- Tables -->
-          @if (getTableWidgets(section.widgets).length > 0) {
-            <div class="tables-grid">
-              @for (widget of getTableWidgets(section.widgets); track widget.id) {
-                <app-dashboard-table
-                  [widget]="widget"
-                  [filters]="filterValues">
-                </app-dashboard-table>
-              }
-            </div>
-          }
-
         </div>
       }
 
-      @if (!structure?.sections || structure?.sections?.length === 0) {
-        <div class="dashboard-empty">
-          <i class="bx bx-data"></i>
-          <h4>Nenhuma seção configurada</h4>
-          <p>Configure seções e widgets no editor do dashboard.</p>
-        </div>
+      <!-- Seções do Dashboard -->
+      @if (canLoadData()) {
+        @for (section of structure?.sections; track section.section.id) {
+          <div class="dashboard-section">
+
+            <!-- Header Compacto da Seção -->
+            <div class="section-header">
+              <h3 class="section-title">
+                {{ section.section.title }}
+              </h3>
+              @if (section.section.description) {
+                <div class="section-description">{{ section.section.description }}</div>
+              }
+            </div>
+
+            <!-- Metric Cards (sempre em cima) -->
+            @if (getMetricWidgets(section.widgets).length > 0) {
+              <div class="metrics-grid">
+                @for (widget of getMetricWidgets(section.widgets); track widget.id) {
+                  <app-dashboard-metric-card
+                    [widget]="widget"
+                    [filters]="filterValues">
+                  </app-dashboard-metric-card>
+                }
+              </div>
+            }
+
+            <!-- Charts e Tables organizados inteligentemente -->
+            @if (getChartWidgets(section.widgets).length > 0 || getTableWidgets(section.widgets).length > 0) {
+              @for (row of organizeWidgetsInRows(getChartWidgets(section.widgets), getTableWidgets(section.widgets)); track $index) {
+                <div class="widgets-row">
+                  @for (widget of row; track widget.id) {
+                    <div class="widget-container" [ngStyle]="getWidgetStyle(widget)">
+                      @if (widget.widget_type === 'table') {
+                        <app-dashboard-table
+                          [widget]="widget"
+                          [filters]="filterValues">
+                        </app-dashboard-table>
+                      } @else {
+                        <app-dashboard-chart
+                          [widget]="widget"
+                          [filters]="filterValues">
+                        </app-dashboard-chart>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            }
+
+          </div>
+        } @empty {
+          <div class="dashboard-empty">
+            <i class="bx bx-data"></i>
+            <h4>Nenhuma seção configurada</h4>
+            <p>Configure seções e widgets no editor do dashboard.</p>
+          </div>
+        }
       }
 
     </div>

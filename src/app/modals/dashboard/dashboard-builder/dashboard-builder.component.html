@@ -1,0 +1,283 @@
+<div class="dashboard-builder">
+
+  <!-- Header com informações do dashboard -->
+  <div class="builder-header">
+    <div class="dashboard-info">
+      <div class="dashboard-icon">
+        <i class="bx {{ dashboard.icon || 'bx-grid-alt' }}"></i>
+      </div>
+      <div>
+        <h2>{{ dashboard.name }}</h2>
+        <p class="text-muted">{{ dashboard.description || 'Configure a estrutura do seu dashboard' }}</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <ub-button
+        icon="bx bx-plus"
+        (click)="addRootSection()">
+        Adicionar Seção
+      </ub-button>
+      <ub-button
+        (click)="close()">
+        Concluir
+      </ub-button>
+    </div>
+  </div>
+
+  <ub-tabs>
+
+    <ub-tab label="Configurações">
+      <!-- Área de construção -->
+      <div class="builder-content">
+
+        @if (loading) {
+          <div class="loading-state">
+            <i class="bx bx-loader-alt bx-spin"></i>
+            <span>Carregando estrutura...</span>
+          </div>
+        } @else if (sectionsTree.length === 0) {
+          <!-- Empty state -->
+          <div class="empty-state">
+            <div class="empty-icon">
+              <i class="bx bx-folder-open"></i>
+            </div>
+            <h3>Comece criando uma seção</h3>
+            <p>Organize seu dashboard em seções e adicione widgets para visualizar seus dados</p>
+            <ub-button
+              icon="bx bx-plus"
+              (click)="addRootSection()">
+              Criar Primeira Seção
+            </ub-button>
+
+            <div class="quick-tips">
+              <h4><i class="bx bx-bulb"></i> Dicas rápidas</h4>
+              <ul>
+                <li><strong>Seções</strong> organizam seu dashboard em áreas lógicas</li>
+                <li><strong>Widgets</strong> exibem os dados em cada seção</li>
+                <li>Use <strong>subseções</strong> para criar hierarquias</li>
+              </ul>
+            </div>
+          </div>
+        } @else {
+          <!-- Tree view com seções e widgets -->
+          <div class="sections-tree">
+            @for (node of sectionsTree; track node.section.id) {
+              <div class="section-node" [class.inactive]="!node.section.active">
+
+                <!-- Cabeçalho da seção -->
+                <div class="section-header">
+                  <button
+                    class="expand-btn"
+                    (click)="toggleSection(node)"
+                    [class.expanded]="node.expanded">
+                    <i class="bx bx-chevron-right"></i>
+                  </button>
+
+                  <div class="section-info" (click)="toggleSection(node)">
+                    <div class="section-icon">
+                      <i class="bx bx-folder"></i>
+                    </div>
+                    <div class="section-details">
+                      <h3>{{ node.section.title || node.section.key }}</h3>
+                      <div class="section-meta">
+                        <span class="badge">Nível {{ node.section.level }}</span>
+                        <span class="widget-count">
+                      <i class="bx bx-widget"></i>
+                          {{ node.widgets.length }} widget{{ node.widgets.length !== 1 ? 's' : '' }}
+                    </span>
+                        @if (node.children.length > 0) {
+                          <span class="subsection-count">
+                        <i class="bx bx-folder"></i>
+                            {{ node.children.length }} subseç{{ node.children.length !== 1 ? 'ões' : 'ão' }}
+                      </span>
+                        }
+                        @if (!node.section.active) {
+                          <span class="badge badge-warning">Inativa</span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="section-actions">
+                    <button
+                      class="action-btn"
+                      title="Adicionar Widget"
+                      (click)="addWidget(node.section)">
+                      <i class="bx bx-plus"></i>
+                      <span>Widget</span>
+                    </button>
+                    <button
+                      class="action-btn"
+                      title="Adicionar Subseção"
+                      (click)="addChildSection(node.section)">
+                      <i class="bx bx-folder-plus"></i>
+                      <span>Subseção</span>
+                    </button>
+                    <button
+                      class="action-btn"
+                      title="Editar"
+                      (click)="editSection(node.section)">
+                      <i class="bx bx-edit"></i>
+                    </button>
+                    <button
+                      class="action-btn danger"
+                      title="Excluir"
+                      (click)="deleteSection(node.section)">
+                      <i class="bx bx-trash"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Conteúdo da seção (widgets + subseções) -->
+                @if (node.expanded) {
+                  <div class="section-content">
+
+                    <!-- Lista de widgets -->
+                    @if (node.widgets.length > 0) {
+                      <div class="widgets-list">
+                        @for (widget of node.widgets; track widget.id) {
+                          <div class="widget-card" [class.inactive]="!widget.active">
+                            <div class="widget-icon">
+                              <i class="bx {{ getWidgetIcon(widget.widget_type) }}"></i>
+                            </div>
+                            <div class="widget-info">
+                              <h4>{{ widget.title || widget.key }}</h4>
+                              <p>{{ widget.description || 'Sem descrição' }}</p>
+                            </div>
+                            <div class="widget-actions">
+                              <button
+                                class="action-btn"
+                                title="Editar"
+                                (click)="editWidget(widget, node.section)">
+                                <i class="bx bx-edit"></i>
+                              </button>
+                              <button
+                                class="action-btn danger"
+                                title="Excluir"
+                                (click)="deleteWidget(widget)">
+                                <i class="bx bx-trash"></i>
+                              </button>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    } @else {
+                      <div class="empty-widgets">
+                        <i class="bx bx-widget"></i>
+                        <p>Nenhum widget nesta seção</p>
+                        <button
+                          class="add-widget-btn"
+                          (click)="addWidget(node.section)">
+                          <i class="bx bx-plus"></i>
+                          Adicionar primeiro widget
+                        </button>
+                      </div>
+                    }
+
+                    <!-- Subseções (recursivo) -->
+                    @if (node.children.length > 0) {
+                      <div class="subsections">
+                        @for (child of node.children; track child.section.id) {
+                          <div class="section-node subsection" [class.inactive]="!child.section.active">
+
+                            <div class="section-header">
+                              <button
+                                class="expand-btn"
+                                (click)="toggleSection(child)"
+                                [class.expanded]="child.expanded">
+                                <i class="bx bx-chevron-right"></i>
+                              </button>
+
+                              <div class="section-info" (click)="toggleSection(child)">
+                                <div class="section-icon">
+                                  <i class="bx bx-folder"></i>
+                                </div>
+                                <div class="section-details">
+                                  <h3>{{ child.section.title || child.section.key }}</h3>
+                                  <div class="section-meta">
+                                    <span class="badge">Nível {{ child.section.level }}</span>
+                                    <span class="widget-count">
+                                  <i class="bx bx-widget"></i>
+                                      {{ child.widgets.length }} widget{{ child.widgets.length !== 1 ? 's' : '' }}
+                                </span>
+                                    @if (!child.section.active) {
+                                      <span class="badge badge-warning">Inativa</span>
+                                    }
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div class="section-actions">
+                                <button
+                                  class="action-btn"
+                                  title="Adicionar Widget"
+                                  (click)="addWidget(child.section)">
+                                  <i class="bx bx-plus"></i>
+                                </button>
+                                <button
+                                  class="action-btn"
+                                  title="Editar"
+                                  (click)="editSection(child.section)">
+                                  <i class="bx bx-edit"></i>
+                                </button>
+                                <button
+                                  class="action-btn danger"
+                                  title="Excluir"
+                                  (click)="deleteSection(child.section)">
+                                  <i class="bx bx-trash"></i>
+                                </button>
+                              </div>
+                            </div>
+
+                            @if (child.expanded && child.widgets.length > 0) {
+                              <div class="section-content">
+                                <div class="widgets-list">
+                                  @for (widget of child.widgets; track widget.id) {
+                                    <div class="widget-card" [class.inactive]="!widget.active">
+                                      <div class="widget-icon">
+                                        <i class="bx {{ getWidgetIcon(widget.widget_type) }}"></i>
+                                      </div>
+                                      <div class="widget-info">
+                                        <h4>{{ widget.title || widget.key }}</h4>
+                                        <p>{{ widget.description || 'Sem descrição' }}</p>
+                                      </div>
+                                      <div class="widget-actions">
+                                        <button
+                                          class="action-btn"
+                                          title="Editar"
+                                          (click)="editWidget(widget, child.section)">
+                                          <i class="bx bx-edit"></i>
+                                        </button>
+                                        <button
+                                          class="action-btn danger"
+                                          title="Excluir"
+                                          (click)="deleteWidget(widget)">
+                                          <i class="bx bx-trash"></i>
+                                        </button>
+                                      </div>
+                                    </div>
+                                  }
+                                </div>
+                              </div>
+                            }
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </ub-tab>
+
+    <ub-tab label="Filtros">
+      <app-filters
+        [dashboardKey]="dashboardKey!">
+      </app-filters>
+    </ub-tab>
+
+  </ub-tabs>
+</div>

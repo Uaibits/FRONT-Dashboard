@@ -7,7 +7,12 @@ import {Component, Input, ViewEncapsulation} from '@angular/core';
   template: `
     <div class="input-container">
       @if (label) {
-        <label>{{ label }}</label>
+        <label>
+          {{ label }}
+          @if (required) {
+            <span class="required-indicator">*</span>
+          }
+        </label>
       }
       <ng-content></ng-content> <!-- Aqui o input específico será projetado -->
       @if (helpText) {

@@ -92,12 +92,10 @@ export class DashboardService {
     );
   }
 
-  async getDashboard(key: string, context?: any): Promise<any> {
+  async getDashboard(key: string): Promise<any> {
     try {
       return await firstValueFrom(
-        this.http.get<any>(`${this.API_URL}/dashboards/${key}`, {
-          params: context ? {context: JSON.stringify(context)} : {}
-        })
+        this.http.get<any>(`${this.API_URL}/dashboards/${key}`)
       );
     } catch (error) {
       this.toast.error(Utils.getErrorMessage(error, 'Erro ao buscar dashboard'));
@@ -220,28 +218,6 @@ export class DashboardService {
     }
   }
 
-  async executeDrillDown(
-    sourceSectionId: number,
-    targetSectionId: number,
-    sourceData?: any,
-    filters?: any
-  ): Promise<any> {
-    try {
-      return await firstValueFrom(
-        this.http.post<any>(
-          `${this.API_URL}/dashboards/sections/${sourceSectionId}/drill-down/${targetSectionId}`,
-          {
-            source_data: sourceData || {},
-            filters: filters || {}
-          }
-        )
-      );
-    } catch (error) {
-      this.toast.error(Utils.getErrorMessage(error, 'Erro ao executar drill down'));
-      throw error;
-    }
-  }
-
   // ==================== WIDGETS ====================
 
   async createWidget(sectionId: number, data: any): Promise<any> {
@@ -290,10 +266,9 @@ export class DashboardService {
   async getWidgetData(widgetId: number, filters?: any): Promise<any> {
     try {
       return await firstValueFrom(
-        this.http.get<any>(
-          `${this.API_URL}/dashboards/widgets/${widgetId}/data`,
-          {params: filters || {}}
-        )
+        this.http.post<any>(`${this.API_URL}/dashboards/widgets/${widgetId}/data`, {
+          params: filters || {}
+        })
       );
     } catch (error) {
       this.toast.error(Utils.getErrorMessage(error, 'Erro ao carregar dados do widget'));
@@ -308,51 +283,6 @@ export class DashboardService {
       );
     } catch (error) {
       this.toast.error(Utils.getErrorMessage(error, 'Erro ao carregar parametros do widget'));
-      throw error;
-    }
-  }
-
-  // ==================== FILTERS ====================
-
-  async attachFilter(dashboardKey: string, data: any): Promise<any> {
-    try {
-      return await firstValueFrom(
-        this.http.post<any>(
-          `${this.API_URL}/dashboards/${dashboardKey}/filters/attach`,
-          data
-        )
-      );
-    } catch (error) {
-      this.toast.error(Utils.getErrorMessage(error, 'Erro ao anexar filtro'));
-      throw error;
-    }
-  }
-
-  async updateFilter(dashboardFilterId: number, data: any): Promise<any> {
-    try {
-      return await firstValueFrom(
-        this.http.put<any>(
-          `${this.API_URL}/dashboards/filters/${dashboardFilterId}/update`,
-          data
-        )
-      );
-    } catch (error) {
-      this.toast.error(Utils.getErrorMessage(error, 'Erro ao atualizar filtro'));
-      throw error;
-    }
-  }
-
-  async detachFilter(dashboardFilterId: number): Promise<any> {
-    try {
-      const res = await firstValueFrom(
-        this.http.delete<any>(
-          `${this.API_URL}/dashboards/filters/${dashboardFilterId}/detach`
-        )
-      );
-      this.toast.success('Filtro removido com sucesso!');
-      return res;
-    } catch (error) {
-      this.toast.error(Utils.getErrorMessage(error, 'Erro ao remover filtro'));
       throw error;
     }
   }

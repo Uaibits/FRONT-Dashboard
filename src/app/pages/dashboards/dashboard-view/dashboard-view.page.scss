@@ -75,6 +75,49 @@
     }
   }
 
+  // Aviso de Filtros Obrigatórios
+  .filters-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, #fff3cd 0%, #fff8e1 100%);
+    border: 1px solid #ffc107;
+    border-left: 4px solid #ffc107;
+    border-radius: 8px;
+    color: #856404;
+    animation: slideDown 0.3s ease;
+
+    i {
+      font-size: 24px;
+      flex-shrink: 0;
+      margin-top: 0.125rem;
+    }
+
+    .warning-content {
+      flex: 1;
+
+      strong {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+      }
+
+      p {
+        margin: 0;
+        font-size: 13px;
+        line-height: 1.5;
+
+        strong {
+          display: inline;
+          color: #d39e00;
+        }
+      }
+    }
+  }
+
   // Seções
   .dashboard-section {
     margin-bottom: 2rem;
@@ -103,7 +146,7 @@
       }
     }
 
-    // Grids
+    // Grid de Métricas (sempre em cima)
     .metrics-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -111,16 +154,35 @@
       margin-bottom: 1.5rem;
     }
 
-    .charts-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    // Linhas de Widgets (Charts e Tables)
+    .widgets-row {
+      display: flex;
       gap: 1rem;
       margin-bottom: 1.5rem;
-    }
+      flex-wrap: wrap;
 
-    .tables-grid {
-      display: grid;
-      gap: 1rem;
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .widget-container {
+        padding: 0;
+        box-sizing: border-box;
+        transition: all 0.3s ease;
+
+        // Garante que widgets menores não fiquem muito pequenos
+        @media (max-width: 1200px) {
+          flex: 0 0 100% !important;
+          max-width: 100% !important;
+        }
+
+        @media (min-width: 1201px) and (max-width: 1600px) {
+          &[style*="flex: 0 0 33.3333%"] {
+            flex: 0 0 50% !important;
+            max-width: 50% !important;
+          }
+        }
+      }
     }
   }
 
@@ -179,8 +241,14 @@
         grid-template-columns: 1fr;
       }
 
-      .charts-grid {
-        grid-template-columns: 1fr;
+      .widgets-row {
+        flex-direction: column;
+
+        .widget-container {
+          flex: 0 0 100% !important;
+          max-width: 100% !important;
+          min-width: 100% !important;
+        }
       }
     }
   }
@@ -191,7 +259,8 @@
   .filters-panel,
   .dashboard-section,
   .metric-card,
-  .chart-card {
+  .chart-card,
+  .widget-container {
     animation: fadeIn 0.3s ease;
   }
 }
@@ -200,6 +269,17 @@
   from {
     opacity: 0;
     transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
   }
   to {
     opacity: 1;

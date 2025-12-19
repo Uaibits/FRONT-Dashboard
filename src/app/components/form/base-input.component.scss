@@ -15,6 +15,11 @@
   box-shadow: 0 0 8px rgba(var(--success-color), 0.3);
 }
 
+.required-indicator {
+  color: #dc3545;
+  margin-left: 2px;
+}
+
 .input-container {
   display: flex;
   flex-direction: column;
