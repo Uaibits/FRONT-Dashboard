@@ -15,7 +15,7 @@ export interface Dashboard {
   description?: string | null;
   icon?: string | null;
   config?: any;
-  visibility: 'public' | 'authenticated' | 'restricted';
+  visibility: 'authenticated' | 'restricted';
   permission_id?: number | null;
   active: boolean;
   is_navigable: boolean;
@@ -93,9 +93,12 @@ export class DashboardService {
     );
   }
 
-  getDashboard(key: string): Promise<any> {
+  getDashboard(key: string, invitationToken?: string | null): Promise<any> {
+    const params: any = {};
+    if (invitationToken) params.invitation_token = invitationToken;
+
     return firstValueFrom(
-      this.http.get<any>(`${this.API_URL}/dashboards/${key}`)
+      this.http.get<any>(`${this.API_URL}/dashboards/${key}`, { params })
     );
   }
 
@@ -154,16 +157,17 @@ export class DashboardService {
 
   // ==================== SECTIONS ====================
 
-  async getSectionData(sectionId: number, params: any) {
-    try {
-      return await firstValueFrom(
-        this.http.post<any>(`${this.API_URL}/dashboards/sections/${sectionId}/data`, {
-          params: params || {}
-        })
-      );
-    } catch (error) {
-      throw error;
-    }
+  async getSectionData(sectionId: number, params: any, invitationToken?: string | null) {
+    const queryParams: any = {};
+    if (invitationToken) queryParams.invitation_token = invitationToken;
+
+    return await firstValueFrom(
+      this.http.post<any>(
+        `${this.API_URL}/dashboards/sections/${sectionId}/data`,
+        { params: params || {} },
+        { params: queryParams }
+      )
+    );
   }
 
   async createSection(dashboardKey: string, data: any): Promise<any> {
@@ -314,4 +318,93 @@ export class DashboardService {
     ];
   }
 
+  /**
+   * Lista todos os convites de um dashboard
+   */
+  listInvitations(dashboardKey: string, activeOnly: boolean = false): Promise<any> {
+    return firstValueFrom(
+      this.http.get<any>(`${this.API_URL}/dashboards/${dashboardKey}/invitations`, {
+        params: { active_only: activeOnly }
+      })
+    );
+  }
+
+  /**
+   * Obtém detalhes de um convite específico
+   */
+  getInvitation(token: string): Promise<any> {
+    return firstValueFrom(
+      this.http.get<any>(`${this.API_URL}/dashboards/invitations/${token}`)
+    );
+  }
+
+  /**
+   * Cria um novo convite
+   */
+  async createInvitation(dashboardKey: string, data: any): Promise<any> {
+    try {
+      return await firstValueFrom(
+        this.http.post<any>(`${this.API_URL}/dashboards/${dashboardKey}/invitations`, data)
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Atualiza um convite existente
+   */
+  async updateInvitation(token: string, data: any): Promise<any> {
+    try {
+      return await firstValueFrom(
+        this.http.put<any>(`${this.API_URL}/dashboards/invitations/${token}`, data)
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Revoga um convite
+   */
+  async revokeInvitation(token: string): Promise<any> {
+    try {
+      return await firstValueFrom(
+        this.http.post<any>(`${this.API_URL}/dashboards/invitations/${token}/revoke`, {})
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Deleta um convite permanentemente
+   */
+  async deleteInvitation(token: string): Promise<any> {
+    try {
+      return await firstValueFrom(
+        this.http.delete<any>(`${this.API_URL}/dashboards/invitations/${token}`)
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Obtém estatísticas de uso de um convite
+   */
+  getInvitationStats(token: string): Promise<any> {
+    return firstValueFrom(
+      this.http.get<any>(`${this.API_URL}/dashboards/invitations/${token}/stats`)
+    );
+  }
+
+  /**
+   * Valida um convite
+   */
+  validateInvitation(token: string): Promise<any> {
+    return firstValueFrom(
+      this.http.post<any>(`${this.API_URL}/dashboards/invitations/${token}/validate`, {})
+    );
+  }
 }

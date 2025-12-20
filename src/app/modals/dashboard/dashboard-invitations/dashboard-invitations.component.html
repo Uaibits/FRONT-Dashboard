@@ -1,0 +1,236 @@
+<div class="invitations-container">
+
+  <!-- Header com filtros e ações -->
+  <div class="invitations-header">
+    <div class="header-info">
+      <h3>
+        <i class="bx bx-link-alt"></i>
+        Convites de Acesso
+      </h3>
+      <p>Crie links temporários para compartilhar este dashboard</p>
+    </div>
+    <ub-button
+      icon="bx bx-plus"
+      (click)="createInvitation()">
+      Novo Convite
+    </ub-button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="invitations-filters">
+    <div class="filter-search">
+      <i class="bx bx-search"></i>
+      <input
+        type="text"
+        placeholder="Buscar por nome, descrição ou token..."
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="applyFilters()">
+    </div>
+
+    <div class="filter-tabs">
+      <button
+        class="filter-tab"
+        [class.active]="filterStatus === 'all'"
+        (click)="filterStatus = 'all'; applyFilters()">
+        Todos
+        <span class="badge">{{ invitations.length }}</span>
+      </button>
+      <button
+        class="filter-tab"
+        [class.active]="filterStatus === 'valid'"
+        (click)="filterStatus = 'valid'; applyFilters()">
+        <i class="bx bx-check-circle"></i>
+        Válidos
+      </button>
+      <button
+        class="filter-tab"
+        [class.active]="filterStatus === 'expired'"
+        (click)="filterStatus = 'expired'; applyFilters()">
+        <i class="bx bx-time"></i>
+        Expirados
+      </button>
+      <button
+        class="filter-tab"
+        [class.active]="filterStatus === 'revoked'"
+        (click)="filterStatus = 'revoked'; applyFilters()">
+        <i class="bx bx-x-circle"></i>
+        Revogados
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading state -->
+  @if (loading) {
+    <div class="loading-state">
+      <i class="bx bx-loader-alt bx-spin"></i>
+      <span>Carregando convites...</span>
+    </div>
+  }
+
+  <!-- Empty state -->
+  @else if (filteredInvitations.length === 0 && !searchTerm && filterStatus === 'all') {
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="bx bx-link-alt"></i>
+      </div>
+      <h3>Nenhum convite criado</h3>
+      <p>Crie seu primeiro convite para compartilhar este dashboard de forma temporária e segura</p>
+      <ub-button
+        icon="bx bx-plus"
+        (click)="createInvitation()">
+        Criar Primeiro Convite
+      </ub-button>
+
+      <div class="quick-tips">
+        <h4><i class="bx bx-bulb"></i> Para que servem os convites?</h4>
+        <ul>
+          <li>Compartilhe dashboards sem criar usuários</li>
+          <li>Defina tempo de expiração e limite de acessos</li>
+          <li>Acompanhe estatísticas de uso</li>
+          <li>Revogue o acesso a qualquer momento</li>
+        </ul>
+      </div>
+    </div>
+  }
+
+  <!-- No results state -->
+  @else if (filteredInvitations.length === 0) {
+    <div class="no-results">
+      <i class="bx bx-search-alt"></i>
+      <p>Nenhum convite encontrado</p>
+      <button
+        class="clear-filters"
+        (click)="searchTerm = ''; filterStatus = 'all'; applyFilters()">
+        Limpar filtros
+      </button>
+    </div>
+  }
+
+  <!-- Lista de convites -->
+  @else {
+    <div class="invitations-list">
+      @for (invitation of filteredInvitations; track invitation.token) {
+        <div class="invitation-card" [class.inactive]="!invitation.status.is_valid">
+
+          <!-- Status badge -->
+          <div class="status-badge" [class]="'status-' + getStatusColor(invitation.status.status)">
+            <i class="bx" [class]="getStatusIcon(invitation.status.status)"></i>
+            {{ invitation.status.message }}
+          </div>
+
+          <!-- Card header -->
+          <div class="card-header">
+            <div class="invitation-icon">
+              <i class="bx bx-link-alt"></i>
+            </div>
+            <div class="invitation-info">
+              <h4>{{ invitation.name || 'Convite sem nome' }}</h4>
+              @if (invitation.description) {
+                <p class="description">{{ invitation.description }}</p>
+              }
+            </div>
+          </div>
+
+          <!-- Card content -->
+          <div class="card-content">
+            <div class="info-row">
+              <span class="label">
+                <i class="bx bx-link"></i>
+                Link
+              </span>
+              <div class="link-display">
+                <code>{{ invitation.url }}</code>
+                <button
+                  class="copy-btn"
+                  title="Copiar link"
+                  (click)="copyLink(invitation)">
+                  <i class="bx bx-copy"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="info-grid">
+              <div class="info-item">
+                <i class="bx bx-calendar"></i>
+                <div>
+                  <span class="info-label">Expira em</span>
+                  <span class="info-value">
+                    @if (invitation.status.days_until_expiration !== null) {
+                      {{ invitation.status.days_until_expiration }} dias
+                    } @else {
+                      Sem expiração
+                    }
+                  </span>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <i class="bx bx-user"></i>
+                <div>
+                  <span class="info-label">Usos</span>
+                  <span class="info-value">{{ getUsageText(invitation) }}</span>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <i class="bx bx-user-circle"></i>
+                <div>
+                  <span class="info-label">Criado por</span>
+                  <span class="info-value">{{ invitation.created_by || 'Sistema' }}</span>
+                </div>
+              </div>
+
+              <div class="info-item">
+                <i class="bx bx-time"></i>
+                <div>
+                  <span class="info-label">Criado em</span>
+                  <span class="info-value">{{ formatDate(invitation.created_at) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card actions -->
+          <div class="card-actions">
+            @if (invitation.status.is_valid) {
+              <button
+                class="action-btn"
+                title="Copiar link"
+                (click)="copyLink(invitation)">
+                <i class="bx bx-copy"></i>
+                <span>Copiar</span>
+              </button>
+            }
+
+            <button
+              class="action-btn"
+              title="Editar"
+              (click)="editInvitation(invitation)">
+              <i class="bx bx-edit"></i>
+              <span>Editar</span>
+            </button>
+
+            @if (invitation.status.is_valid) {
+              <button
+                class="action-btn danger"
+                title="Revogar"
+                (click)="revokeInvitation(invitation)">
+                <i class="bx bx-lock"></i>
+                <span>Revogar</span>
+              </button>
+            }
+
+            <button
+              class="action-btn danger"
+              title="Excluir"
+              (click)="deleteInvitation(invitation)">
+              <i class="bx bx-trash"></i>
+            </button>
+          </div>
+
+        </div>
+      }
+    </div>
+  }
+
+</div>

@@ -43,6 +43,8 @@ export class DashboardViewComponent implements OnInit, OnDestroy, OnChanges {
 
   @Input({required: true}) dashboardKey!: string;
   @Input() viewHeight: number | null = null;
+  @Input() invitationToken: string | null = null;
+
 
   dashboard: any = null;
   structure: any = null;
@@ -161,13 +163,12 @@ export class DashboardViewComponent implements OnInit, OnDestroy, OnChanges {
     this.state.error = null;
 
     try {
-      const response = await this.dashboardService.getDashboard(this.dashboardKey);
+      const response = await this.dashboardService.getDashboard(this.dashboardKey, this.invitationToken);
       this.dashboard = response.data?.dashboard;
       this.structure = response.data;
 
       if (!this.dashboard) {
         this.toast.error('Dashboard não encontrado');
-        this.router.navigate(['/dashboards']);
         return;
       }
 
@@ -185,7 +186,6 @@ export class DashboardViewComponent implements OnInit, OnDestroy, OnChanges {
     } catch (error) {
       this.state.error = Utils.getErrorMessage(error, 'Erro ao carregar dashboard');
       this.toast.error(this.state.error);
-      this.router.navigate(['/dashboards']);
     } finally {
       this.state.loading = false;
     }
@@ -248,7 +248,8 @@ export class DashboardViewComponent implements OnInit, OnDestroy, OnChanges {
     try {
       const response = await this.dashboardService.getSectionData(
         sectionId,
-        this.filterValues
+        this.filterValues,
+        this.invitationToken
       );
 
       if (response.success && response.data) {

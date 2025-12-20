@@ -19,11 +19,6 @@
         <i class="bx bx-cog"></i>
       </button>
       <ub-button
-        icon="bx bx-plus"
-        (click)="addRootSection()">
-        Adicionar Seção
-      </ub-button>
-      <ub-button
         (click)="close()">
         Concluir
       </ub-button>
@@ -65,6 +60,22 @@
             </div>
           </div>
         } @else {
+
+          <div class="builder-header">
+            <div class="header-info">
+              <h3>
+                <i class="bx bx-layout"></i>
+                Configure a Estrutura do Dashboard
+              </h3>
+              <p>Crie seções e configure seus respectivos widgets</p>
+            </div>
+            <ub-button
+              icon="bx bx-plus"
+              (click)="addRootSection()">
+              Adicionar Seção
+            </ub-button>
+          </div>
+
           <!-- Tree view com seções e widgets -->
           <div class="sections-tree">
             @for (node of sectionsTree; track node.section.id) {
@@ -283,6 +294,12 @@
       <app-filters
         [dashboardKey]="dashboardKey!">
       </app-filters>
+    </ub-tab>
+
+    <ub-tab label="Convites">
+      <app-dashboard-invitations
+        [dashboardKey]="dashboardKey!">
+      </app-dashboard-invitations>
     </ub-tab>
 
   </ub-tabs>

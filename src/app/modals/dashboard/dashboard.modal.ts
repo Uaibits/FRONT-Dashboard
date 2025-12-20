@@ -40,11 +40,6 @@ export class DashboardModal implements OnInit {
   showBuilder: boolean = false;
   visibilitesOptions: any[] = [
     {
-      label: "Público",
-      value: "public",
-      description: "Qualquer pessoa pode visualizar, sem necessidade de login."
-    },
-    {
       label: "Privado",
       value: "authenticated",
       description: "Apenas usuários logados podem visualizar."

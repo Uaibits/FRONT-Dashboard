@@ -18,6 +18,7 @@ import {LogsSystemPage} from './pages/logs-system/logs-system.page';
 import {SystemPerformancePage} from './pages/system-performance/system-performance.page';
 import {DashboardsPage} from './pages/dashboards/dashboards.page';
 import {DashboardViewPage} from './pages/dashboards/dashboard-view/dashboard-view.page';
+import {DashboardInvitePage} from './pages/dashboards/dashboard-invite/dashboard-invite.page';
 
 export const routes: Routes = [
   {
@@ -40,8 +41,11 @@ export const routes: Routes = [
   },
   {
     path: 'dashboards/view/:key',
-    component: DashboardViewPage,
-    title: 'Visualizar Dashboard'
+    component: DashboardViewPage
+  },
+  {
+    path: 'dashboard/invite/:token',
+    component: DashboardInvitePage
   },
   {
     path: '',

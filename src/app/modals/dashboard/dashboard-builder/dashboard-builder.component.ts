@@ -7,10 +7,11 @@ import { ButtonComponent } from '../../../components/form/button/button.componen
 import { ModalService } from '../../modal/modal.service';
 import { ConfirmationService } from '../../../components/confirmation-modal/confirmation-modal.service';
 import { WidgetBuilderComponent } from '../widget-builder/widget-builder.component';
-import {SectionBuilderComponent} from '../section-builder/section-builder.component';
-import {TabComponent} from '../../../components/tabs/tab/tab.component';
-import {FiltersComponent} from '../../../components/filters/filters.component';
-import {TabsComponent} from '../../../components/tabs/tabs.component';
+import { SectionBuilderComponent } from '../section-builder/section-builder.component';
+import { TabComponent } from '../../../components/tabs/tab/tab.component';
+import { FiltersComponent } from '../../../components/filters/filters.component';
+import { TabsComponent } from '../../../components/tabs/tabs.component';
+import {DashboardInvitationsComponent} from '../dashboard-invitations/dashboard-invitations.component';
 
 interface SectionNode {
   section: DashboardSection;
@@ -21,7 +22,14 @@ interface SectionNode {
 
 @Component({
   selector: 'app-dashboard-builder',
-  imports: [CommonModule, ButtonComponent, TabComponent, FiltersComponent, TabsComponent],
+  imports: [
+    CommonModule,
+    ButtonComponent,
+    TabComponent,
+    FiltersComponent,
+    TabsComponent,
+    DashboardInvitationsComponent
+  ],
   templateUrl: './dashboard-builder.component.html',
   standalone: true,
   styleUrl: './dashboard-builder.component.scss'

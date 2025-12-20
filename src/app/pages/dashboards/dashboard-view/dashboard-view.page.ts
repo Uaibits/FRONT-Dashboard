@@ -12,9 +12,12 @@ import {DashboardViewComponent} from '../../../components/dashboard-view/dashboa
     FormsModule,
     DashboardViewComponent
   ],
-  templateUrl: './dashboard-view.page.html',
+  template: `
+    @if (dashboardKey) {
+      <app-dashboard-view [dashboardKey]="dashboardKey" [viewHeight]="100"></app-dashboard-view>
+    }
+  `,
   standalone: true,
-  styleUrl: './dashboard-view.page.scss'
 })
 export class DashboardViewPage implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();

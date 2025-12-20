@@ -1,0 +1,85 @@
+<!-- Estado: Validando -->
+@if (state === 'validating') {
+  <div class="invite-page">
+    <div class="invite-state validating">
+      <div class="state-content">
+        <div class="icon-wrapper">
+          <div class="loading-ring"></div>
+          <i class="bx bx-shield-quarter"></i>
+        </div>
+        <h2>Validando Convite</h2>
+        <p>Aguarde enquanto verificamos suas credenciais de acesso...</p>
+        <div class="loading-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Estado: Válido - Acessando Dashboard -->
+@else if (state === 'valid' && invitationInfo) {
+  <!-- Dashboard View -->
+  <app-dashboard-view
+    [dashboardKey]="dashboardKey"
+    [invitationToken]="invitationToken"
+    [viewHeight]="100">
+  </app-dashboard-view>
+}
+
+<!-- Estado: Inválido/Expirado -->
+@else if (state === 'invalid') {
+  <div class="invite-page">
+    <div class="invite-state invalid">
+      <div class="state-content">
+        <div class="icon-wrapper error">
+          <i class="bx bx-error-circle"></i>
+        </div>
+        <h2>Convite Inválido</h2>
+        <p class="error-message">{{ errorMessage }}</p>
+
+        <div class="error-reasons">
+          <h4>Possíveis motivos:</h4>
+          <ul>
+            <li><i class="bx bx-x"></i> O convite expirou</li>
+            <li><i class="bx bx-x"></i> O limite de acessos foi atingido</li>
+            <li><i class="bx bx-x"></i> O convite foi revogado</li>
+            <li><i class="bx bx-x"></i> O link está incorreto</li>
+          </ul>
+        </div>
+
+        <div class="action-buttons">
+          <button class="btn-secondary" (click)="retry()">
+            <i class="bx bx-refresh"></i>
+            Tentar Novamente
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Estado: Erro Genérico -->
+@else if (state === 'error') {
+  <div class="invite-page">
+    <div class="invite-state error">
+      <div class="state-content">
+        <div class="icon-wrapper error">
+          <i class="bx bx-error"></i>
+        </div>
+        <h2>Erro ao Processar Convite</h2>
+        <p class="error-message">{{ errorMessage }}</p>
+
+        <div class="action-buttons">
+          <button class="btn-secondary" (click)="retry()">
+            <i class="bx bx-refresh"></i>
+            Tentar Novamente
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
