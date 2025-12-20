@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { LayoutService } from '../layout.service';
 import { AuthService } from '../../security/auth.service';
 import { Utils } from '../../services/utils.service';
+import { Subscription } from 'rxjs';
 
 interface SearchItem {
   path: string;
@@ -37,6 +38,7 @@ export class SearchScreenComponent implements OnInit, OnDestroy {
 
   private searchTimeout?: number;
   private clickOutsideHandler?: (event: MouseEvent) => void;
+  private routesSubscription?: Subscription;
 
   constructor(
     private router: Router,
@@ -48,6 +50,7 @@ export class SearchScreenComponent implements OnInit, OnDestroy {
     this.loadStoredData();
     this.loadAllPages();
     this.setupClickOutsideListener();
+    this.subscribeToRouteChanges();
   }
 
   ngOnDestroy(): void {
@@ -55,6 +58,26 @@ export class SearchScreenComponent implements OnInit, OnDestroy {
       clearTimeout(this.searchTimeout);
     }
     this.removeClickOutsideListener();
+
+    // Limpa a subscription
+    if (this.routesSubscription) {
+      this.routesSubscription.unsubscribe();
+    }
+  }
+
+  /**
+   * Inscreve-se para receber notificações quando novas rotas são adicionadas
+   */
+  private subscribeToRouteChanges(): void {
+    this.routesSubscription = this.layoutService.availableRoutes$.subscribe(routes => {
+      console.log('Routes updated, reloading pages...', routes.length);
+      this.loadAllPages();
+
+      // Se estiver fazendo uma busca, atualiza os resultados
+      if (this.searchQuery.trim()) {
+        this.performSearch();
+      }
+    });
   }
 
   private setupClickOutsideListener(): void {
@@ -95,6 +118,8 @@ export class SearchScreenComponent implements OnInit, OnDestroy {
     this.allPages = this.layoutService.getAvailableRoutes()
       .filter(route => this.auth.hasPermission(route.permission || ''))
       .sort((a, b) => a.title.localeCompare(b.title));
+
+    console.log('All pages loaded:', this.allPages.length);
   }
 
   private saveToLocalStorage(): void {

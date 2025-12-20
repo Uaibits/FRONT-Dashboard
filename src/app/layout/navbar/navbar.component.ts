@@ -1,9 +1,10 @@
-import { Component, OnInit, ViewChild, ElementRef, HostListener, AfterViewInit } from '@angular/core';
+import {Component, OnInit, ViewChild, ElementRef, HostListener, AfterViewInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
-import { LayoutService } from '../layout.service';
-import { AuthService } from '../../security/auth.service';
-import { SearchScreenComponent } from '../search-screen/search-screen.component';
+import {Router, RouterModule} from '@angular/router';
+import {LayoutService} from '../layout.service';
+import {AuthService} from '../../security/auth.service';
+import {SearchScreenComponent} from '../search-screen/search-screen.component';
+import {DashboardService} from '../../services/dashboard.service';
 
 @Component({
   selector: 'app-navbar',
@@ -27,11 +28,14 @@ export class NavbarComponent implements OnInit, AfterViewInit {
   constructor(
     public router: Router,
     public layoutService: LayoutService,
-    public auth: AuthService
-  ) {}
+    public auth: AuthService,
+    private dashboardService: DashboardService
+  ) {
+  }
 
   ngOnInit(): void {
     this.checkMobileView();
+    this.loadDashboardsNavigable();
   }
 
   ngAfterViewInit(): void {
@@ -42,6 +46,27 @@ export class NavbarComponent implements OnInit, AfterViewInit {
   onResize(): void {
     this.checkMobileView();
     this.checkTabsOverflow();
+  }
+
+  private async loadDashboardsNavigable() {
+    try {
+      const response = await this.dashboardService.getNavigableDashboards();
+      if (response && response.data) {
+        for (let dash of response.data) {
+          console.log('Adding navigable dashboard to available routes:', dash);
+          this.layoutService.addAvailableRoute({
+            title: dash.name,
+            description: dash.description || '',
+            icon: dash.icon ? 'bx '+ dash.icon : 'bx bx-bar-chart-alt-2',
+            path: `/dashboards/${dash.key}`
+          })
+        }
+
+        console.log(this.layoutService.getAvailableRoutes())
+      }
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   private checkMobileView(): void {
@@ -111,5 +136,9 @@ export class NavbarComponent implements OnInit, AfterViewInit {
     const user = this.auth.getUser();
     if (user && user.group) return user.group.description;
     return "";
+  }
+
+  goHome() {
+    this.router.navigate(['/home']);
   }
 }

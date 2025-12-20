@@ -1,8 +1,6 @@
-import {Component, Input, OnInit, OnChanges, SimpleChanges} from '@angular/core';
-import {CommonModule} from '@angular/common';
-import {DashboardService, DashboardWidget} from '../../../services/dashboard.service';
-import {ToastService} from '../../../components/toast/toast.service';
-import {Utils} from '../../../services/utils.service';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import {DashboardWidget} from '../../../services/dashboard.service';
 
 interface ColorScheme {
   primary: string;
@@ -66,9 +64,6 @@ interface MetricData {
             <span class="error-title">Erro ao carregar</span>
             <span class="error-message">{{ error }}</span>
           </div>
-          <button class="retry-btn" (click)="loadData()" title="Tentar novamente">
-            <i class="bx bx-refresh"></i>
-          </button>
         </div>
       }
 
@@ -81,9 +76,6 @@ interface MetricData {
               <i class="bx {{ metricData.icon }}"></i>
             </div>
             <div class="metric-label">{{ metricData.label }}</div>
-            <button class="refresh-btn" (click)="loadData()" [disabled]="loading" title="Atualizar">
-              <i class="bx bx-refresh"></i>
-            </button>
           </div>
 
           <!-- Main Value -->
@@ -144,7 +136,7 @@ interface MetricData {
     .metric-card {
       background: white;
       border-radius: 12px;
-      padding: 1.5rem;
+      padding: 1rem;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
       border: 1px solid #e5e7eb;
       position: relative;
@@ -158,11 +150,6 @@ interface MetricData {
       &:hover {
         transform: translateY(-2px);
         box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-
-        .refresh-btn {
-          opacity: 1;
-          transform: translateY(0);
-        }
       }
 
       &.loading {
@@ -204,9 +191,7 @@ interface MetricData {
     }
 
     @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
+      to { transform: rotate(360deg); }
     }
 
     .metric-error {
@@ -240,27 +225,6 @@ interface MetricData {
           font-size: 13px;
         }
       }
-
-      .retry-btn {
-        background: #dc2626;
-        border: none;
-        padding: 0.5rem;
-        border-radius: 6px;
-        cursor: pointer;
-        color: white;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        &:hover {
-          background: #b91c1c;
-        }
-
-        i {
-          font-size: 16px;
-        }
-      }
     }
 
     .metric-content {
@@ -291,36 +255,6 @@ interface MetricData {
           color: #6b7280;
           font-weight: 500;
           letter-spacing: 0.02em;
-        }
-
-        .refresh-btn {
-          background: transparent;
-          border: 1px solid #e5e7eb;
-          padding: 0.375rem;
-          border-radius: 6px;
-          cursor: pointer;
-          color: #9ca3af;
-          transition: all 0.3s;
-          opacity: 0;
-          transform: translateY(-4px);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-
-          &:hover:not(:disabled) {
-            background: #f9fafb;
-            border-color: #d1d5db;
-            color: #374151;
-          }
-
-          &:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-          }
-
-          i {
-            font-size: 16px;
-          }
         }
       }
 
@@ -475,12 +409,12 @@ interface MetricData {
     }
   `]
 })
-export class DashboardMetricCardComponent implements OnInit, OnChanges {
+export class DashboardMetricCardComponent implements OnChanges {
   @Input() widget!: DashboardWidget;
-  @Input() filters: any = {};
+  @Input() data: any = null;
+  @Input() loading: boolean = false;
+  @Input() error: string | null = null;
 
-  loading: boolean = false;
-  error: string | null = null;
   metricData: MetricData | null = null;
   currentScheme: ColorScheme;
   private config: MetricConfig;
@@ -516,26 +450,19 @@ export class DashboardMetricCardComponent implements OnInit, OnChanges {
     return this.metricData?.trend !== undefined;
   }
 
-  constructor(
-    private dashboardService: DashboardService,
-    private toast: ToastService
-  ) {
+  constructor() {
     this.currentScheme = this.COLOR_SCHEMES[0];
     this.config = {};
   }
 
-  ngOnInit() {
-    this.setupColorScheme();
-    this.loadData();
-  }
-
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['filters'] && !changes['filters'].firstChange) {
-      this.loadData();
-    }
-
     if (changes['widget']) {
       this.setupColorScheme();
+    }
+
+    // Quando os dados mudam, processa-os
+    if (changes['data'] && this.data) {
+      this.metricData = this.parseMetricData(this.data);
     }
   }
 
@@ -556,26 +483,6 @@ export class DashboardMetricCardComponent implements OnInit, OnChanges {
     }
   }
 
-  async loadData() {
-    if (!this.widget.id) return;
-
-    this.loading = true;
-    this.error = null;
-
-    try {
-      const response = await this.dashboardService.getWidgetData(this.widget.id, this.filters);
-
-      if (response.success && response.data) {
-        const rawData = Utils.keysToUpperCase(response.data.data.data);
-        this.metricData = this.parseMetricData(rawData);
-      }
-    } catch (error: any) {
-      this.error = error?.message || 'Erro ao carregar dados da métrica';
-    } finally {
-      this.loading = false;
-    }
-  }
-
   parseMetricData(data: any): MetricData | null {
     if (!data) return null;
 
@@ -587,12 +494,10 @@ export class DashboardMetricCardComponent implements OnInit, OnChanges {
       formattedValue: undefined
     };
 
-    // Parse base value
     const firstItem = Array.isArray(data) ? data[0] || {} : data;
     const valueColumn = config.data_column || 'VALUE';
     result.value = firstItem[valueColumn] || firstItem[Object.keys(firstItem)[0]];
 
-    // Parse comparison if configured
     if (this.config.comparisonColumn && firstItem[this.config.comparisonColumn]) {
       const comparisonValue = firstItem[this.config.comparisonColumn];
       const change = result.value && comparisonValue
@@ -607,7 +512,6 @@ export class DashboardMetricCardComponent implements OnInit, OnChanges {
       };
     }
 
-    // Parse trend
     if (firstItem.TREND_VALUE !== undefined) {
       result.trend = {
         value: Math.round(firstItem.TREND_VALUE * 10) / 10,
@@ -616,15 +520,12 @@ export class DashboardMetricCardComponent implements OnInit, OnChanges {
       };
     }
 
-
-    // Calculate percentage if type is percentage
     if (this.config.type === 'percentage' && this.config.target && result.value !== null) {
       let target = typeof this.config.target === 'number' ? this.config.target : firstItem[this.config.target];
       target = parseFloat(target) || 0;
       result.percentage = Math.min(100, Math.round((result.value / target) * 100));
     }
 
-    // Determine status based on thresholds
     if (this.config.threshold && result.value !== null) {
       if (result.value >= this.config.threshold.danger) {
         result.status = 'danger';
@@ -633,7 +534,6 @@ export class DashboardMetricCardComponent implements OnInit, OnChanges {
       }
     }
 
-    // Format value based on config
     result.formattedValue = this.formatValue(result.value, this.config);
 
     return result;
@@ -642,21 +542,14 @@ export class DashboardMetricCardComponent implements OnInit, OnChanges {
   formatValue(value: any, config?: MetricConfig): string {
     if (value === null || value === undefined) return '-';
 
-    let formatted: string;
-
     if (typeof value === 'number') {
-      const formatConfig: any = {
+      return new Intl.NumberFormat('pt-BR', {
         minimumFractionDigits: 0,
         maximumFractionDigits: 2
-      };
-
-      formatted = new Intl.NumberFormat('pt-BR', formatConfig).format(value);
-
-    } else {
-      formatted = String(value);
+      }).format(value);
     }
 
-    return formatted;
+    return String(value);
   }
 
   getCardStyles() {

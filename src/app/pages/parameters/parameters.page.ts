@@ -160,7 +160,6 @@ export class ParametersPage implements OnInit {
       this.itemSelected = null;
       this.resetForm();
     }
-    console.log('Item selected:', item);
   }
 
   formatKey() {
@@ -171,7 +170,6 @@ export class ParametersPage implements OnInit {
 
   protected updateOption(index: number) {
     this.form.options[index] = this.optionValue[index];
-    console.log('Updated option at index', index, 'to', this.form.options[index], this.form.options);
   }
 
   protected addOption() {

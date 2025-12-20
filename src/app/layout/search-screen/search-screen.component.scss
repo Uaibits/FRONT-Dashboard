@@ -952,27 +952,8 @@
 @media (max-width: 480px) {
   .app-selector {
     .selector-search {
-      margin-left: 8px;
+      display: none;
 
-      .search {
-        input {
-          width: 140px;
-
-          &:focus {
-            width: 200px;
-          }
-        }
-      }
-
-      .search-results {
-        width: calc(100vw - 20px);
-        left: 50%;
-        transform: translateX(-50%) translateY(-8px);
-
-        &.visible {
-          transform: translateX(-50%) translateY(0);
-        }
-      }
     }
   }
 

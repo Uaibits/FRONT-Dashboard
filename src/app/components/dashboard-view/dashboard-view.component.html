@@ -1,0 +1,163 @@
+<div class="dashboard-layout" [ngStyle]="{
+  'height': viewHeight ? viewHeight + 'vh' : 'none'
+}">
+
+  <!-- Painel de Filtros Componentizado -->
+  @if (!state.error) {
+    <app-dashboard-filters
+      [filters]="structure?.filters || []"
+      [filterValues]="filterValues"
+      [dashboardKey]="dashboardKey"
+      [(collapsed)]="sidebarCollapsed"
+      (apply)="applyFilters($event)"
+      (clear)="clearFilters()"
+    ></app-dashboard-filters>
+  }
+
+  <!-- Conteúdo Principal -->
+  <div class="dashboard-main" [class.sidebar-collapsed]="sidebarCollapsed">
+
+    <!-- Header Superior com Título e Ações -->
+    <div class="dashboard-header">
+      <div class="header-left">
+        <button class="header-btn" (click)="goBack()" title="Voltar">
+          <i class="bx bx-arrow-back"></i>
+        </button>
+        <div class="header-info">
+          <h1 class="dashboard-title">{{ dashboard?.name || 'Dashboard' }}</h1>
+          @if (dashboard?.description) {
+            <span class="dashboard-description">{{ dashboard.description }}</span>
+          }
+        </div>
+      </div>
+      <div class="header-right">
+        @if (state.lastRefresh && autoRefreshEnabled && autoRefreshInterval > 0) {
+          <span class="last-refresh" [class.refreshing]="state.backgroundRefreshing">
+              <i class="bx" [ngClass]="state.backgroundRefreshing ? 'bx-loader-alt bx-spin' : 'bx-time-five'"></i>
+            {{ getRefreshFormatted }}
+            </span>
+        }
+        <button class="header-btn" (click)="refreshDashboard()" [disabled]="state.loading" title="Atualizar">
+          <i class="bx bx-refresh" [class.spinning]="state.loading"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Tela de Erro Elegante -->
+    @if (state.error) {
+      <div class="error-state">
+        <div class="error-content">
+          <div class="error-icon">
+            <i class="bx bx-error-circle"></i>
+          </div>
+          <h2 class="error-title">Ops! Algo deu errado</h2>
+          <p class="error-message">{{ state.error }}</p>
+          <div class="error-actions">
+            <button class="btn-primary" (click)="loadDashboardStructure()">
+              <i class="bx bx-refresh"></i>
+              Tentar Novamente
+            </button>
+            <button class="btn-secondary" (click)="goBack()">
+              <i class="bx bx-arrow-back"></i>
+              Voltar
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Loader Inicial -->
+    @else if (state.loading && !filtersInitialized) {
+      <div class="loading-state">
+        <div class="loading-content">
+          <div class="spinner"></div>
+          <p>Carregando dashboard...</p>
+        </div>
+      </div>
+    }
+
+    <!-- Conteúdo do Dashboard -->
+    @else {
+      <!-- Aviso de Filtros Obrigatórios -->
+      @if (filtersInitialized && !canLoadData()) {
+        <div class="filters-warning">
+          <i class="bx bx-info-circle"></i>
+          <div class="warning-content">
+            <strong>Filtros Obrigatórios</strong>
+            <p>Preencha os seguintes filtros para visualizar os dados:
+              <strong>{{ getMissingRequiredFilters().join(', ') }}</strong>
+            </p>
+          </div>
+        </div>
+      }
+
+      <!-- Seções do Dashboard -->
+      @if (canLoadData() && structure && structure.sections) {
+        @for (section of structure?.sections; track section.section.id) {
+          <div class="dashboard-section">
+
+            <!-- Header Compacto da Seção -->
+            <div class="section-header">
+              <h3 class="section-title">
+                {{ section.section.title }}
+              </h3>
+              @if (section.section.description) {
+                <div class="section-description">{{ section.section.description }}</div>
+              }
+            </div>
+
+            <!-- Metric Cards (sempre em cima) -->
+            @if (getMetricWidgets(section.widgets).length > 0) {
+              <div class="metrics-grid">
+                @for (widget of getMetricWidgets(section.widgets); track widget.id) {
+                  <app-dashboard-metric-card
+                    [widget]="widget"
+                    [data]="getWidgetData(widget.key)"
+                    [loading]="isWidgetLoading(widget.key)"
+                    [error]="getWidgetError(widget.key)">
+                  </app-dashboard-metric-card>
+                }
+              </div>
+            }
+
+            <!-- Charts e Tables organizados inteligentemente -->
+            @if (getChartWidgets(section.widgets).length > 0 || getTableWidgets(section.widgets).length > 0) {
+              @for (row of organizeWidgetsInRows(getChartWidgets(section.widgets), getTableWidgets(section.widgets)); track $index) {
+                <div class="widgets-row">
+                  @for (widget of row; track widget.id) {
+                    <div class="widget-container" [ngStyle]="getWidgetStyle(widget)">
+                      @if (widget.widget_type === 'table') {
+                        <app-dashboard-table
+                          [widget]="widget"
+                          [data]="getWidgetData(widget.key)"
+                          [loading]="isWidgetLoading(widget.key)"
+                          [error]="getWidgetError(widget.key)">
+                        </app-dashboard-table>
+                      } @else {
+                        <app-dashboard-chart
+                          [widget]="widget"
+                          [data]="getWidgetData(widget.key)"
+                          [loading]="isWidgetLoading(widget.key)"
+                          [error]="getWidgetError(widget.key)">
+                        </app-dashboard-chart>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            }
+
+          </div>
+        } @empty {
+          <div class="dashboard-empty">
+            <i class="bx bx-data"></i>
+            <h4>Nenhuma seção configurada</h4>
+            <p>Configure seções e widgets no editor do dashboard.</p>
+          </div>
+        }
+      }
+    }
+
+  </div>
+
+</div>

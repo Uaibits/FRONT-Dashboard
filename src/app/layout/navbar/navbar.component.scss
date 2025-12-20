@@ -43,6 +43,30 @@ $header-height: 80px;
   gap: 16px;
   flex-shrink: 0;
 
+  .company-brand {
+    display: flex;
+    align-items: center;
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    margin-right: 24px;
+    user-select: none;
+
+    .company-name-part1 {
+      color: var(--primary-color-dark);
+    }
+
+    .company-name-part2 {
+      color: var(--secondary-color-dark);
+    }
+
+    .company-name-braces {
+      color: var(--text-secondary);
+      font-weight: 600;
+      margin: 0 1px;
+    }
+  }
+
   .menu-toggle {
     display: none;
     background: none;
@@ -280,7 +304,6 @@ $header-height: 80px;
 .nav-end {
   display: flex;
   align-items: center;
-  gap: 12px;
   flex-shrink: 0;
 
   /* Container do Search - Integração com componente externo */
@@ -337,7 +360,7 @@ $header-height: 80px;
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 4px 4px 4px 12px;
+    padding: 0;
     cursor: pointer;
     border-radius: 8px;
     transition: all 0.2s ease;
@@ -549,6 +572,11 @@ $header-height: 80px;
 }
 
 @media (max-width: 768px) {
+  .company-brand {
+    font-size: 1.2rem;
+    margin-right: 16px;
+  }
+
   .main-nav {
     height: 60px;
   }
@@ -571,6 +599,11 @@ $header-height: 80px;
 }
 
 @media (max-width: 480px) {
+  .company-brand {
+    font-size: 1rem;
+    margin-right: 12px;
+  }
+
   .nav-content {
     padding: 12px;
   }
@@ -784,6 +817,8 @@ $header-height: 80px;
 
 @media (min-width: 768px) {
   .user-menu {
+    padding: 4px 4px 4px 12px;
+
     .user-info {
       display: flex;
     }

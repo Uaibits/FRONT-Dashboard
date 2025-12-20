@@ -1,11 +1,11 @@
-import { Component, OnInit } from '@angular/core';
-import { ContentComponent } from '../../components/content/content.component';
-import { TableComponent, TableConfig } from '../../components/table/table.component';
-import { DashboardService, Dashboard } from '../../services/dashboard.service';
-import { ToastService } from '../../components/toast/toast.service';
-import { Utils } from '../../services/utils.service';
-import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import {Component, OnInit} from '@angular/core';
+import {ContentComponent} from '../../components/content/content.component';
+import {TableComponent, TableConfig} from '../../components/table/table.component';
+import {DashboardService, Dashboard} from '../../services/dashboard.service';
+import {ToastService} from '../../components/toast/toast.service';
+import {Utils} from '../../services/utils.service';
+import {CommonModule} from '@angular/common';
+import {Router} from '@angular/router';
 import {ConfirmationService} from '../../components/confirmation-modal/confirmation-modal.service';
 
 @Component({
@@ -40,12 +40,16 @@ export class DashboardsPage implements OnInit {
         field: "description"
       },
       {
-        headerName: "Status",
-        field: "ready"
-      },
-      {
         headerName: "Ativo",
         field: "active"
+      },
+      {
+        headerName: "Página Inicial",
+        field: "is_home"
+      },
+      {
+        headerName: "Navegável",
+        field: "is_navigable"
       }
     ],
     showAddButton: true,
@@ -70,7 +74,8 @@ export class DashboardsPage implements OnInit {
     private toast: ToastService,
     private confirmationService: ConfirmationService,
     private router: Router
-  ) { }
+  ) {
+  }
 
   ngOnInit() {
     this.loadData();
@@ -106,22 +111,14 @@ export class DashboardsPage implements OnInit {
    * Exclui um dashboard
    */
   async deleteDashboard(dashboard: Dashboard) {
-    const confirmed = await this.confirmationService.confirm(
-      `Tem certeza que deseja excluir o dashboard "${dashboard.name}"? Esta ação não pode ser desfeita.`,
-      'Sim, excluir',
-      'Cancelar'
-    );
-
-    if (confirmed) {
-      this.loading = true;
-      try {
-        await this.dashboardService.deleteDashboard(dashboard.key);
-        this.loadData();
-      } catch (error) {
-        // Erro já tratado no service
-      } finally {
-        this.loading = false;
-      }
+    this.loading = true;
+    try {
+      await this.dashboardService.deleteDashboard(dashboard.key);
+      this.loadData();
+    } catch (error) {
+      // Erro já tratado no service
+    } finally {
+      this.loading = false;
     }
   }
 
@@ -153,6 +150,6 @@ export class DashboardsPage implements OnInit {
    */
   openDashboard(dashboard: Dashboard) {
     //abrir uma nova página onode o link deve ser /dashboards/view/{dashboard.key} blank new
-    this.router.navigate([`/dashboards/view/${dashboard.key}`]);
+    this.router.navigate([`/dashboards/${dashboard.key}`]);
   }
 }

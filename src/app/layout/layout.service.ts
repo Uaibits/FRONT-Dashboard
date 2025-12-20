@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { CustomRouteReuseStrategy } from '../custom-route-reuse-strategy';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 interface Tab {
   title: string;
@@ -66,6 +67,7 @@ export class LayoutService {
       path: '/dashboards',
       icon: 'bx bx-bar-chart-alt-2',
       description: 'Construa e visualize dashboards personalizados',
+      permission: 'dashboard.view'
     },
     {
       title: 'Logs do Sistema',
@@ -82,6 +84,10 @@ export class LayoutService {
       permission: 'system_performance.view'
     }
   ];
+
+  // Subject para notificar mudanças nas rotas disponíveis
+  private availableRoutesSubject = new BehaviorSubject<Tab[]>(this.availableRoutes);
+  public availableRoutes$ = this.availableRoutesSubject.asObservable();
 
   private open_tabs: TabOpen[] = [];
   private currentRoute: string = '';
@@ -113,11 +119,22 @@ export class LayoutService {
   }
 
   public getAvailableRoutes(): Tab[] {
-    return this.availableRoutes
+    return this.availableRoutes;
   }
 
   public getCurrentRoute(): string {
     return this.currentRoute;
+  }
+
+  public addAvailableRoute(route: Tab): void {
+    // Evita duplicatas
+    const exists = this.availableRoutes.some(r => r.path === route.path);
+    if (!exists) {
+      this.availableRoutes.push(route);
+      // Notifica os observers sobre a mudança
+      this.availableRoutesSubject.next([...this.availableRoutes]);
+      console.log('Route added and observers notified:', route);
+    }
   }
 
   /**
@@ -139,8 +156,10 @@ export class LayoutService {
   addTab(path: string, title: string, navigate: boolean = true): void {
     if (!this.open_tabs.some((tab) => tab.path === path)) {
       const tab = this.availableRoutes.find((route) => route.path === path);
-      this.open_tabs.push({ id: this.generateUniqueId(), ...tab! });
-      localStorage.setItem('open_tabs', JSON.stringify(this.open_tabs));
+      if (tab) {
+        this.open_tabs.push({ id: this.generateUniqueId(), ...tab });
+        localStorage.setItem('open_tabs', JSON.stringify(this.open_tabs));
+      }
     }
 
     if (navigate) {

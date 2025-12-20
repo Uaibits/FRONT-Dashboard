@@ -15,10 +15,11 @@ export interface Dashboard {
   description?: string | null;
   icon?: string | null;
   config?: any;
+  visibility: 'public' | 'authenticated' | 'restricted';
+  permission_id?: number | null;
   active: boolean;
-  sections_count?: number;
-  widgets_count?: number;
-  filters_count?: number;
+  is_navigable: boolean;
+  is_home: boolean;
   ready?: boolean;
 }
 
@@ -92,39 +93,34 @@ export class DashboardService {
     );
   }
 
-  async getDashboard(key: string): Promise<any> {
-    try {
-      return await firstValueFrom(
-        this.http.get<any>(`${this.API_URL}/dashboards/${key}`)
-      );
-    } catch (error) {
-      this.toast.error(Utils.getErrorMessage(error, 'Erro ao buscar dashboard'));
-      throw error;
-    }
+  getDashboard(key: string): Promise<any> {
+    return firstValueFrom(
+      this.http.get<any>(`${this.API_URL}/dashboards/${key}`)
+    );
   }
 
-  async createDashboard(data: any): Promise<any> {
-    try {
-      const res = await firstValueFrom(
-        this.http.post<any>(`${this.API_URL}/dashboards/create`, data)
-      );
-      this.toast.success('Dashboard criado com sucesso!');
-      return res;
-    } catch (error) {
-      throw error;
-    }
+  getHomeDashboard(): Promise<any> {
+    return firstValueFrom(
+      this.http.get(`${this.API_URL}/dashboards/home/list`)
+    )
   }
 
-  async updateDashboard(key: string, data: any): Promise<any> {
-    try {
-      const res = await firstValueFrom(
-        this.http.put<any>(`${this.API_URL}/dashboards/${key}/update`, data)
-      );
-      this.toast.success('Dashboard atualizado com sucesso!');
-      return res;
-    } catch (error) {
-      throw error;
-    }
+  getNavigableDashboards(): Promise<any> {
+    return firstValueFrom(
+      this.http.get(`${this.API_URL}/dashboards/navigable/list`)
+    )
+  }
+
+  createDashboard(data: any): Promise<any> {
+    return firstValueFrom(
+      this.http.post<any>(`${this.API_URL}/dashboards/create`, data)
+    );
+  }
+
+  updateDashboard(key: string, data: any): Promise<any> {
+    return firstValueFrom(
+      this.http.put<any>(`${this.API_URL}/dashboards/${key}/update`, data)
+    );
   }
 
   async deleteDashboard(key: string): Promise<any> {
@@ -157,6 +153,18 @@ export class DashboardService {
   }
 
   // ==================== SECTIONS ====================
+
+  async getSectionData(sectionId: number, params: any) {
+    try {
+      return await firstValueFrom(
+        this.http.post<any>(`${this.API_URL}/dashboards/sections/${sectionId}/data`, {
+          params: params || {}
+        })
+      );
+    } catch (error) {
+      throw error;
+    }
+  }
 
   async createSection(dashboardKey: string, data: any): Promise<any> {
     try {

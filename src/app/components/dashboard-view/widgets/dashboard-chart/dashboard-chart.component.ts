@@ -1,27 +1,24 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {Component, Input, OnChanges, SimpleChanges, ViewChild} from '@angular/core';
+import {CommonModule} from '@angular/common';
 import {
-  ChartComponent,
   ApexAxisChartSeries,
   ApexChart,
-  ApexXAxis,
   ApexDataLabels,
-  ApexStroke,
-  ApexYAxis,
-  ApexTitleSubtitle,
-  ApexLegend,
-  NgApexchartsModule,
-  ApexPlotOptions,
-  ApexTooltip,
+  ApexFill,
   ApexGrid,
-  ApexFill
+  ApexLegend,
+  ApexPlotOptions,
+  ApexStroke,
+  ApexTooltip,
+  ApexXAxis,
+  ApexYAxis,
+  ChartComponent,
+  NgApexchartsModule
 } from 'ng-apexcharts';
-import { DashboardService, DashboardWidget } from '../../../../services/dashboard.service';
-import { ToastService } from '../../../../components/toast/toast.service';
-import { Utils } from '../../../../services/utils.service';
+import {DashboardWidget} from '../../../../services/dashboard.service';
 
 export type ChartOptions = {
-  series: ApexAxisChartSeries;
+  series: ApexAxisChartSeries | number[];
   chart: ApexChart;
   xaxis: ApexXAxis;
   yaxis: ApexYAxis;
@@ -54,16 +51,15 @@ interface LegendItem {
   templateUrl: './dashboard-chart.component.html',
   styleUrls: ['./dashboard-chart.component.scss']
 })
-export class DashboardChartComponent implements OnInit, OnChanges {
+export class DashboardChartComponent implements OnChanges {
   @Input() widget!: DashboardWidget;
-  @Input() filters: any = {};
+  @Input() data: any = null; // Dados vêm do pai
+  @Input() loading: boolean = false; // Estado vem do pai
+  @Input() error: string | null = null; // Erro vem do pai
 
   @ViewChild('chart') chart?: ChartComponent;
 
-  loading: boolean = false;
-  error: string | null = null;
   chartOptions: ChartOptions | null = null;
-  data: any = null;
   legendItems: LegendItem[] = [];
   legendExpanded: boolean = false;
 
@@ -92,41 +88,12 @@ export class DashboardChartComponent implements OnInit, OnChanges {
 
   private currentScheme: ColorScheme | null = null;
 
-  constructor(
-    private dashboardService: DashboardService,
-    private toast: ToastService
-  ) {}
-
-  ngOnInit() {
-    this.loadData();
-  }
+  constructor() {}
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['filters'] && !changes['filters'].firstChange) {
-      this.loadData();
-    }
-  }
-
-  async loadData() {
-    if (!this.widget?.id) return;
-
-    this.loading = true;
-    this.error = null;
-
-    try {
-      const response = await this.dashboardService.getWidgetData(this.widget.id, this.filters);
-
-      if (response.success && response.data?.data) {
-        this.data = Utils.keysToUpperCase(response.data.data.data || response.data.data);
-        this.buildChart();
-      } else {
-        this.error = 'Dados não disponíveis';
-      }
-    } catch (error: any) {
-      console.error('Erro ao carregar dados:', error);
-      this.error = error?.message || 'Erro ao carregar dados do gráfico';
-    } finally {
-      this.loading = false;
+    // Quando os dados mudam, reconstrói o gráfico
+    if (changes['data'] && this.data) {
+      this.buildChart();
     }
   }
 
@@ -154,9 +121,9 @@ export class DashboardChartComponent implements OnInit, OnChanges {
         type: chartType as any,
         height: 350,
         toolbar: {
-          show: true,
+          show: false,
           tools: {
-            download: true,
+            download: false,
             selection: false,
             zoom: false,
             zoomin: false,
@@ -358,7 +325,7 @@ export class DashboardChartComponent implements OnInit, OnChanges {
             },
             value: {
               show: true,
-              fontSize: '28px',
+              fontSize: '18px',
               fontWeight: 700,
               color: '#1e293b',
               formatter: (val: any) => this.formatCurrency(Number(val))
@@ -446,32 +413,44 @@ export class DashboardChartComponent implements OnInit, OnChanges {
     return options;
   }
 
-  private buildSeries(chartType: string): ApexAxisChartSeries {
+  private buildSeries(chartType: string): ApexAxisChartSeries | number[] {
     if (!this.data || !Array.isArray(this.data)) return [];
 
     const config = this.widget.config || {};
     const valueKey = config.y_axis_label || 'VALUE';
+    const dataSeries = config.data_series || [];
 
+    // PIE / DONUT continuam simples
     if (chartType === 'pie' || chartType === 'donut') {
-      return [{
-        name: this.widget.title || 'Dados',
-        data: this.data.map((item: any) => {
-          const value = item[valueKey] || item.VALOR || item.VALUE || 0;
-          return Number(value) || 0;
-        })
-      }];
+      return this.data.map((item: any) => {
+        const value = item[valueKey] ?? item.VALOR ?? item.VALUE ?? 0;
+        return Number(value) || 0;
+      });
     }
 
+    // ✅ CASO 1: séries configuradas (comparativo)
+    if (Array.isArray(dataSeries) && dataSeries.length > 0) {
+      return dataSeries.map((serie: any) => ({
+        color: serie.color,
+        name: serie.name,
+        data: this.data.map((item: any) => Number(item[serie.column] || 0))
+      }));
+    }
+
+    // ✅ CASO 2: série única (comportamento atual)
     const seriesData = this.data.map((item: any) => {
-      const value = item[valueKey] || item.VALOR || item.VALUE || 0;
+      const value = item[valueKey] ?? item.VALOR ?? item.VALUE ?? 0;
       return Number(value) || 0;
     });
 
-    return [{
-      name: this.widget.title || 'Dados',
-      data: seriesData
-    }];
+    return [
+      {
+        name: this.widget.title || 'Dados',
+        data: seriesData
+      }
+    ];
   }
+
 
   private extractCategories(): string[] {
     if (!this.data || !Array.isArray(this.data)) return [];
@@ -480,8 +459,7 @@ export class DashboardChartComponent implements OnInit, OnChanges {
     const labelKey = config.x_axis_label || 'LABEL';
 
     return this.data.map((item: any) => {
-      const label = String(item[labelKey] || item.NAME || item.NOME || item.LABEL || '');
-      return label.length > 15 ? label.substring(0, 15) + '...' : label;
+      return String(item[labelKey] || item.NAME || item.NOME || item.LABEL || '');
     });
   }
 
@@ -550,13 +528,14 @@ export class DashboardChartComponent implements OnInit, OnChanges {
 
     if (chartType === 'pie' || chartType === 'donut') {
       const categories = this.extractCategories();
-      const values = series[0].data;
 
-      this.legendItems = categories.map((label, index) => ({
-        label: label,
-        value: this.formatCurrency(values[index]),
-        color: colors[index]
-      }));
+      this.legendItems = categories.map((label, index) => {
+         return {
+          label: label,
+          value: this.formatCurrency(series[index]),
+          color: colors[index]
+        }
+      });
     } else {
       series.forEach((serie, index) => {
         const total = serie.data.reduce((sum: number, val: number) => sum + val, 0);
@@ -567,6 +546,7 @@ export class DashboardChartComponent implements OnInit, OnChanges {
         });
       });
     }
+
   }
 
   showCustomLegend(): boolean {

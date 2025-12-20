@@ -43,7 +43,6 @@ export class IntegrationsPage implements OnInit {
 
   onConfigureIntegration(integration: Integration) {
     this.integrationService.openConfigurationIntegrationModal(integration).then(result => {
-      console.log('Modal fechado com resultado:', result);
     })
   }
 

@@ -1,0 +1,179 @@
+<!-- Botão flutuante para mobile -->
+@if (isMobile && !modalOpen) {
+  <div class="mobile-filter-button">
+    <button class="filter-button" (click)="openModal()" [title]="hasActiveFilters() ? 'Filtros Ativos' : 'Abrir Filtros'">
+      <i class="bx bx-filter-alt"></i>
+      @if (hasActiveFilters()) {
+        <span class="badge">{{ countActiveFilters() }}</span>
+      }
+    </button>
+  </div>
+}
+
+<!-- Sidebar para desktop -->
+@if (!isMobile) {
+  <div class="filters-panel" [class.collapsed]="collapsed">
+    <div class="filters-header">
+      <div class="filters-title" (click)="toggleCollapse()">
+        <i class="bx bx-filter-alt"></i>
+        @if (!collapsed) {
+          <span>Filtros</span>
+          @if (hasActiveFilters()) {
+            <span class="badge">{{ countActiveFilters() }}</span>
+          }
+        }
+      </div>
+      <button class="filters-toggle" (click)="toggleCollapse()" [title]="collapsed ? 'Expandir' : 'Recolher'">
+        <i class="bx" [class.bx-chevron-left]="!collapsed" [class.bx-chevron-right]="collapsed"></i>
+      </button>
+    </div>
+
+    @if (!collapsed) {
+      <div class="filters-content">
+        <ng-container *ngTemplateOutlet="filtersContent"></ng-container>
+      </div>
+    }
+  </div>
+}
+
+<!-- Modal para mobile -->
+@if (isMobile && modalOpen) {
+  <div class="modal-overlay" (click)="closeModal($event)">
+    <div class="modal-container" [class.modal-show]="modalOpen" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <i class="bx bx-filter-alt"></i>
+          Filtros
+          @if (hasActiveFilters()) {
+            <span class="badge">{{ countActiveFilters() }}</span>
+          }
+        </h3>
+        <button class="modal-close" (click)="closeModal()">
+          <i class="bx bx-x"></i>
+        </button>
+      </div>
+      <div class="modal-content">
+        <ng-container *ngTemplateOutlet="filtersContent"></ng-container>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Template de conteúdo dos filtros (reutilizável) -->
+<ng-template #filtersContent>
+  <div class="filters-content-wrapper">
+    @if (filters.length > 0) {
+      <div class="filters-form">
+        @for (filter of filters; track filter.var_name) {
+          <div class="filter-item">
+            @switch (filter.type) {
+              @case ('text') {
+                <ub-input
+                  [label]="filter.name"
+                  [helpText]="filter.description"
+                  [placeholder]="'Digite ' + filter.name"
+                  [required]="filter.required"
+                  [(ngModel)]="localFilterValues[filter.var_name]"
+                  (ngModelChange)="onValueChange(filter.var_name, $event)"
+                ></ub-input>
+              }
+              @case ('number') {
+                <ub-input
+                  type="number"
+                  [label]="filter.name"
+                  [helpText]="filter.description"
+                  [placeholder]="'Digite ' + filter.name"
+                  [required]="filter.required"
+                  [(ngModel)]="localFilterValues[filter.var_name]"
+                  (ngModelChange)="onValueChange(filter.var_name, $event)"
+                ></ub-input>
+              }
+              @case ('date') {
+                <ub-input
+                  type="date"
+                  [label]="filter.name"
+                  [helpText]="filter.description"
+                  [placeholder]="'Selecione ' + filter.name"
+                  [required]="filter.required"
+                  [(ngModel)]="localFilterValues[filter.var_name]"
+                  (ngModelChange)="onValueChange(filter.var_name, $event)"
+                ></ub-input>
+              }
+              @case ('boolean') {
+                <ub-toggle-switch
+                  [label]="filter.name"
+                  [helpText]="filter.description"
+                  [required]="filter.required"
+                  [(ngModel)]="localFilterValues[filter.var_name]"
+                  (ngModelChange)="onValueChange(filter.var_name, $event)"
+                ></ub-toggle-switch>
+              }
+              @case ('select') {
+                <ub-dropdown
+                  [label]="filter.name"
+                  [helpText]="filter.description"
+                  [placeholder]="'Selecione ' + filter.name"
+                  [required]="filter.required"
+                  [(ngModel)]="localFilterValues[filter.var_name]"
+                  [options]="getFilterOptions(filter.options)"
+                  optionLabel="label"
+                  optionValue="value"
+                  (ngModelChange)="onValueChange(filter.var_name, $event)"
+                ></ub-dropdown>
+              }
+              @case ('multiselect') {
+                <ub-multiselect
+                  [label]="filter.name"
+                  [helpText]="filter.description"
+                  [placeholder]="'Selecione ' + filter.name"
+                  [required]="filter.required"
+                  [(ngModel)]="localFilterValues[filter.var_name]"
+                  [options]="getFilterOptions(filter.options)"
+                  optionLabel="label"
+                  optionValue="value"
+                  (ngModelChange)="onValueChange(filter.var_name, $event)"
+                ></ub-multiselect>
+              }
+            }
+          </div>
+        }
+      </div>
+
+      @if (!areRequiredFiltersFilled()) {
+        <div class="validation-message">
+          <i class="bx bx-info-circle"></i>
+          <span>Preencha todos os campos obrigatórios</span>
+        </div>
+      }
+
+      <!-- Toggle para salvar filtros -->
+      <div class="save-filters-toggle">
+        <ub-toggle-switch
+          label="Salvar últimos filtros"
+          [(ngModel)]="saveFiltersEnabled"
+          (ngModelChange)="onSaveFiltersToggle($event)"
+        ></ub-toggle-switch>
+      </div>
+
+      <div class="filters-actions">
+        <ub-button
+          [loading]="loading"
+          [disabled]="!areRequiredFiltersFilled()"
+          (click)="applyFilters()"
+          class="apply-btn">
+          <i class="bx bx-check"></i>
+          Aplicar
+        </ub-button>
+        <button class="clear-btn" (click)="clearFilters()">
+          <i class="bx bx-x"></i>
+          Limpar
+        </button>
+      </div>
+    } @else {
+      <div class="filters-empty">
+        <i class="bx bx-info-circle"></i>
+        <p>Sem filtros</p>
+      </div>
+    }
+  </div>
+</ng-template>

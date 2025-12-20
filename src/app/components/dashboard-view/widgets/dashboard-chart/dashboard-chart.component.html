@@ -13,21 +13,15 @@
     <div class="chart-error">
       <i class="bx bx-error-circle"></i>
       <span class="error-text">{{ error }}</span>
-      <button class="retry-btn" (click)="loadData()">
-        <i class="bx bx-refresh"></i>
-        Tentar novamente
-      </button>
     </div>
   }
 
   <!-- Chart Content -->
   @if (!loading && !error && chartOptions) {
-    <div class="chart-header">
-      <div class="header-content">
-        <h3 class="chart-title">{{ widget.title || '' }}</h3>
-        <button class="refresh-btn" (click)="loadData()" [disabled]="loading">
-          <i class="bx bx-refresh"></i>
-        </button>
+    <div class="header">
+      <div class="header-left">
+        <i class="bx bx-bar-chart"></i>
+        <h3>{{ widget.title || '' }}</h3>
       </div>
     </div>
 
@@ -55,7 +49,7 @@
       <div class="custom-legend">
         <div class="legend-header">
           <span class="legend-title">Legenda</span>
-          @if (legendItems.length > 5) {
+          @if (legendItems.length > 0) {
             <button
               class="expand-btn"
               (click)="toggleLegendExpanded()">

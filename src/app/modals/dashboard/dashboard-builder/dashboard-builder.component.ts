@@ -30,6 +30,7 @@ export class DashboardBuilderComponent implements OnInit {
   @Input() dashboardKey!: string;
   @Input() dashboard!: Dashboard;
   @Output() onClose = new EventEmitter<void>();
+  @Output() onEditDashboard = new EventEmitter<void>();
 
   loading: boolean = false;
   sectionsTree: SectionNode[] = [];
@@ -51,7 +52,7 @@ export class DashboardBuilderComponent implements OnInit {
       const response = await this.dashboardService.getDashboard(this.dashboardKey);
       const structure = response.data;
 
-      if (structure?.sections) {
+      if (structure && structure.sections) {
         this.sectionsTree = await this.buildTree(structure.sections);
       }
     } catch (error) {
@@ -219,5 +220,9 @@ export class DashboardBuilderComponent implements OnInit {
 
   close() {
     this.onClose.emit();
+  }
+
+  editDashboard() {
+    this.onEditDashboard.emit();
   }
 }

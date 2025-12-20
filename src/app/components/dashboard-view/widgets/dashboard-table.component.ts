@@ -1,9 +1,8 @@
-import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ToastService } from '../../../components/toast/toast.service';
-import { DashboardService, DashboardWidget } from '../../../services/dashboard.service';
-import { Utils } from '../../../services/utils.service';
+import {ToastService} from '../../toast/toast.service';
+import {DashboardWidget} from '../../../services/dashboard.service';
 
 interface TableData {
   columns: string[];
@@ -52,12 +51,6 @@ interface ColumnFilter {
               <i class="bx bx-download"></i>
             </button>
           }
-
-          <button class="btn-icon" (click)="loadData()"
-                  [disabled]="loading"
-                  title="Atualizar">
-            <i class="bx bx-refresh" [class.spinning]="loading"></i>
-          </button>
         </div>
       </div>
 
@@ -74,7 +67,6 @@ interface ColumnFilter {
         <div class="state-container error">
           <i class="bx bx-error-circle"></i>
           <p>{{ error }}</p>
-          <button class="btn-primary" (click)="loadData()">Tentar novamente</button>
         </div>
       }
 
@@ -157,6 +149,7 @@ interface ColumnFilter {
       flex-direction: column;
       height: 100%;
       transition: opacity 0.2s;
+      max-height: 600px;
 
       &.loading {
         opacity: 0.6;
@@ -249,15 +242,6 @@ interface ColumnFilter {
         opacity: 0.5;
         cursor: not-allowed;
       }
-
-      .spinning {
-        animation: spin 1s linear infinite;
-      }
-    }
-
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
     }
 
     .state-container {
@@ -293,22 +277,6 @@ interface ColumnFilter {
       }
     }
 
-    .btn-primary {
-      padding: 0.625rem 1.25rem;
-      background: #3b82f6;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.15s;
-
-      &:hover {
-        background: #2563eb;
-      }
-    }
-
     .btn-text {
       padding: 0.5rem 1rem;
       background: transparent;
@@ -329,7 +297,6 @@ interface ColumnFilter {
       overflow: auto;
       flex: 1;
       min-height: 0;
-      -webkit-overflow-scrolling: touch;
 
       table {
         width: 100%;
@@ -368,11 +335,6 @@ interface ColumnFilter {
                 align-items: center;
                 justify-content: space-between;
                 gap: 0.5rem;
-
-                .th-label {
-                  flex: 1;
-                  min-width: 0;
-                }
 
                 .sort-icon {
                   font-size: 16px;
@@ -419,11 +381,6 @@ interface ColumnFilter {
                   border-color: #3b82f6;
                   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
                 }
-
-                &::placeholder {
-                  color: #9ca3af;
-                  font-size: 12px;
-                }
               }
             }
           }
@@ -453,107 +410,14 @@ interface ColumnFilter {
         }
       }
     }
-
-    /* Responsividade */
-    @media (max-width: 1024px) {
-      .table-wrapper table {
-        min-width: 800px;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .header {
-        .header-left {
-          h3 {
-            font-size: 14px;
-          }
-
-          .count {
-            font-size: 11px;
-          }
-        }
-      }
-
-      .table-wrapper {
-        table {
-          min-width: 700px;
-          font-size: 12px;
-
-          thead {
-            .header-row th,
-            .filter-row th {
-              padding: 0.75rem 0.875rem;
-            }
-
-            .filter-row th .filter-input {
-              padding: 0.375rem 0.625rem;
-              font-size: 11px;
-            }
-          }
-
-          tbody td {
-            padding: 0.75rem 0.875rem;
-          }
-        }
-      }
-    }
-
-    @media (max-width: 480px) {
-      .header {
-        padding: 0.875rem 1rem;
-
-        .header-left {
-          i {
-            font-size: 18px;
-          }
-
-          h3 {
-            font-size: 13px;
-          }
-        }
-
-        .btn-icon {
-          width: 28px;
-          height: 28px;
-
-          i {
-            font-size: 16px;
-          }
-        }
-      }
-
-      .table-wrapper {
-        table {
-          min-width: 600px;
-
-          thead {
-            .header-row th,
-            .filter-row th {
-              padding: 0.625rem 0.75rem;
-              font-size: 11px;
-            }
-
-            .filter-row th .filter-input {
-              padding: 0.375rem 0.5rem;
-              font-size: 10px;
-            }
-          }
-
-          tbody td {
-            padding: 0.625rem 0.75rem;
-            font-size: 11px;
-          }
-        }
-      }
-    }
   `]
 })
-export class DashboardTableComponent implements OnInit, OnChanges {
+export class DashboardTableComponent implements OnChanges {
   @Input() widget!: DashboardWidget;
-  @Input() filters: any = {};
+  @Input() data: any = null;
+  @Input() loading: boolean = false;
+  @Input() error: string | null = null;
 
-  loading = false;
-  error: string | null = null;
   tableData: TableData | null = null;
   config: any = {};
 
@@ -566,43 +430,17 @@ export class DashboardTableComponent implements OnInit, OnChanges {
   columnFilters: ColumnFilter = {};
   filteredData: any[] = [];
 
-  constructor(
-    private dashboardService: DashboardService,
-    private toast: ToastService
-  ) {}
-
-  ngOnInit() {
-    this.config = this.widget.config || {};
-    this.loadData();
-  }
+  constructor(private toast: ToastService) {}
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['filters'] && !changes['filters'].firstChange) {
-      this.loadData();
+    if (changes['widget']) {
+      this.config = this.widget.config || {};
     }
-  }
 
-  async loadData() {
-    if (!this.widget.id) return;
-
-    this.loading = true;
-    this.error = null;
-
-    try {
-      const response = await this.dashboardService.getWidgetData(
-        this.widget.id,
-        this.filters
-      );
-
-      if (response.success && response.data) {
-        const rawData = Utils.keysToUpperCase(response.data.data.data);
-        this.parseTableData(rawData);
-        this.applyFilters();
-      }
-    } catch (error: any) {
-      this.error = error?.message || 'Erro ao carregar dados';
-    } finally {
-      this.loading = false;
+    // Quando os dados mudam, processa-os
+    if (changes['data'] && this.data) {
+      this.parseTableData(this.data);
+      this.applyFilters();
     }
   }
 
@@ -615,7 +453,6 @@ export class DashboardTableComponent implements OnInit, OnChanges {
     const columns = Object.keys(data[0]);
     this.tableData = { columns, rows: data };
 
-    // Initialize filters
     columns.forEach(col => {
       if (!(col in this.columnFilters)) {
         this.columnFilters[col] = '';
@@ -633,7 +470,6 @@ export class DashboardTableComponent implements OnInit, OnChanges {
       .join(' ');
   }
 
-  // Sorting
   sortBy(column: string) {
     if (this.sortColumn === column) {
       this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
@@ -663,7 +499,6 @@ export class DashboardTableComponent implements OnInit, OnChanges {
     });
   }
 
-  // Filtering
   toggleFilters() {
     this.showFilters = !this.showFilters;
   }
@@ -704,7 +539,6 @@ export class DashboardTableComponent implements OnInit, OnChanges {
     this.applyFilters();
   }
 
-  // Export
   exportData() {
     if (!this.tableData?.rows.length) {
       this.toast.warning('Nenhum dado para exportar');

@@ -39,6 +39,11 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
+    path: 'dashboards/view/:key',
+    component: DashboardViewPage,
+    title: 'Visualizar Dashboard'
+  },
+  {
     path: '',
     canActivate: [AuthGuard],
     component: NavbarComponent,
@@ -159,17 +164,17 @@ export const routes: Routes = [
       },
       {
         path: 'dashboards',
-        // canActivate: [PermissionGuard],
-        // data: {
-        //   permission: 'dynamic_query.view',
-        // },
+        canActivate: [PermissionGuard],
+        data: {
+          permission: 'dynamic_query.view',
+        },
         children: [
           {
             path: '',
             component: DashboardsPage
           },
           {
-            path: 'view/:key',
+            path: ':key',
             component: DashboardViewPage,
             title: 'Visualizar Dashboard'
           }

@@ -21,7 +21,7 @@
   border-radius: var(--border-radius);
   box-shadow: var(--shadow-md);
   max-height: 90vh;
-  min-height: 800px;
+  min-height: 700px;
   display: flex;
   flex-direction: column;
   transform: scale(0.9) translateY(-20px);
@@ -137,6 +137,13 @@
 }
 
 // Responsividade
+@media (min-width: 1920px) {
+  .modal-container {
+    max-height: 800px;
+  }
+}
+
+
 @media (max-width: 768px) {
   .modal-backdrop {
     padding: var(--spacing-medium);

@@ -4,9 +4,13 @@
     <div class="nav-content">
       <!-- Logo e Menu Mobile -->
       <div class="nav-start">
-        @if (isMobile) {
-          <search-screen></search-screen>
-        }
+
+        <div class="company-brand" (click)="goHome()">
+          <span class="company-name-part1">Uai</span>
+          <span class="company-name-braces">&#123;</span>
+          <span class="company-name-part2">Bits</span>
+          <span class="company-name-braces">&#125;</span>
+        </div>
 
       </div>
 
@@ -48,6 +52,11 @@
       <!-- Ações e Perfil -->
       <div class="nav-end">
         <!-- Busca - Oculto em mobile -->
+
+        @if (isMobile) {
+          <search-screen></search-screen>
+        }
+
         @if (!isMobile) {
           <div class="search-wrapper">
             <search-screen></search-screen>

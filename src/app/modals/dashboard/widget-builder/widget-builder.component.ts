@@ -52,6 +52,9 @@ export class WidgetBuilderComponent implements OnInit {
     {label: 'Gráfico de Linha', value: 'chart_line', icon: 'bx-line-chart'},
     {label: 'Gráfico de Barras', value: 'chart_bar', icon: 'bx-bar-chart'},
     {label: 'Gráfico de Pizza', value: 'chart_pie', icon: 'bx-pie-chart-alt'},
+    {label: 'Gráfico de Rosca', value: 'chart_donut', icon: 'bx-pie-chart'},
+    {label: 'Gráfico de Área', value: 'chart_area', icon: 'bx-area-chart'},
+    {label: 'Gráfico de Radar', value: 'chart_radar', icon: 'bx-radar-chart'},
     {label: 'Tabela', value: 'table', icon: 'bx-table'},
     {label: 'Card de Métrica', value: 'metric_card', icon: 'bx-card'},
   ];
@@ -107,7 +110,6 @@ export class WidgetBuilderComponent implements OnInit {
       if (widget_type) {
         const response = await this.dashboardService.getParametersWidget(widget_type);
         if (response.data) {
-          console.log(response.data)
           this.parameters = response.data || {};
           return;
         }

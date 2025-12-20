@@ -11,6 +11,7 @@ import {TextareaComponent} from '../../components/form/textarea/textarea.compone
 import {CommonModule} from '@angular/common';
 import {ToggleSwitchComponent} from '../../components/form/toggle-switch/toggle-switch.component';
 import {DashboardBuilderComponent} from './dashboard-builder/dashboard-builder.component';
+import {DropdownComponent} from '../../components/form/dropdown/dropdown.component';
 
 @Component({
   selector: 'app-dashboard-modal',
@@ -21,7 +22,8 @@ import {DashboardBuilderComponent} from './dashboard-builder/dashboard-builder.c
     ButtonComponent,
     TextareaComponent,
     ToggleSwitchComponent,
-    DashboardBuilderComponent
+    DashboardBuilderComponent,
+    DropdownComponent
   ],
   templateUrl: './dashboard.modal.html',
   standalone: true,
@@ -36,6 +38,24 @@ export class DashboardModal implements OnInit {
   errors: { [key: string]: string } = {};
   loading: boolean = false;
   showBuilder: boolean = false;
+  visibilitesOptions: any[] = [
+    {
+      label: "Público",
+      value: "public",
+      description: "Qualquer pessoa pode visualizar, sem necessidade de login."
+    },
+    {
+      label: "Privado",
+      value: "authenticated",
+      description: "Apenas usuários logados podem visualizar."
+    },
+    {
+      label: "Restrito",
+      value: "restricted",
+      description: "Somente usuários autorizados podem visualizar."
+    }
+  ];
+
 
   constructor(
     private fb: FormBuilder,
@@ -47,8 +67,11 @@ export class DashboardModal implements OnInit {
       key: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100), Validators.pattern(/^[a-z0-9-]+$/)]],
       name: ['', [Validators.required, Validators.maxLength(255)]],
       description: [''],
+      visibility: ['authenticated'],
       icon: [''],
-      active: [true]
+      active: [true],
+      is_navigable: [false],
+      is_home: [false],
     });
 
     this.form.valueChanges.subscribe(() => {
@@ -83,7 +106,10 @@ export class DashboardModal implements OnInit {
           name: this.dashboard.name,
           description: this.dashboard.description,
           icon: this.dashboard.icon,
-          active: this.dashboard.active
+          active: this.dashboard.active,
+          visibility: this.dashboard.visibility,
+          is_navigable: this.dashboard.is_navigable,
+          is_home: this.dashboard.is_home,
         });
 
         // Se já existe, vai direto pro builder
@@ -109,6 +135,7 @@ export class DashboardModal implements OnInit {
       } else {
         await this.createDashboard(data);
       }
+
     } finally {
       this.loading = false;
     }
@@ -117,20 +144,20 @@ export class DashboardModal implements OnInit {
   async createDashboard(data: any) {
     try {
       const response = await this.dashboardService.createDashboard(data);
-      this.dashboardKey = response.data.dashboard.key;
-      this.dashboard = response.data.dashboard;
+      this.dashboardKey = response.data.key;
       this.toast.success('Dashboard criado! Agora configure suas seções e widgets.');
-      this.showBuilder = true;
+      await this.load()
     } catch (error) {
+      console.log(error);
       this.errors = this.utils.handleErrorsForm(error, this.form);
     }
   }
 
   async updateDashboard(data: any) {
     try {
-      const response = await this.dashboardService.updateDashboard(this.dashboardKey!, data);
-      this.dashboard = {...this.dashboard, ...response.data.dashboard};
+      await this.dashboardService.updateDashboard(this.dashboardKey!, data);
       this.toast.success('Dashboard atualizado com sucesso!');
+      await this.load();
     } catch (error) {
       this.errors = this.utils.handleErrorsForm(error, this.form);
     }
@@ -138,8 +165,7 @@ export class DashboardModal implements OnInit {
 
   generateKey(event: FocusEvent) {
     const input = event.target as HTMLInputElement;
-    const value = input.value.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-');
-    this.form.patchValue({key: value});
+    this.form.patchValue({key: Utils.slug(input.value)});
   }
 
   saveAndClose() {

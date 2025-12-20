@@ -36,7 +36,6 @@ export class ProfilePage {
     private utils: Utils,
     protected auth: AuthService
   ) {
-    console.log('ProfilePage', auth.getUser());
     this.form = this.fb.group({
       name: [auth.getUser()?.name],
       email: [auth.getUser()?.email, [Validators.email]],

@@ -121,10 +121,8 @@ export class TableComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    console.log('ngOnChanges:', changes);
 
     if (changes['config'] && this.config) {
-      console.log('Config changed:', this.config);
       this.setupColumnDefs();
       if (this.gridApi) {
         this.gridApi.setGridOption('columnDefs', this.columnDefs);
@@ -132,16 +130,11 @@ export class TableComponent implements OnInit, OnChanges {
     }
 
     if (changes['data']) {
-      console.log('Data changed:', this.data);
       this.rowData = this.data ? [...this.data] : [];
-      console.log('New rowData:', this.rowData);
-      console.log('gridApi exists?', !!this.gridApi);
 
       if (this.gridApi) {
-        console.log('Calling refreshData');
         this.refreshData(this.rowData);
       } else {
-        console.log('gridApi not ready yet, data will be set on onGridReady');
       }
     }
 
@@ -219,7 +212,6 @@ export class TableComponent implements OnInit, OnChanges {
   }
 
   private setupGridOptions(): void {
-    console.log('setupGridOptions - rowData:', this.rowData);
 
     this.gridOptions = {
       animateRows: this.config?.animateRows ?? true,
@@ -239,16 +231,10 @@ export class TableComponent implements OnInit, OnChanges {
   }
 
   onGridReady(params: GridReadyEvent): void {
-    console.log('onGridReady called');
     this.gridApi = params.api;
-
-    console.log('Setting rowData:', this.rowData);
-    console.log('Column Defs:', this.columnDefs);
 
     // Sempre definir os dados, mesmo que vazio
     this.gridApi.setGridOption('rowData', this.rowData);
-    console.log('Row count after set:', this.gridApi.getDisplayedRowCount());
-
     this.updateOverlay();
   }
 
@@ -407,11 +393,9 @@ export class TableComponent implements OnInit, OnChanges {
   }
 
   public refreshData(newData: any[]): void {
-    console.log('refreshData called with:', newData);
     this.rowData = [...newData];
     if (this.gridApi) {
       this.gridApi.setGridOption('rowData', this.rowData);
-      console.log('Data refreshed, row count:', this.gridApi.getDisplayedRowCount());
       this.updateOverlay();
     } else {
       console.warn('gridApi not available in refreshData');

@@ -106,18 +106,12 @@ export class DynamicQueryFieldsMetadataBuilderComponent implements OnInit {
   addNewField() {
     const fieldName = this.newFieldName.trim();
 
-    console.log('Adicionando novo campo:', fieldName);
-
-    if (!fieldName) {
-      return;
-    }
+    if (!fieldName) return;
 
     // Verifica se o campo já existe
     if (this.fields.some(f => f.fieldName === fieldName)) {
       return;
     }
-
-    console.log('Campo adicionado com sucesso:', fieldName);
 
     this.fields.push({
       fieldName,
@@ -126,8 +120,6 @@ export class DynamicQueryFieldsMetadataBuilderComponent implements OnInit {
       aggregation: null,
       format: null
     });
-
-    console.log('Campos atuais:', this.fields);
 
     this.newFieldName = '';
     this.showAddFieldForm = false;

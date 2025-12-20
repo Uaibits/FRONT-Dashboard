@@ -35,6 +35,28 @@
         </div>
 
         <div class="form-row">
+          <div class="form-col-6">
+            <ub-dropdown
+              label="Visibilidade"
+              placeholder="Escolha o nível de visibilidade"
+              formControlName="visibility"
+              [error]="FormErrorHandlerService.getError('visibility', errors)"
+              [options]="visibilitesOptions">
+            </ub-dropdown>
+          </div>
+
+          <div class="form-col-6">
+            <ub-input
+              label="Ícone"
+              placeholder="Ex: bx bx-chart-line"
+              formControlName="icon"
+              [error]="FormErrorHandlerService.getError('icon', errors)">
+              <small class="hint">Use classes do Boxicons</small>
+            </ub-input>
+          </div>
+        </div>
+
+        <div class="form-row">
           <div class="form-col-12">
             <ub-textarea
               label="Descrição"
@@ -47,20 +69,24 @@
         </div>
 
         <div class="form-row">
-          <div class="form-col-6">
-            <ub-input
-              label="Ícone"
-              placeholder="Ex: bx bx-chart-line"
-              formControlName="icon"
-              [error]="FormErrorHandlerService.getError('icon', errors)">
-              <small class="hint">Use classes do Boxicons</small>
-            </ub-input>
-          </div>
-
-          <div class="form-col-6 flex-center">
+          <div class="form-col-4 flex-center">
             <ub-toggle-switch
               label="Dashboard Ativo"
               formControlName="active">
+            </ub-toggle-switch>
+          </div>
+
+          <div class="form-col-4 flex-center">
+            <ub-toggle-switch
+              label="Navegável no Menu"
+              formControlName="is_navigable">
+            </ub-toggle-switch>
+          </div>
+
+          <div class="form-col-4 flex-center">
+            <ub-toggle-switch
+              label="Dashboard página inicial"
+              formControlName="is_home">
             </ub-toggle-switch>
           </div>
         </div>
@@ -86,6 +112,7 @@
   <app-dashboard-builder
     [dashboardKey]="dashboardKey!"
     [dashboard]="dashboard!"
-    (onClose)="saveAndClose()">
+    (onClose)="saveAndClose()"
+    (onEditDashboard)="showBuilder = false">
   </app-dashboard-builder>
 }
