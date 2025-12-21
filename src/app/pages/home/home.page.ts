@@ -11,7 +11,7 @@ import {DashboardService} from '../../services/dashboard.service';
   templateUrl: './home.page.html',
   styleUrls: ['./home.page.scss'],
   standalone: true,
-  imports: [CommonModule, ContentComponent, DashboardViewComponent]
+  imports: [CommonModule, DashboardViewComponent]
 })
 export class HomePage implements OnInit {
 

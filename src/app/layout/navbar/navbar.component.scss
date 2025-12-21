@@ -49,7 +49,6 @@ $header-height: 80px;
     font-size: 1.4rem;
     font-weight: 700;
     letter-spacing: -0.5px;
-    margin-right: 24px;
     user-select: none;
 
     .company-name-part1 {
@@ -574,7 +573,6 @@ $header-height: 80px;
 @media (max-width: 768px) {
   .company-brand {
     font-size: 1.2rem;
-    margin-right: 16px;
   }
 
   .main-nav {
@@ -601,7 +599,6 @@ $header-height: 80px;
 @media (max-width: 480px) {
   .company-brand {
     font-size: 1rem;
-    margin-right: 12px;
   }
 
   .nav-content {

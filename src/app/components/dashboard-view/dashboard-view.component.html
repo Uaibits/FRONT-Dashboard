@@ -117,70 +117,102 @@
           </div>
         }
 
-        <!-- Seções do Dashboard -->
-        @if (canLoadData() && structure && structure.sections) {
-          @for (section of structure?.sections; track section.section.id) {
-            <div class="dashboard-section">
+        <!-- Tabs de Seções -->
+        @if (canLoadData() && structure && structure.sections && structure.sections.length > 1) {
+          <div class="dashboard-tabs">
+            @for (section of structure.sections; track section.section.id; let i = $index) {
+              <button
+                class="tab-item"
+                [class.active]="activeSectionIndex === i"
+                [class.loading]="state.loading && activeSectionIndex === i"
+                (click)="setActiveTab(section.section.key, i); loadTabData(i)"
+                [title]="section.section.description || section.section.title">
 
-              <!-- Header Compacto da Seção -->
+                @if (section.section.icon) {
+                  <i [class]="'bx ' + section.section.icon"></i>
+                }
+
+                {{ section.section.title }}
+
+                @if (section.widgets?.length) {
+                  <span class="tab-badge">
+                    {{ section.widgets.length }}
+                  </span>
+                }
+
+                @if (state.loading && activeSectionIndex === i) {
+                  <span class="tab-loading-indicator"></span>
+                }
+              </button>
+            }
+          </div>
+        }
+
+        <!-- Conteúdo da Seção Ativa -->
+        @if (canLoadData() && structure && structure.sections && structure.sections[activeSectionIndex]) {
+
+          <div class="dashboard-section">
+            <!-- Header Compacto da Seção (somente se não tiver tabs ou em mobile) -->
+            @if (structure.sections.length === 1) {
               <div class="section-header">
                 <h3 class="section-title">
-                  {{ section.section.title }}
+                  {{ structure.sections[activeSectionIndex].section.title }}
                 </h3>
-                @if (section.section.description) {
-                  <div class="section-description">{{ section.section.description }}</div>
+                @if (structure.sections[activeSectionIndex].section.description) {
+                  <div class="section-description">{{ structure.sections[activeSectionIndex].section.description }}
+                  </div>
                 }
               </div>
+            }
 
-              <!-- Metric Cards (sempre em cima) -->
-              @if (getMetricWidgets(section.widgets).length > 0) {
-                <div class="metrics-grid">
-                  @for (widget of getMetricWidgets(section.widgets); track widget.id) {
-                    <app-dashboard-metric-card
-                      [widget]="widget"
-                      [data]="getWidgetData(widget.key)"
-                      [loading]="isWidgetLoading(widget.key)"
-                      [error]="getWidgetError(widget.key)">
-                    </app-dashboard-metric-card>
+            <!-- Metric Cards (sempre em cima) -->
+            @if (getMetricWidgets(structure.sections[activeSectionIndex].widgets).length > 0) {
+              <div class="metrics-grid">
+                @for (widget of getMetricWidgets(structure.sections[activeSectionIndex].widgets); track widget.id) {
+                  <app-dashboard-metric-card
+                    [widget]="widget"
+                    [data]="getWidgetData(widget.key)"
+                    [loading]="isWidgetLoading(widget.key)"
+                    [error]="getWidgetError(widget.key)">
+                  </app-dashboard-metric-card>
+                }
+              </div>
+            }
+
+            <!-- Charts e Tables organizados inteligentemente -->
+            @if (getChartWidgets(structure.sections[activeSectionIndex].widgets).length > 0 || getTableWidgets(structure.sections[activeSectionIndex].widgets).length > 0) {
+              @for (row of organizeWidgetsInRows(getChartWidgets(structure.sections[activeSectionIndex].widgets), getTableWidgets(structure.sections[activeSectionIndex].widgets)); track $index) {
+                <div class="widgets-row">
+                  @for (widget of row; track widget.id) {
+                    <div class="widget-container" [ngStyle]="getWidgetStyle(widget)">
+                      @if (widget.widget_type === 'table') {
+                        <app-dashboard-table
+                          [widget]="widget"
+                          [data]="getWidgetData(widget.key)"
+                          [loading]="isWidgetLoading(widget.key)"
+                          [error]="getWidgetError(widget.key)">
+                        </app-dashboard-table>
+                      } @else {
+                        <app-dashboard-chart
+                          [widget]="widget"
+                          [data]="getWidgetData(widget.key)"
+                          [loading]="isWidgetLoading(widget.key)"
+                          [error]="getWidgetError(widget.key)">
+                        </app-dashboard-chart>
+                      }
+                    </div>
                   }
                 </div>
               }
+            }
 
-              <!-- Charts e Tables organizados inteligentemente -->
-              @if (getChartWidgets(section.widgets).length > 0 || getTableWidgets(section.widgets).length > 0) {
-                @for (row of organizeWidgetsInRows(getChartWidgets(section.widgets), getTableWidgets(section.widgets)); track $index) {
-                  <div class="widgets-row">
-                    @for (widget of row; track widget.id) {
-                      <div class="widget-container" [ngStyle]="getWidgetStyle(widget)">
-                        @if (widget.widget_type === 'table') {
-                          <app-dashboard-table
-                            [widget]="widget"
-                            [data]="getWidgetData(widget.key)"
-                            [loading]="isWidgetLoading(widget.key)"
-                            [error]="getWidgetError(widget.key)">
-                          </app-dashboard-table>
-                        } @else {
-                          <app-dashboard-chart
-                            [widget]="widget"
-                            [data]="getWidgetData(widget.key)"
-                            [loading]="isWidgetLoading(widget.key)"
-                            [error]="getWidgetError(widget.key)">
-                          </app-dashboard-chart>
-                        }
-                      </div>
-                    }
-                  </div>
-                }
-              }
-
-            </div>
-          } @empty {
-            <div class="dashboard-empty">
-              <i class="bx bx-data"></i>
-              <h4>Nenhuma seção configurada</h4>
-              <p>Configure seções e widgets no editor do dashboard.</p>
-            </div>
-          }
+          </div>
+        } @else {
+          <div class="dashboard-empty">
+            <i class="bx bx-data"></i>
+            <h4>Nenhuma seção configurada</h4>
+            <p>Configure seções e widgets no editor do dashboard.</p>
+          </div>
         }
       }
     }

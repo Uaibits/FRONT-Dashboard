@@ -1,4 +1,4 @@
-import {Component, OnInit, OnDestroy, Input, OnChanges, SimpleChanges} from '@angular/core';
+import {Component, OnInit, OnDestroy, Input, OnChanges, SimpleChanges, HostListener} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {Router} from '@angular/router';
 import {FormsModule} from '@angular/forms';
@@ -48,6 +48,8 @@ export class DashboardViewComponent implements OnInit, OnDestroy, OnChanges {
 
   dashboard: any = null;
   structure: any = null;
+  activeSectionIndex: number = 0;
+  activeTabId: string | null = null;
 
   // Estado centralizado
   state: DashboardState = {
@@ -64,13 +66,12 @@ export class DashboardViewComponent implements OnInit, OnDestroy, OnChanges {
   filterValues: { [key: string]: any } = {};
   sidebarCollapsed: boolean = false;
   filtersInitialized: boolean = false;
-  accessibleDashboards: any[] = [];
 
   // Controle de visualização
   showDashboardList: boolean = false;
 
   // Configurações de auto-refresh
-  protected autoRefreshInterval: number = 60 // segundos (0 = desabilitado)
+  protected autoRefreshInterval: number = 120 // segundos (0 = desabilitado)
   protected autoRefreshEnabled: boolean = true;
 
   constructor(
@@ -78,6 +79,36 @@ export class DashboardViewComponent implements OnInit, OnDestroy, OnChanges {
     private dashboardService: DashboardService,
     private toast: ToastService
   ) {
+  }
+
+  @HostListener('keydown', ['$event'])
+  handleKeydown(event: KeyboardEvent) {
+    if (!this.structure?.sections || this.structure.sections.length <= 1) {
+      return;
+    }
+
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+      event.preventDefault();
+      const nextIndex = (this.activeSectionIndex + 1) % this.structure.sections.length;
+      this.setActiveTab(this.structure.sections[nextIndex].section.key, nextIndex);
+      this.loadTabData(nextIndex);
+    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      const prevIndex = this.activeSectionIndex - 1 < 0
+        ? this.structure.sections.length - 1
+        : this.activeSectionIndex - 1;
+      this.setActiveTab(this.structure.sections[prevIndex].section.key, prevIndex);
+      this.loadTabData(prevIndex);
+    } else if (event.key === 'Home') {
+      event.preventDefault();
+      this.setActiveTab(this.structure.sections[0].section.key, 0);
+      this.loadTabData(0);
+    } else if (event.key === 'End') {
+      event.preventDefault();
+      const lastIndex = this.structure.sections.length - 1;
+      this.setActiveTab(this.structure.sections[lastIndex].section.key, lastIndex);
+      this.loadTabData(lastIndex);
+    }
   }
 
   ngOnInit() {
@@ -191,6 +222,21 @@ export class DashboardViewComponent implements OnInit, OnDestroy, OnChanges {
 
       this.initializeFilters();
 
+      // Restaura a tab ativa do localStorage ou usa a primeira
+      if (this.structure?.sections?.length > 0) {
+        const savedTabId = localStorage.getItem(`dashboard_${this.dashboardKey}_active_tab`);
+        const savedSectionIndex = this.structure.sections.findIndex(
+          (s: any) => s.section.key === savedTabId || s.section.id.toString() === savedTabId
+        );
+
+        if (savedSectionIndex !== -1) {
+          this.setActiveTab(savedTabId, savedSectionIndex);
+        } else {
+          // Primeira tab por padrão
+          this.setActiveTab(this.structure.sections[0].section.key, 0);
+        }
+      }
+
       // Carrega dados apenas se não houver filtros obrigatórios ou se todos estiverem preenchidos
       if (this.canLoadData()) {
         await this.loadAllWidgetsData();
@@ -217,12 +263,12 @@ export class DashboardViewComponent implements OnInit, OnDestroy, OnChanges {
     this.widgetsErrors = {};
 
     try {
-      // Carrega dados de todas as seções
-      const sectionsPromises = this.structure.sections.map((section: any) =>
-        this.loadSectionData(section.section.id)
-      );
+      // Carrega apenas os dados da seção ativa inicialmente
+      if (this.structure.sections[this.activeSectionIndex]) {
+        const activeSection = this.structure.sections[this.activeSectionIndex];
+        await this.loadSectionData(activeSection.section.id);
+      }
 
-      await Promise.all(sectionsPromises);
       this.state.lastRefresh = new Date();
 
     } catch (error) {
@@ -256,7 +302,12 @@ export class DashboardViewComponent implements OnInit, OnDestroy, OnChanges {
   /**
    * Carrega dados de uma seção específica
    */
-  private async loadSectionData(sectionId: number) {
+  private async loadSectionData(sectionId: number, forceReload: boolean = false) {
+    // Verifica se já temos dados para esta seção e não é force reload
+    if (!forceReload && this.widgetsData[`section_${sectionId}_loaded`]) {
+      return;
+    }
+
     try {
       const response = await this.dashboardService.getSectionData(
         sectionId,
@@ -272,6 +323,9 @@ export class DashboardViewComponent implements OnInit, OnDestroy, OnChanges {
           this.widgetsData[widgetKey] = Utils.keysToUpperCase(widgetsData[widgetKey].data.data);
         });
 
+        // Marca a seção como carregada
+        this.widgetsData[`section_${sectionId}_loaded`] = true;
+
         // Armazena erros se houver
         const errors = response.data.errors || {};
         Object.keys(errors).forEach(widgetKey => {
@@ -281,6 +335,25 @@ export class DashboardViewComponent implements OnInit, OnDestroy, OnChanges {
     } catch (error) {
       console.error(`Erro ao carregar seção ${sectionId}:`, error);
       throw error;
+    }
+  }
+
+  async loadTabData(tabIndex: number) {
+    if (!this.structure?.sections?.[tabIndex]) return;
+
+    const section = this.structure.sections[tabIndex];
+    const sectionId = section.section.id;
+
+    try {
+      // Carrega apenas os dados da seção ativa
+      await this.loadSectionData(sectionId, true);
+
+      if (this.state.lastRefresh) {
+        this.state.lastRefresh = new Date();
+      }
+    } catch (error) {
+      console.error(`Erro ao carregar dados da tab ${tabIndex}:`, error);
+      this.toast.error(`Erro ao carregar dados da seção "${section.section.title}"`);
     }
   }
 
@@ -346,6 +419,7 @@ export class DashboardViewComponent implements OnInit, OnDestroy, OnChanges {
    * Verifica se pode carregar os dados do dashboard
    */
   canLoadData(): boolean {
+    // Verifica filtros obrigatórios
     if (!this.structure?.filters || this.structure.filters.length === 0) {
       return true;
     }
@@ -373,6 +447,22 @@ export class DashboardViewComponent implements OnInit, OnDestroy, OnChanges {
 
       return true;
     });
+  }
+
+  getActiveSectionWidgets() {
+    if (!this.structure?.sections?.[this.activeSectionIndex]) {
+      return [];
+    }
+    return this.structure.sections[this.activeSectionIndex].widgets || [];
+  }
+
+  countWidgetsByType(widgets: any[], type: string): number {
+    return widgets?.filter(w => {
+      if (type === 'chart') {
+        return w.widget_type?.startsWith('chart_');
+      }
+      return w.widget_type === type;
+    }).length || 0;
   }
 
   /**
@@ -417,11 +507,16 @@ export class DashboardViewComponent implements OnInit, OnDestroy, OnChanges {
       return;
     }
 
-    // Limpa dados anteriores
-    this.widgetsData = {};
+    // Limpa dados de todas as seções
+    Object.keys(this.widgetsData).forEach(key => {
+      if (key.startsWith('section_')) {
+        delete this.widgetsData[key];
+      }
+    });
     this.widgetsErrors = {};
 
-    await this.loadAllWidgetsData();
+    // Recarrega apenas a tab ativa
+    await this.loadTabData(this.activeSectionIndex);
   }
 
   /**
@@ -443,9 +538,13 @@ export class DashboardViewComponent implements OnInit, OnDestroy, OnChanges {
    */
   async refreshDashboard() {
     if (this.canLoadData()) {
-      this.widgetsData = {};
+      // Limpa apenas os dados da seção atual
+      Object.keys(this.widgetsData).forEach(key => {
+        delete this.widgetsData[key];
+      });
       this.widgetsErrors = {};
-      await this.loadAllWidgetsData();
+
+      await this.loadTabData(this.activeSectionIndex);
       this.toast.success('Dashboard atualizado');
     } else {
       const missing = this.getMissingRequiredFilters();
@@ -607,5 +706,15 @@ export class DashboardViewComponent implements OnInit, OnDestroy, OnChanges {
       'max-width': `${percentage}%`,
       'min-width': widget.widget_type === 'table' ? '100%' : '300px'
     };
+  }
+
+  setActiveTab(tabId: string | null, index: number = 0) {
+    this.activeTabId = tabId;
+    this.activeSectionIndex = index;
+
+    // Salva a última tab ativa no localStorage para persistência
+    if (tabId && this.dashboardKey) {
+      localStorage.setItem(`dashboard_${this.dashboardKey}_active_tab`, tabId);
+    }
   }
 }

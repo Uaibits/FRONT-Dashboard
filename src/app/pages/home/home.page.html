@@ -1,5 +1,3 @@
-<ub-content [title]="welcomeMessage" [loading]="loading">
-  @if (dashboardKey) {
-    <app-dashboard-view [dashboardKey]="dashboardKey"></app-dashboard-view>
-  }
-</ub-content>
+@if (dashboardKey) {
+  <app-dashboard-view [dashboardKey]="dashboardKey"></app-dashboard-view>
+}
