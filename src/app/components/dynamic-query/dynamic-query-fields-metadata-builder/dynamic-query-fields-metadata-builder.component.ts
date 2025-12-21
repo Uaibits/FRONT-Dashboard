@@ -43,7 +43,7 @@ interface FieldItem {
   styleUrl: './dynamic-query-fields-metadata-builder.component.scss',
   standalone: true
 })
-export class DynamicQueryFieldsMetadataBuilderComponent implements OnInit {
+export class DynamicQueryFieldsMetadataBuilderComponent implements OnInit, OnChanges {
 
   @Input() metadataConfig: FieldMetadataConfig = {};
   @Output() metadataConfigChange = new EventEmitter<FieldMetadataConfig>();
@@ -52,24 +52,24 @@ export class DynamicQueryFieldsMetadataBuilderComponent implements OnInit {
   originalConfig: string = '';
 
   aggregationOptions = [
-    { label: 'Nenhuma', value: null },
-    { label: 'Soma', value: 'sum' },
-    { label: 'Média', value: 'average' },
-    { label: 'Contagem', value: 'count' },
-    { label: 'Mínimo', value: 'min' },
-    { label: 'Máximo', value: 'max' }
+    {label: 'Nenhuma', value: null},
+    {label: 'Soma', value: 'sum'},
+    {label: 'Média', value: 'average'},
+    {label: 'Contagem', value: 'count'},
+    {label: 'Mínimo', value: 'min'},
+    {label: 'Máximo', value: 'max'}
   ];
 
   formatOptions = [
-    { label: 'Nenhum', value: '' },
-    { label: 'Data', value: 'date' },
-    { label: 'Data e Hora', value: 'datetime' },
-    { label: 'Moeda', value: 'currency' },
-    { label: 'Porcentagem', value: 'percentage' },
-    { label: 'Maiúsculas', value: 'upper' },
-    { label: 'Minúsculas', value: 'lower' },
-    { label: 'Capitalizar', value: 'capitalize' },
-    { label: 'Remover Espaços', value: 'trim' }
+    {label: 'Nenhum', value: ''},
+    {label: 'Data', value: 'date'},
+    {label: 'Data e Hora', value: 'datetime'},
+    {label: 'Moeda', value: 'currency'},
+    {label: 'Porcentagem', value: 'percentage'},
+    {label: 'Maiúsculas', value: 'upper'},
+    {label: 'Minúsculas', value: 'lower'},
+    {label: 'Capitalizar', value: 'capitalize'},
+    {label: 'Remover Espaços', value: 'trim'}
   ];
 
   newFieldName: string = '';
@@ -77,6 +77,12 @@ export class DynamicQueryFieldsMetadataBuilderComponent implements OnInit {
 
   ngOnInit() {
     this.loadFields();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['metadataConfig']) {
+      this.loadFields();
+    }
   }
 
   private loadFields() {

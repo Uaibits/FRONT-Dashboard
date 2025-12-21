@@ -149,7 +149,6 @@ export class DashboardsPage implements OnInit {
    * Abre o dashboard para visualização/uso
    */
   openDashboard(dashboard: Dashboard) {
-    //abrir uma nova página onode o link deve ser /dashboards/view/{dashboard.key} blank new
     this.router.navigate([`/dashboards/${dashboard.key}`]);
   }
 }

@@ -4,7 +4,6 @@ import {ToastService} from '../components/toast/toast.service';
 import {HttpClient} from '@angular/common/http';
 import {firstValueFrom} from 'rxjs';
 import {ModalService} from '../modals/modal/modal.service';
-import {DynamicQueryModal} from '../modals/dynamic-query/dynamic-query.modal';
 import {Utils} from './utils.service';
 import {
   DynamicQueryFilterBuilderModal
@@ -91,13 +90,5 @@ export class DynamicQueryService {
     }
   }
 
-  openDynamicQueryModal(dynamicQuery?: DynamicQuery) {
-    return this.modalService.open({
-      title: 'Configurar Consulta Dinâmica',
-      component: DynamicQueryModal,
-      data: {
-        dynamicQueryKey: dynamicQuery ? dynamicQuery.key : null
-      }
-    });
-  }
+
 }

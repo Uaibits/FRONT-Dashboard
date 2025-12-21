@@ -1,0 +1,105 @@
+<div class="dashboard-list-container">
+
+  <!-- Header Opcional -->
+  @if (showHeader) {
+    <div class="list-header">
+      <div class="header-content">
+        <h2 class="list-title">
+          <i class="bx bx-grid-alt"></i>
+          Meus Dashboards
+        </h2>
+        <p class="list-subtitle">Selecione um dashboard para visualizar</p>
+
+        <!-- Indicador de Dashboard Principal -->
+        @if (allowSetHome && hasHomeDashboard()) {
+          <div class="home-dashboard-indicator">
+            <i class="bx bx-home"></i>
+            <span>Dashboard principal: {{ getHomeDashboard()?.name }}</span>
+          </div>
+        }
+      </div>
+      @if (!loading && dashboards.length > 0) {
+        <div class="dashboards-count">
+          <span class="count-badge">{{ dashboards.length }}</span>
+          <span class="count-label">disponíveis</span>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Estado de Loading -->
+  @if (loading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Carregando dashboards...</p>
+    </div>
+  }
+
+  <!-- Estado de Erro -->
+  @else if (error) {
+    <div class="error-state">
+      <div class="error-icon">
+        <i class="bx bx-error-circle"></i>
+      </div>
+      <h3 class="error-title">Não foi possível carregar</h3>
+      <p class="error-message">{{ error }}</p>
+      <button class="retry-button" (click)="retry()">
+        <i class="bx bx-refresh"></i>
+        Tentar Novamente
+      </button>
+    </div>
+  }
+
+  <!-- Grid de Dashboards -->
+  @else if (dashboards.length > 0) {
+    <div class="dashboards-grid" [style.grid-template-columns]="getGridColumns()">
+      @for (dashboard of dashboards; track dashboard.key) {
+        <div class="dashboard-card" (click)="selectDashboard(dashboard)">
+
+          <!-- Indicador de Dashboard Principal -->
+          @if (dashboard.is_home) {
+            <div class="home-badge">
+              <i class="bx bx-home"></i>
+              <span>Principal</span>
+            </div>
+          }
+
+          <div class="card-content">
+            <h3 class="card-title"><i [class]="getIconClass(dashboard)"></i> {{ dashboard.name }}</h3>
+            @if (dashboard.description) {
+              <p class="card-description">{{ dashboard.description }}</p>
+            }
+            <!-- Botões de Ação -->
+            <div class="card-actions">
+              @if (allowSetHome && !dashboard.is_home) {
+                <button
+                  class="set-home-btn"
+                  (click)="setAsHomeDashboard(dashboard, $event)"
+                  [disabled]="settingHome[dashboard.key]"
+                  title="Definir como dashboard principal">
+                  @if (settingHome[dashboard.key]) {
+                    <i class="bx bx-loader-circle bx-spin"></i>
+                  } @else {
+                    <i class="bx bx-home"></i>
+                  }
+                  <span>Definir como principal</span>
+                </button>
+              }
+
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Estado Vazio -->
+  @else {
+    <div class="empty-state">
+      <i class="bx bx-bar-chart-square"></i>
+      <h3>Nenhum dashboard disponível</h3>
+      <p>Você ainda não tem acesso a nenhum dashboard</p>
+    </div>
+  }
+
+</div>

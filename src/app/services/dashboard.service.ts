@@ -102,6 +102,18 @@ export class DashboardService {
     );
   }
 
+  getDashboardsByGroup(idGroup: string): Promise<any> {
+    return firstValueFrom(
+      this.http.get<any>(`${this.API_URL}/dashboards/group/${idGroup}`)
+    );
+  }
+
+  getAccessibleDashboardsForUser(): Promise<any> {
+    return firstValueFrom(
+      this.http.get<any>(`${this.API_URL}/dashboards/user/accessible`)
+    );
+  }
+
   getHomeDashboard(): Promise<any> {
     return firstValueFrom(
       this.http.get(`${this.API_URL}/dashboards/home/list`)
@@ -405,6 +417,12 @@ export class DashboardService {
   validateInvitation(token: string): Promise<any> {
     return firstValueFrom(
       this.http.post<any>(`${this.API_URL}/dashboards/invitations/${token}/validate`, {})
+    );
+  }
+
+  setUserHomeDashboard(key: string) {
+    return firstValueFrom(
+      this.http.post<any>(`${this.API_URL}/dashboards/${key}/set-home`, {})
     );
   }
 }

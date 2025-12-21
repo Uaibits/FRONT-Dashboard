@@ -1,16 +1,16 @@
 import {Component, OnInit, OnDestroy, Input, OnChanges, SimpleChanges} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {ActivatedRoute, Router} from '@angular/router';
+import {Router} from '@angular/router';
 import {FormsModule} from '@angular/forms';
 import {Subject, takeUntil, interval, switchMap, tap, catchError, of} from 'rxjs';
 import {DashboardFiltersComponent} from './filters/dashboard-filters.component';
 import {DashboardMetricCardComponent} from './widgets/dashboard-metric-card.component';
 import {DashboardTableComponent} from './widgets/dashboard-table.component';
 import {DashboardChartComponent} from './widgets/dashboard-chart/dashboard-chart.component';
-import {ContentComponent} from '../content/content.component';
 import {DashboardService} from '../../services/dashboard.service';
 import {ToastService} from '../toast/toast.service';
 import {Utils} from '../../services/utils.service';
+import {DashboardListComponent} from './dashboard-list/dashboard-list.component';
 
 interface WidgetData {
   [widgetKey: string]: any;
@@ -31,7 +31,8 @@ interface DashboardState {
     DashboardFiltersComponent,
     DashboardMetricCardComponent,
     DashboardTableComponent,
-    DashboardChartComponent
+    DashboardChartComponent,
+    DashboardListComponent
   ],
   templateUrl: './dashboard-view.component.html',
   standalone: true,
@@ -44,7 +45,6 @@ export class DashboardViewComponent implements OnInit, OnDestroy, OnChanges {
   @Input({required: true}) dashboardKey!: string;
   @Input() viewHeight: number | null = null;
   @Input() invitationToken: string | null = null;
-
 
   dashboard: any = null;
   structure: any = null;
@@ -64,13 +64,16 @@ export class DashboardViewComponent implements OnInit, OnDestroy, OnChanges {
   filterValues: { [key: string]: any } = {};
   sidebarCollapsed: boolean = false;
   filtersInitialized: boolean = false;
+  accessibleDashboards: any[] = [];
+
+  // Controle de visualização
+  showDashboardList: boolean = false;
 
   // Configurações de auto-refresh
   protected autoRefreshInterval: number = 60 // segundos (0 = desabilitado)
   protected autoRefreshEnabled: boolean = true;
 
   constructor(
-    private route: ActivatedRoute,
     private router: Router,
     private dashboardService: DashboardService,
     private toast: ToastService
@@ -87,12 +90,21 @@ export class DashboardViewComponent implements OnInit, OnDestroy, OnChanges {
     this.destroy$.complete();
     this.autoRefresh$.next();
     this.autoRefresh$.complete();
+    this.autoRefresh$.unsubscribe();
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['dashboardKey'] && !changes['dashboardKey'].firstChange) {
+      this.showDashboardList = false;
       this.loadDashboardStructure();
     }
+  }
+
+  /**
+   * Verifica se deve mostrar o botão de voltar/listar dashboards
+   */
+  get canShowDashboardList(): boolean {
+    return !this.invitationToken;
   }
 
   /**
@@ -442,7 +454,7 @@ export class DashboardViewComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   /**
-   * Fetorna formatado quanto tempo falta para o próximo refresh
+   * Retorna formatado quanto tempo falta para o próximo refresh
    */
   get getRefreshFormatted(): string {
     if (!this.autoRefreshEnabled || this.autoRefreshInterval <= 0) {
@@ -468,8 +480,32 @@ export class DashboardViewComponent implements OnInit, OnDestroy, OnChanges {
     return `Recarregando em ${secondsLeft}s`;
   }
 
+  /**
+   * Alterna entre visualização do dashboard e lista
+   */
+  toggleDashboardList() {
+    this.showDashboardList = !this.showDashboardList;
+  }
+
+  /**
+   * Navega para um dashboard selecionado
+   */
+  onDashboardSelected(dashboard: any) {
+    this.showDashboardList = false;
+    this.dashboardKey = dashboard.key;
+    this.invitationToken = null;
+    this.loadDashboardStructure();
+  }
+
+  /**
+   * Volta para a lista de dashboards ou tela anterior
+   */
   goBack() {
-    this.router.navigate(['/dashboards']);
+    if (this.canShowDashboardList) {
+      this.toggleDashboardList();
+    } else {
+      this.router.navigate(['/']);
+    }
   }
 
   getMetricWidgets(widgets: any[]) {

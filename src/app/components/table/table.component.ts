@@ -331,15 +331,15 @@ export class TableComponent implements OnInit, OnChanges {
 
   // Public methods
   public create(): void {
-    if (this.createEvent.observed) {
-      this.createEvent.emit();
+    if (this.createEvent && this.createEvent.observers.length > 0) {
+      this.createEvent.emit()
       return;
     }
     this.router.navigate(['manage'], {relativeTo: this.route});
   }
 
   public edit(item: any): void {
-    if (this.editEvent.observed) {
+    if (this.editEvent && this.editEvent.observers.length > 0) {
       this.editEvent.emit(item);
       return;
     }

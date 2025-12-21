@@ -41,6 +41,23 @@
       </div>
     }
 
+    @if (idGroup) {
+      <div class="col-12 md:col-6">
+        <ub-dropdown
+          label="Dashboard página inicial"
+          placeholder="Selecione o dashboard da página inicial"
+          helpText="Selecione o dashboard da página inicial para os usuários deste grupo"
+          [clearable]="true"
+          [options]="dashboards"
+          optionLabel="name"
+          optionDescription="description"
+          optionValue="id"
+          [error]="FormErrorHandlerService.getError('dashboard_home_id', errors)"
+          [(value)]="form.dashboard_home_id">
+        </ub-dropdown>
+      </div>
+    }
+
     <div class="col-12">
       <ub-folder-view
         [data]="permissions"

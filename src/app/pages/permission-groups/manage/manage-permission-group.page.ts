@@ -9,6 +9,7 @@ import {PermissionService} from '../../../services/permission.service';
 import {FolderConfig, FolderViewComponent} from '../../../components/folder-view/folder-view.component';
 import {Utils} from '../../../services/utils.service';
 import {FormErrorHandlerService} from '../../../components/form/form-error-handler.service';
+import {DashboardService} from '../../../services/dashboard.service';
 
 @Component({
   imports: [
@@ -32,6 +33,7 @@ export class ManagePermissionGroupPage {
   protected accessLevels: any[] = [];
   protected loading: boolean = false;
   protected loadingAction: boolean = false;
+  protected dashboards: any[] = [];
   protected folderPermissionsConfig: FolderConfig = {
     groupBy: 'group',
     folderName: 'group',
@@ -45,7 +47,8 @@ export class ManagePermissionGroupPage {
     description: "",
     name: "",
     access_level: null,
-    permissions: {}
+    permissions: {},
+    dashboard_home_id: null
   }
 
   constructor(
@@ -53,6 +56,7 @@ export class ManagePermissionGroupPage {
     private router: Router,
     private permissionService: PermissionService,
     private utils: Utils,
+    private dashnboardService: DashboardService
   ) {
     this.idGroup = this.route.snapshot.params['id'];
     this.load();
@@ -80,6 +84,8 @@ export class ManagePermissionGroupPage {
           ...group,
           permissions: group.permissions.map((p: any) => p.name),
         }
+
+        this.loadDashboards(this.idGroup);
       }
 
     } catch (err: any) {
@@ -88,6 +94,15 @@ export class ManagePermissionGroupPage {
       this.loading = false;
     }
 
+  }
+
+  async loadDashboards(groupId: string) {
+    try {
+      const dashboards = await this.dashnboardService.getDashboardsByGroup(groupId);
+      this.dashboards = dashboards.data;
+    } catch (err: any) {
+      console.error('Error loading dashboards:', err);
+    }
   }
 
   back() {

@@ -40,10 +40,6 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
-    path: 'dashboards/view/:key',
-    component: DashboardViewPage
-  },
-  {
     path: 'dashboard/invite/:token',
     component: DashboardInvitePage
   },
@@ -169,20 +165,14 @@ export const routes: Routes = [
       {
         path: 'dashboards',
         canActivate: [PermissionGuard],
+        component: DashboardsPage,
         data: {
-          permission: 'dynamic_query.view',
-        },
-        children: [
-          {
-            path: '',
-            component: DashboardsPage
-          },
-          {
-            path: ':key',
-            component: DashboardViewPage,
-            title: 'Visualizar Dashboard'
-          }
-        ]
+          permission: 'dashboard.view',
+        }
+      },
+      {
+        path: 'dashboards/:key',
+        component: DashboardViewPage
       },
       {
         path: 'logs',

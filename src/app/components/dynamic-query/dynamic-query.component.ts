@@ -17,7 +17,7 @@ import {FormErrorHandlerService} from '../form/form-error-handler.service';
 import {CommonModule} from '@angular/common';
 import {subscribeOn} from 'rxjs';
 import {
-  DynamicQueryFieldsMetadataBuilderComponent, FieldMetadata, FieldMetadataConfig
+  DynamicQueryFieldsMetadataBuilderComponent, FieldMetadataConfig
 } from './dynamic-query-fields-metadata-builder/dynamic-query-fields-metadata-builder.component';
 
 export interface DynamicQuery {
@@ -88,6 +88,7 @@ export class DynamicQueryComponent implements OnInit, OnChanges {
       name: ['', [Validators.required]],
       description: [''],
       service_slug: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
+      fields_metadata: [null]
     });
 
     this.form.valueChanges.subscribe(() => {
@@ -139,7 +140,8 @@ export class DynamicQueryComponent implements OnInit, OnChanges {
           key: this.dynamicQuery.key,
           name: this.dynamicQuery.name,
           description: this.dynamicQuery.description,
-          service_slug: this.dynamicQuery.service_slug
+          service_slug: this.dynamicQuery.service_slug,
+          fields_metadata: this.dynamicQuery.fields_metadata
         });
 
         this.selectedQueryId = this.dynamicQuery.id;

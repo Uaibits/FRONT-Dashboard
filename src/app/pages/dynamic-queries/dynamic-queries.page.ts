@@ -5,6 +5,8 @@ import {DynamicQueryService} from '../../services/dynamic-query.service';
 import {ToastService} from '../../components/toast/toast.service';
 import {Utils} from '../../services/utils.service';
 import {DynamicQuery} from '../../components/dynamic-query/dynamic-query.component';
+import {DynamicQueryModal} from '../../modals/dynamic-query/dynamic-query.modal';
+import {ModalService} from '../../modals/modal/modal.service';
 
 @Component({
   selector: 'app-dynamic-queries',
@@ -42,7 +44,8 @@ export class DynamicQueriesPage implements OnInit {
 
   constructor(
     private dynamicQueryService: DynamicQueryService,
-    private toast: ToastService
+    private toast: ToastService,
+    private modalService: ModalService
   ) {
   }
 
@@ -63,7 +66,13 @@ export class DynamicQueriesPage implements OnInit {
   }
 
   openConfig(query?: any) {
-    const modal = this.dynamicQueryService.openDynamicQueryModal(query);
+    const modal = this.modalService.open({
+      title: 'Configurar Consulta Dinâmica',
+      component: DynamicQueryModal,
+      data: {
+        dynamicQueryKey: query ? query.key : null
+      }
+    });
 
     modal.then((value) => {
       if (value !== undefined) this.loadData();
