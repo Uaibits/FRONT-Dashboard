@@ -4,26 +4,29 @@
   @if (showHeader) {
     <div class="list-header">
       <div class="header-content">
-        <h2 class="list-title">
-          <i class="bx bx-grid-alt"></i>
-          Meus Dashboards
-        </h2>
-        <p class="list-subtitle">Selecione um dashboard para visualizar</p>
+        <div class="title-section">
+          <h2 class="list-title">
+            <i class="bx bx-grid-alt"></i>
+            Meus Dashboards
+          </h2>
+          @if (!loading && dashboards.length > 0) {
+            <span class="count-badge">{{ dashboards.length }}</span>
+          }
+        </div>
+        <p class="list-subtitle">
+          Olá <b>{{ auth.getUserName() }}</b>,<br>
+          Estes são os dashboards que você pode acessar.<br>
+          Defina um como principal para que ele seja carregado automaticamente na página inicial ou navegue entre os demais quando quiser.
+        </p>
 
         <!-- Indicador de Dashboard Principal -->
         @if (allowSetHome && hasHomeDashboard()) {
           <div class="home-dashboard-indicator">
-            <i class="bx bx-home"></i>
-            <span>Dashboard principal: {{ getHomeDashboard()?.name }}</span>
+            <i class="bx bx-star"></i>
+            <span>{{ getHomeDashboard()?.name }}</span>
           </div>
         }
       </div>
-      @if (!loading && dashboards.length > 0) {
-        <div class="dashboards-count">
-          <span class="count-badge">{{ dashboards.length }}</span>
-          <span class="count-label">disponíveis</span>
-        </div>
-      }
     </div>
   }
 
@@ -54,39 +57,48 @@
   @else if (dashboards.length > 0) {
     <div class="dashboards-grid" [style.grid-template-columns]="getGridColumns()">
       @for (dashboard of dashboards; track dashboard.key) {
-        <div class="dashboard-card" (click)="selectDashboard(dashboard)">
+        <div class="dashboard-card" [class.is-home]="dashboard.is_home" (click)="selectDashboard(dashboard)">
 
-          <!-- Indicador de Dashboard Principal -->
-          @if (dashboard.is_home) {
-            <div class="home-badge">
-              <i class="bx bx-home"></i>
-              <span>Principal</span>
+          <div class="card-header">
+            <!-- Ícone e Badge Principal -->
+            <div class="card-icon">
+              <i [class]="getIconClass(dashboard)"></i>
+              @if (dashboard.is_home) {
+                <div class="home-badge"></div>
+              }
             </div>
-          }
 
-          <div class="card-content">
-            <h3 class="card-title"><i [class]="getIconClass(dashboard)"></i> {{ dashboard.name }}</h3>
-            @if (dashboard.description) {
-              <p class="card-description">{{ dashboard.description }}</p>
-            }
-            <!-- Botões de Ação -->
-            <div class="card-actions">
+            <!-- Menu de Ações (minimalista) -->
+            <div class="card-menu">
               @if (allowSetHome && !dashboard.is_home) {
                 <button
                   class="set-home-btn"
                   (click)="setAsHomeDashboard(dashboard, $event)"
                   [disabled]="settingHome[dashboard.key]"
-                  title="Definir como dashboard principal">
+                  title="Definir como principal">
                   @if (settingHome[dashboard.key]) {
-                    <i class="bx bx-loader-circle bx-spin"></i>
+                    <i class="bx bx-loader-alt bx-spin"></i>
                   } @else {
-                    <i class="bx bx-home"></i>
+                    <i class="bx bx-star"></i>
                   }
-                  <span>Definir como principal</span>
                 </button>
               }
-
             </div>
+          </div>
+
+          <div class="card-content">
+            <h3 class="card-title">{{ dashboard.name }}</h3>
+            @if (dashboard.description) {
+              <p class="card-description">{{ dashboard.description }}</p>
+            }
+          </div>
+
+          <!-- Indicador de seleção -->
+          <div class="card-footer">
+            <span class="select-hint">
+              <i class="bx bx-chevron-right"></i>
+              Visualizar
+            </span>
           </div>
         </div>
       }
@@ -96,7 +108,9 @@
   <!-- Estado Vazio -->
   @else {
     <div class="empty-state">
-      <i class="bx bx-bar-chart-square"></i>
+      <div class="empty-icon">
+        <i class="bx bx-bar-chart-alt-2"></i>
+      </div>
       <h3>Nenhum dashboard disponível</h3>
       <p>Você ainda não tem acesso a nenhum dashboard</p>
     </div>

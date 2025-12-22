@@ -171,7 +171,7 @@ export const routes: Routes = [
         }
       },
       {
-        path: 'dashboards/:key',
+        path: 'dashboard/:key',
         component: DashboardViewPage
       },
       {

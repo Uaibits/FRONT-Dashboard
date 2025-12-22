@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import {DashboardService} from '../../../services/dashboard.service';
 import {ToastService} from '../../toast/toast.service';
 import {Utils} from '../../../services/utils.service';
+import {AuthService} from '../../../security/auth.service';
 interface Dashboard {
   key: string;
   name: string;
@@ -35,7 +36,8 @@ export class DashboardListComponent implements OnInit {
 
   constructor(
     private dashboardService: DashboardService,
-    private toast: ToastService
+    private toast: ToastService,
+    protected auth: AuthService
   ) {}
 
   ngOnInit() {

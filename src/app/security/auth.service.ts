@@ -3,15 +3,9 @@ import { BehaviorSubject, firstValueFrom, Observable, throwError, EMPTY, timer }
 import { Router } from '@angular/router';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { catchError, tap, switchMap, finalize } from 'rxjs/operators';
+import { catchError, tap, switchMap } from 'rxjs/operators';
 import { LayoutService } from '../layout/layout.service';
 import { User } from '../models/user';
-
-export interface AuthTokens {
-  access_token: string;
-  refresh_token: string;
-  expires_in: number;
-}
 
 export interface LoginResponse {
   data: {
@@ -339,6 +333,11 @@ export class AuthService {
 
   getUser(): User | null {
     return this.userSubject.value || this.getStoredUser();
+  }
+
+  getUserName() {
+    const user = this.getUser();
+    return user ? user.name : 'Desconhecido';
   }
 
   getCurrentUser(): User | null {

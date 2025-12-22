@@ -88,7 +88,7 @@ export class SearchScreenComponent implements OnInit, OnDestroy {
           title: dash.name,
           description: dash.description || 'Dashboard personalizado',
           icon: dash.icon ? 'bx ' + dash.icon : 'bx bx-bar-chart-alt-2',
-          path: `/dashboards/${dash.key}`,
+          path: `/dashboard/${dash.key}`,
           category: 'dashboard' as const
         }));
 
