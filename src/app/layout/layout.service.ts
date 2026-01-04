@@ -1,7 +1,6 @@
-import {inject, Injectable, Injector} from '@angular/core';
-import { NavigationEnd, Router } from '@angular/router';
-import { BehaviorSubject } from 'rxjs';
-import { TabReuseStrategy } from '../custom-route-reuse-strategy';
+import {inject, Injectable} from '@angular/core';
+import {NavigationEnd, Router} from '@angular/router';
+import {BehaviorSubject} from 'rxjs';
 import {ReuseStrategyService} from '../services/reuse-strategy.service';
 
 export interface Tab {
@@ -15,8 +14,8 @@ export interface Tab {
 
 export interface TabOpen extends Tab {
   id: string;
-  lastRoute?: string; // Última rota acessada dentro desta tab
-  lastQueryParams?: any; // Últimos queryParams
+  lastRoute?: string;
+  lastQueryParams?: any;
 }
 
 @Injectable({
@@ -252,7 +251,7 @@ export class LayoutService {
     const queryParams = tab.lastQueryParams || {};
 
     if (Object.keys(queryParams).length > 0) {
-      this.router.navigate([targetRoute], { queryParams });
+      this.router.navigate([targetRoute], {queryParams});
     } else {
       this.router.navigate([targetRoute]);
     }

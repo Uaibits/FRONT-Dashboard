@@ -1,224 +1,298 @@
-<div class="app-selector">
-  <button class="selector-trigger" (click)="toggleSearch()" title="Navegação">
-    <i class='bx bx-grid-alt'></i>
+<div class="search-trigger">
+  <button class="trigger-btn" (click)="openModal()" title="Buscar páginas (Ctrl+K)">
+    <i class='bx bx-search'></i>
+    <span class="trigger-text">Buscar...</span>
+    <span class="trigger-shortcut">
+      <kbd>Ctrl</kbd>
+      <kbd>K</kbd>
+    </span>
   </button>
-
-  <div class="selector-search">
-    <div class="search">
-      <i class='bx bx-search'></i>
-      <input type="text"
-             placeholder="Buscar página..."
-             [(ngModel)]="searchQuery"
-             (focus)="onSearchFocus()"
-             (blur)="onSearchBlur($event)"
-             (input)="handleSearch()"
-             autocomplete="off">
-    </div>
-
-    @if (showSearchResults) {
-      <div class="search-results">
-        @if (searchQuery.trim() === '') {
-          <!-- Pesquisas recentes e favoritos -->
-          <div class="quick-access">
-            <div class="quick-section">
-              <div class="section-header">
-                <h4><i class='bx bx-history'></i> Recentes</h4>
-                @if (recentSearches.length > 0) {
-                  <button class="clear-btn" (click)="clearRecentSearches()">
-                    <i class='bx bx-trash'></i>
-                  </button>
-                }
-              </div>
-
-              @if (recentSearches.length > 0) {
-                <ul class="quick-list">
-                  @for (search of recentSearches; track search.path) {
-                    <li class="quick-item" (click)="navigate(search.path, $event)">
-                      <i [class]="search.icon || 'bx bx-file'"></i>
-                      <span class="item-title">{{ search.title }}</span>
-                      <button class="star-btn"
-                              [class.active]="isFavorite(search)"
-                              (click)="toggleFavorite(search, $event)">
-                        <i [class]="isFavorite(search) ? 'bx bxs-star' : 'bx bx-star'"></i>
-                      </button>
-                    </li>
-                  }
-                </ul>
-              } @else {
-                <div class="empty-msg">
-                  <i class='bx bx-time'></i>
-                  <span>Nenhuma busca recente</span>
-                </div>
-              }
-            </div>
-
-            <div class="quick-section">
-              <div class="section-header">
-                <h4><i class='bx bx-star'></i> Favoritos</h4>
-                @if (favoritePages.length > 0) {
-                  <button class="clear-btn" (click)="clearFavorites()">
-                    <i class='bx bx-trash'></i>
-                  </button>
-                }
-              </div>
-
-              @if (favoritePages.length > 0) {
-                <ul class="quick-list">
-                  @for (favorite of favoritePages; track favorite.path) {
-                    <li class="quick-item" (click)="navigate(favorite.path, $event)">
-                      <i [class]="favorite.icon || 'bx bx-file'"></i>
-                      <span class="item-title">{{ favorite.title }}</span>
-                      <button class="star-btn active" (click)="toggleFavorite(favorite, $event)">
-                        <i class='bx bxs-star'></i>
-                      </button>
-                    </li>
-                  }
-                </ul>
-              } @else {
-                <div class="empty-msg">
-                  <i class='bx bx-star'></i>
-                  <span>Nenhum favorito</span>
-                </div>
-              }
-            </div>
-          </div>
-        } @else {
-          <!-- Resultados da busca -->
-          <div class="search-results-list">
-            <div class="results-header">
-              <span class="results-info">{{ filteredResults.length }} resultado(s)</span>
-            </div>
-
-            @if (filteredResults.length > 0) {
-              <ul class="results-list">
-                @for (result of filteredResults; track result.path) {
-                  <li class="result-item" (click)="navigate(result.path, $event)">
-                    <i [class]="result.icon || 'bx bx-file'"></i>
-                    <div class="item-content">
-                      <span class="item-title">{{ result.title }}</span>
-                      @if (result.description) {
-                        <span class="item-desc">{{ result.description }}</span>
-                      }
-                    </div>
-                    <button class="star-btn"
-                            [class.active]="isFavorite(result)"
-                            (click)="toggleFavorite(result, $event)">
-                      <i [class]="isFavorite(result) ? 'bx bxs-star' : 'bx bx-star'"></i>
-                    </button>
-                  </li>
-                }
-              </ul>
-            } @else if (showEmptyState) {
-              <div class="empty-state">
-                <i class='bx bx-search'></i>
-                <p>Nenhum resultado encontrado</p>
-              </div>
-            }
-          </div>
-        }
-      </div>
-    }
-  </div>
 </div>
 
-<!-- Modal de navegação -->
-<div class="selector-overlay" [class.active]="isSearchModalActive" (click)="toggleSearch()"></div>
+<div class="search-overlay" [class.active]="isModalOpen" (click)="closeModal()"></div>
 
-<div class="selector-menu" [class.active]="isSearchModalActive">
-  <div class="menu-header">
-    <h3><i class='bx bx-compass'></i> Navegação</h3>
-    <button class="close-btn" (click)="toggleSearch()">
+<div class="search-modal" [class.active]="isModalOpen">
+  <!-- Header com busca -->
+  <div class="modal-header">
+    <div class="search-input-wrapper">
+      <i class='bx bx-search search-icon'></i>
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (input)="handleSearch()"
+        placeholder="Digite para buscar páginas..."
+        autocomplete="off">
+
+      @if (isSearching) {
+        <i class='bx bx-loader-alt bx-spin loading-icon'></i>
+      }
+
+      @if (searchQuery && !isSearching) {
+        <button class="clear-btn" (click)="searchQuery = ''; handleSearch()" title="Limpar">
+          <i class='bx bx-x'></i>
+        </button>
+      }
+    </div>
+
+    <button class="close-modal-btn" (click)="closeModal()" title="Fechar (ESC)">
       <i class='bx bx-x'></i>
     </button>
   </div>
 
-  <div class="search-container">
-    <i class='bx bx-search'></i>
-    <input type="text"
-           [(ngModel)]="searchQuery"
-           placeholder="Buscar página..."
-           (input)="handleSearch()"
-           autocomplete="off">
-  </div>
+  <!-- Tabs de navegação -->
+  @if (showTabs) {
+    <div class="modal-tabs">
+      <button
+        class="tab-btn"
+        [class.active]="activeTab === 'all'"
+        (click)="setActiveTab('all')">
+        <i class='bx bx-grid-alt'></i>
+        <span>Todas</span>
+      </button>
 
-  <div class="menu-content">
-    @if (searchQuery.trim() === '') {
-      <!-- Páginas por categoria -->
-      @for (category of categorizedPages; track category.id) {
-        <div class="category-section">
-          <div class="category-header">
-            <h4>
-              <i [class]="category.icon"></i>
-              {{ category.name }}
-            </h4>
-            <span class="category-count">{{ category.items.length }}</span>
-          </div>
-
-          <div class="category-grid">
-            @for (page of category.items; track page.path) {
-              <div class="page-card" (click)="navigate(page.path, $event)">
-                <div class="card-icon">
-                  <i [class]="page.icon || 'bx bx-file'"></i>
-                </div>
-                <div class="card-content">
-                  <h5>{{ page.title }}</h5>
-                  @if (page.description) {
-                    <p>{{ page.description }}</p>
-                  }
-                </div>
-                <button class="card-star"
-                        [class.active]="isFavorite(page)"
-                        (click)="toggleFavorite(page, $event)">
-                  <i [class]="isFavorite(page) ? 'bx bxs-star' : 'bx bx-star'"></i>
-                </button>
-              </div>
-            }
-          </div>
-        </div>
+      @if (favoritePages.length > 0) {
+        <button
+          class="tab-btn"
+          [class.active]="activeTab === 'favorites'"
+          (click)="setActiveTab('favorites')">
+          <i class='bx bxs-star'></i>
+          <span>Favoritos</span>
+          <span class="badge">{{ favoritePages.length }}</span>
+        </button>
       }
 
-      @if (isLoadingDashboards) {
-        <div class="loading-state">
-          <i class='bx bx-loader-alt bx-spin'></i>
-          <span>Carregando dashboards...</span>
-        </div>
+      @if (recentSearches.length > 0) {
+        <button
+          class="tab-btn"
+          [class.active]="activeTab === 'recent'"
+          (click)="setActiveTab('recent')">
+          <i class='bx bx-history'></i>
+          <span>Recentes</span>
+          <span class="badge">{{ recentSearches.length }}</span>
+        </button>
       }
-    } @else {
-      <!-- Resultados da busca no modal -->
-      <div class="search-section">
-        <div class="section-header">
-          <h4><i class='bx bx-search'></i> Resultados</h4>
-          <span class="results-count">{{ filteredResults.length }}</span>
-        </div>
+    </div>
+  }
 
-        @if (filteredResults.length > 0) {
-          <div class="search-list">
-            @for (result of filteredResults; track result.path) {
-              <div class="search-item" (click)="navigate(result.path, $event)">
-                <div class="item-icon">
-                  <i [class]="result.icon || 'bx bx-file'"></i>
-                </div>
-                <div class="item-info">
-                  <span class="item-title">{{ result.title }}</span>
-                  @if (result.description) {
-                    <span class="item-desc">{{ result.description }}</span>
-                  }
-                </div>
-                <button class="item-star"
-                        [class.active]="isFavorite(result)"
-                        (click)="toggleFavorite(result, $event)">
-                  <i [class]="isFavorite(result) ? 'bx bxs-star' : 'bx bx-star'"></i>
-                </button>
-              </div>
-            }
+  <!-- Conteúdo -->
+  <div class="modal-content">
+    <!-- Resultados da busca -->
+    @if (hasSearchQuery) {
+      <div class="search-results" [@fadeIn]>
+        @if (isSearching) {
+          <div class="searching-state">
+            <i class='bx bx-loader-alt bx-spin'></i>
+            <span>Buscando...</span>
           </div>
         } @else {
-          <div class="empty-state">
-            <i class='bx bx-search'></i>
-            <p>Nenhum resultado encontrado</p>
+          @if (filteredResults.length > 0) {
+            <div class="results-header">
+              <span class="results-count">{{ filteredResults.length }} resultado{{ filteredResults.length !== 1 ? 's' : '' }}</span>
+            </div>
+
+            <div class="results-list">
+              @for (result of filteredResults; track result.path; let idx = $index) {
+                <div
+                  class="result-item"
+                  [class.selected]="idx === selectedIndex"
+                  (click)="navigate(result.path, $event)">
+
+                  <div class="item-icon">
+                    <i [class]="result.icon || 'bx bx-file'"></i>
+                  </div>
+
+                  <div class="item-content">
+                    <div class="item-title">{{ result.title }}</div>
+                    @if (result.description) {
+                      <div class="item-description">{{ result.description }}</div>
+                    }
+                  </div>
+
+                  <button
+                    class="favorite-btn"
+                    [class.active]="isFavorite(result)"
+                    (click)="toggleFavorite(result, $event)"
+                    [title]="isFavorite(result) ? 'Remover dos favoritos' : 'Adicionar aos favoritos'">
+                    <i [class]="isFavorite(result) ? 'bx bxs-star' : 'bx bx-star'"></i>
+                  </button>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="empty-state">
+              <i class='bx bx-search-alt-2'></i>
+              <h3>Nenhum resultado encontrado</h3>
+              <p>Não encontramos páginas com "<strong>{{ searchQuery }}</strong>"</p>
+            </div>
+          }
+        }
+      </div>
+    }
+
+    <!-- Lista de favoritos -->
+    @if (!hasSearchQuery && activeTab === 'favorites') {
+      <div class="favorites-view" [@fadeIn]>
+        @if (favoritePages.length > 0) {
+          <div class="view-header">
+            <h3>
+              <i class='bx bxs-star'></i>
+              Páginas Favoritas
+            </h3>
+            <button class="clear-btn-text" (click)="clearFavorites()">
+              <i class='bx bx-trash'></i>
+              Limpar tudo
+            </button>
+          </div>
+
+          <div class="results-list">
+            @for (item of favoritePages; track item.path; let idx = $index) {
+              <div
+                class="result-item"
+                [class.selected]="idx === selectedIndex"
+                (click)="navigate(item.path, $event)">
+
+                <div class="item-icon">
+                  <i [class]="item.icon || 'bx bx-file'"></i>
+                </div>
+
+                <div class="item-content">
+                  <div class="item-title">{{ item.title }}</div>
+                  @if (item.description) {
+                    <div class="item-description">{{ item.description }}</div>
+                  }
+                </div>
+
+                <button
+                  class="favorite-btn active"
+                  (click)="toggleFavorite(item, $event)"
+                  title="Remover dos favoritos">
+                  <i class='bx bxs-star'></i>
+                </button>
+              </div>
+            }
           </div>
         }
       </div>
     }
+
+    <!-- Lista de recentes -->
+    @if (!hasSearchQuery && activeTab === 'recent') {
+      <div class="recents-view" [@fadeIn]>
+        @if (recentSearches.length > 0) {
+          <div class="view-header">
+            <h3>
+              <i class='bx bx-history'></i>
+              Páginas Recentes
+            </h3>
+            <button class="clear-btn-text" (click)="clearRecentSearches()">
+              <i class='bx bx-trash'></i>
+              Limpar tudo
+            </button>
+          </div>
+
+          <div class="results-list">
+            @for (item of recentSearches; track item.path; let idx = $index) {
+              <div
+                class="result-item"
+                [class.selected]="idx === selectedIndex"
+                (click)="navigate(item.path, $event)">
+
+                <div class="item-icon">
+                  <i [class]="item.icon || 'bx bx-file'"></i>
+                </div>
+
+                <div class="item-content">
+                  <div class="item-title">{{ item.title }}</div>
+                  @if (item.description) {
+                    <div class="item-description">{{ item.description }}</div>
+                  }
+                </div>
+
+                <button
+                  class="favorite-btn"
+                  [class.active]="isFavorite(item)"
+                  (click)="toggleFavorite(item, $event)"
+                  [title]="isFavorite(item) ? 'Remover dos favoritos' : 'Adicionar aos favoritos'">
+                  <i [class]="isFavorite(item) ? 'bx bxs-star' : 'bx bx-star'"></i>
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Todas as páginas (categorizado) -->
+    @if (!hasSearchQuery && activeTab === 'all') {
+      <div class="all-pages-view" [@fadeIn]>
+        @if (categorizedPages.length > 0) {
+          @for (category of categorizedPages; track category.id) {
+            <div class="category-section">
+              <div class="category-header">
+                <i [class]="category.icon"></i>
+                <h3>{{ category.name }}</h3>
+                <span class="count">{{ category.items.length }}</span>
+              </div>
+
+              <div class="category-grid">
+                @for (page of category.items; track page.path) {
+                  <div class="page-card" (click)="navigate(page.path, $event)">
+                    <div class="card-icon">
+                      <i [class]="page.icon || 'bx bx-file'"></i>
+                    </div>
+                    <div class="card-content">
+                      <div class="card-title">{{ page.title }}</div>
+                      @if (page.description) {
+                        <div class="card-description">{{ page.description }}</div>
+                      }
+                    </div>
+                    <button
+                      class="card-favorite"
+                      [class.active]="isFavorite(page)"
+                      (click)="toggleFavorite(page, $event)"
+                      [title]="isFavorite(page) ? 'Remover dos favoritos' : 'Adicionar aos favoritos'">
+                      <i [class]="isFavorite(page) ? 'bx bxs-star' : 'bx bx-star'"></i>
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        }
+
+        @if (isLoadingDashboards) {
+          <div class="loading-state">
+            <i class='bx bx-loader-alt bx-spin'></i>
+            <span>Carregando dashboards...</span>
+          </div>
+        }
+
+        @if (categorizedPages.length === 0 && !isLoadingDashboards) {
+          <div class="empty-state">
+            <i class='bx bx-error-circle'></i>
+            <h3>Nenhuma página disponível</h3>
+            <p>Não há páginas disponíveis para exibir</p>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Footer com atalhos -->
+  <div class="modal-footer">
+    <div class="shortcuts">
+      <div class="shortcut">
+        <kbd>↑</kbd><kbd>↓</kbd>
+        <span>Navegar</span>
+      </div>
+      <div class="shortcut">
+        <kbd>Enter</kbd>
+        <span>Abrir</span>
+      </div>
+      <div class="shortcut">
+        <kbd>ESC</kbd>
+        <span>Fechar</span>
+      </div>
+    </div>
   </div>
 </div>

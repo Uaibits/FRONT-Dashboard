@@ -5,12 +5,14 @@ import {HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi} from '@ang
 import { AuthInterceptor } from './security/auth.interceptor';
 import {TabReuseStrategy} from './custom-route-reuse-strategy';
 import {provideClientHydration} from '@angular/platform-browser';
+import {provideAnimations} from '@angular/platform-browser/animations';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideHttpClient(withInterceptorsFromDi()), // Adicione o provideHttpClient
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
+    provideAnimations(),
     provideRouter(routes),
     provideClientHydration(),
     {
