@@ -1,18 +1,19 @@
 import {Component, OnInit} from '@angular/core';
 import {ContentComponent} from '../../components/content/content.component';
-import {TableComponent, TableConfig} from '../../components/table/table.component';
 import {DynamicQueryService} from '../../services/dynamic-query.service';
 import {ToastService} from '../../components/toast/toast.service';
 import {Utils} from '../../services/utils.service';
 import {DynamicQuery} from '../../components/dynamic-query/dynamic-query.component';
 import {DynamicQueryModal} from '../../modals/dynamic-query/dynamic-query.modal';
 import {ModalService} from '../../modals/modal/modal.service';
+import {ListConfig} from '../../components/list/list.types';
+import {UbListComponent} from '../../components/list/list.component';
 
 @Component({
   selector: 'app-dynamic-queries',
   imports: [
     ContentComponent,
-    TableComponent
+    UbListComponent
   ],
   templateUrl: './dynamic-queries.page.html',
   standalone: true,
@@ -22,25 +23,53 @@ export class DynamicQueriesPage implements OnInit {
 
   protected loading: boolean = false;
   protected data: DynamicQuery[] = [];
-  protected configTable: TableConfig = {
-    columns: [
+  protected listConfig: ListConfig = {
+    display: {
+      title: 'Consultas Dinâmicas',
+      subtitle: 'Gerencie as consultas dinâmicas do sistema'
+    },
+    actions: [
       {
-        headerName: "ID",
-        field: "id",
-      },
-      {
-        headerName: "Nome",
-        field: "name"
-      },
-      {
-        headerName: "Descrição",
-        field: "description"
+        label: 'Adicionar Consulta Dinâmica',
+        icon: 'bx bx-plus',
+        action: () => this.openConfig()
       }
     ],
-    showAddButton: true,
-    showEditButton: true,
-    showDeleteButton: true
-  };
+    itemActions: [
+      {
+        label: 'Editar',
+        icon: 'bx bx-edit',
+        action: (item: any) => this.openConfig(item)
+      },
+      {
+        label: 'Excluir',
+        icon: 'bx bx-trash',
+        color: 'danger',
+        confirm: true,
+        action: (item: any) => this.deleteDynamicQuery(item)
+      }
+    ],
+    fields: [
+      {
+        label: 'ID',
+        key: 'id'
+      },
+      {
+        label: 'Nome',
+        key: 'name',
+        isTitleCard: true
+      },
+      {
+        label: 'Chave',
+        key: 'key',
+        isSubtitleCard: true
+      },
+      {
+        label: 'Descrição',
+        key: 'description'
+      }
+    ]
+  }
 
   constructor(
     private dynamicQueryService: DynamicQueryService,

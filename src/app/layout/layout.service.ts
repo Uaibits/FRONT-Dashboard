@@ -1,7 +1,8 @@
-import { Injectable, Injector } from '@angular/core';
+import {inject, Injectable, Injector} from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 import { TabReuseStrategy } from '../custom-route-reuse-strategy';
+import {ReuseStrategyService} from '../services/reuse-strategy.service';
 
 export interface Tab {
   title: string;
@@ -102,12 +103,10 @@ export class LayoutService {
 
   private open_tabs: TabOpen[] = [];
   private currentRoute: string = '';
-
-  private reuseStrategy?: TabReuseStrategy;
+  private reuseStrategy = inject(ReuseStrategyService);
 
   constructor(
-    private router: Router,
-    private injector: Injector
+    private router: Router
   ) {
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
@@ -123,15 +122,6 @@ export class LayoutService {
     }
   }
 
-  private getReuseStrategy(): TabReuseStrategy {
-    if (!this.reuseStrategy) {
-      // Aguarda a inicialização para obter a estratégia
-      setTimeout(() => {
-        this.reuseStrategy = this.injector.get(TabReuseStrategy);
-      }, 0);
-    }
-    return this.reuseStrategy!;
-  }
 
   public setOpenTabs(tabs: TabOpen[]): void {
     this.open_tabs = tabs;
@@ -282,23 +272,19 @@ export class LayoutService {
     this.open_tabs.splice(index, 1);
     this.saveTabsToStorage();
 
-    // Tenta limpar o cache apenas se a estratégia estiver disponível
-    try {
-      const reuseStrategy = this.getReuseStrategy();
-      console.log('Fehcando TAB | reuseStrategy', reuseStrategy);
-      if (reuseStrategy) {
-        reuseStrategy.clearClosedTabs();
-      }
-    } catch (error) {
-      console.warn('Não foi possível limpar cache da tab:', error);
-    }
-
     // Se estava ativa, navega para outra tab
     if (isActive && this.open_tabs.length > 0) {
       const nextTab = this.open_tabs[Math.max(0, index - 1)];
       this.navigateToTab(nextTab);
     } else if (this.open_tabs.length === 0) {
       this.router.navigate(['/']);
+    }
+
+    // Tenta limpar o cache apenas se a estratégia estiver disponível
+    try {
+      if (this.reuseStrategy) this.reuseStrategy.clearTabRoutes(tab.path);
+    } catch (error) {
+      console.warn('Não foi possível limpar cache da tab:', error);
     }
   }
 

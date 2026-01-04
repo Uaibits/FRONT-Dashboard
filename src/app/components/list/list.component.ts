@@ -6,7 +6,8 @@ import { ListConfig, ListField, ViewMode, FieldType } from './list.types';
 import { UbCardListComponent } from './card-list/card-list.component';
 import { UbTableListComponent } from './table-list/table-list.component';
 import { ConfirmationService } from '../confirmation-modal/confirmation-modal.service';
-import {ActionButtonComponent, Action} from '../form/actionbutton/actionbutton.component';
+import { ActionButtonComponent, Action } from '../form/actionbutton/actionbutton.component';
+import {ExportColumn, ExportConfig, ExportService} from '../../services/export.service';
 
 @Component({
   selector: 'ub-list',
@@ -26,9 +27,21 @@ export class UbListComponent implements OnInit, OnChanges {
   processedFields: ListField[] = [];
   mobileView = false;
   exportActions: Action[] = [
-    { label: 'Exportar PDF', icon: 'bxs-file-pdf', handler: () => this.exportPDF() },
-    { label: 'Exportar Excel', icon: 'bxs-file', handler: () => this.exportExcel() },
-    { label: 'Exportar CSV', icon: 'bx-table', handler: () => this.exportCSV() }
+    {
+      label: 'Exportar PDF',
+      icon: 'bxs-file-pdf',
+      handler: () => this.exportPDF()
+    },
+    {
+      label: 'Exportar Excel',
+      icon: 'bxs-file',
+      handler: () => this.exportExcel()
+    },
+    {
+      label: 'Exportar CSV',
+      icon: 'bx-table',
+      handler: () => this.exportCSV()
+    }
   ];
 
   @HostListener('window:resize', ['$event'])
@@ -49,9 +62,9 @@ export class UbListComponent implements OnInit, OnChanges {
   }
 
   constructor(
-    private confirmService: ConfirmationService
-  ) {
-  }
+    private confirmService: ConfirmationService,
+    private exportService: ExportService
+  ) {}
 
   ngOnInit(): void {
     this.checkMobileView();
@@ -181,15 +194,137 @@ export class UbListComponent implements OnInit, OnChanges {
     this.refresh.emit();
   }
 
+  // ==================== MÉTODOS DE EXPORTAÇÃO ====================
+
+  /**
+   * Prepara a configuração de exportação baseada nos campos da lista
+   */
+  private getExportConfig(format: 'pdf' | 'excel' | 'csv'): ExportConfig {
+    // Filtra apenas campos visíveis e exportáveis
+    const exportableFields = this.processedFields.filter(field => {
+      return field.exportable !== false && field.visible !== false;
+    });
+
+    // Converte ListField para ExportColumn
+    const columns: ExportColumn[] = exportableFields.map(field => ({
+      key: field.key,
+      label: field.label,
+      formatter: (value: any, row: any) => {
+        if (field.formatter) {
+          return field.formatter(value, row);
+        }
+        return this.formatValue(value, field.type);
+      },
+      width: this.getColumnWidth(field.type)
+    }));
+
+    const fileName = this.getFileName();
+    const title = this.config?.display?.title || 'Relatório';
+
+    return {
+      columns,
+      fileName,
+      title,
+      orientation: format === 'pdf' ? 'landscape' : 'portrait',
+      pageSize: 'a4',
+      includeHeaders: true,
+      sheetName: this.config?.display?.title || 'Dados'
+    };
+  }
+
+  /**
+   * Gera nome do arquivo baseado no título da lista
+   */
+  private getFileName(): string {
+    const baseFileName = this.config?.display?.title || 'lista';
+    const timestamp = new Date().toISOString().split('T')[0];
+    return `${this.sanitizeFileName(baseFileName)}_${timestamp}`;
+  }
+
+  /**
+   * Remove caracteres inválidos do nome do arquivo
+   */
+  private sanitizeFileName(name: string): string {
+    return name
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+      .replace(/[^a-z0-9]+/g, '_') // Substitui caracteres especiais por underscore
+      .replace(/^_+|_+$/g, ''); // Remove underscores do início e fim
+  }
+
+  /**
+   * Define largura da coluna baseada no tipo
+   */
+  private getColumnWidth(type?: FieldType): number {
+    switch (type) {
+      case 'date':
+        return 25;
+      case 'currency':
+        return 30;
+      case 'boolean':
+        return 15;
+      case 'number':
+        return 20;
+      default:
+        return 40;
+    }
+  }
+
+  /**
+   * Exporta para PDF
+   */
   exportPDF(): void {
-    console.log('Exportar PDF');
+    try {
+      const config = this.getExportConfig('pdf');
+      const dataToExport = this.searchTerm ? this.filteredData : this.data;
+
+      if (dataToExport.length === 0) {
+        console.warn('Nenhum dado disponível para exportação');
+        return;
+      }
+
+      this.exportService.exportToPDF(dataToExport, config);
+    } catch (error) {
+      console.error('Erro ao exportar PDF:', error);
+    }
   }
 
+  /**
+   * Exporta para Excel
+   */
   exportExcel(): void {
-    console.log('Exportar Excel');
+    try {
+      const config = this.getExportConfig('excel');
+      const dataToExport = this.searchTerm ? this.filteredData : this.data;
+
+      if (dataToExport.length === 0) {
+        console.warn('Nenhum dado disponível para exportação');
+        return;
+      }
+
+      this.exportService.exportToExcel(dataToExport, config);
+    } catch (error) {
+      console.error('Erro ao exportar Excel:', error);
+    }
   }
 
+  /**
+   * Exporta para CSV
+   */
   exportCSV(): void {
-    console.log('Exportar CSV');
+    try {
+      const config = this.getExportConfig('csv');
+      const dataToExport = this.searchTerm ? this.filteredData : this.data;
+
+      if (dataToExport.length === 0) {
+        console.warn('Nenhum dado disponível para exportação');
+        return;
+      }
+
+      this.exportService.exportToCSV(dataToExport, config);
+    } catch (error) {
+      console.error('Erro ao exportar CSV:', error);
+    }
   }
 }

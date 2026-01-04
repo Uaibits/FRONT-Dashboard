@@ -19,7 +19,10 @@
     "module": "ES2022"
   },
   "angularCompilerOptions": {
+    "allowSyntheticDefaultImports": true,
     "enableI18nLegacyMessageIdFormat": false,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
     "strictInjectionParameters": true,
     "strictInputAccessModifiers": true,
     "strictTemplates": true

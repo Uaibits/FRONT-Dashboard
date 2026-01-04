@@ -1,11 +1,5 @@
 <ub-content title="Consultas Dinâmicas" [loading]="loading">
 
-  <ub-table [config]="configTable"
-            [data]="data"
-            (reloadEvent)="loadData()"
-            (createEvent)="openConfig()"
-            (editEvent)="openConfig($event)"
-            (deleteEvent)="deleteDynamicQuery($event)">
-  </ub-table>
+  <ub-list [data]="data" (refresh)="loadData()" [config]="listConfig" ></ub-list>
 
 </ub-content>

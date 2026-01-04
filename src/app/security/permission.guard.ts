@@ -35,7 +35,6 @@ export class PermissionGuard implements CanActivate {
       return of(true); // Permissão concedida, permite o acesso
     }
 
-    console.log('Perms', requiredPermission)
     // Se o usuário não tiver a permissão, redireciona para a página de acesso negado
     this.router.navigate(['/access-denied'], {
       queryParams: {returnUrl: state.url},

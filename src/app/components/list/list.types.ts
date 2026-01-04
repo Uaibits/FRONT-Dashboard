@@ -20,6 +20,7 @@ export interface ListField {
   sortable?: boolean;
   isTitleCard?: boolean;
   isSubtitleCard?: boolean;
+  exportable?: boolean;
 }
 
 export interface ListAction {

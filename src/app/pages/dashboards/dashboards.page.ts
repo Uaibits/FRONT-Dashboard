@@ -25,54 +25,9 @@ export class DashboardsPage implements OnInit {
 
   protected loading: boolean = false;
   protected data: Dashboard[] = [];
-  protected configTable: TableConfig = {
-    columns: [
-      {
-        headerName: "Nome",
-        field: "name",
-        sortable: true
-      },
-      {
-        headerName: "Chave",
-        field: "key",
-        sortable: true
-      },
-      {
-        headerName: "Descrição",
-        field: "description"
-      },
-      {
-        headerName: "Ativo",
-        field: "active"
-      },
-      {
-        headerName: "Página Inicial",
-        field: "is_home"
-      },
-      {
-        headerName: "Navegável",
-        field: "is_navigable"
-      }
-    ],
-    showAddButton: true,
-    showEditButton: true,
-    showDeleteButton: true,
-    customActions: [
-      {
-        icon: 'bx bx-copy',
-        tooltip: 'Duplicar Dashboard',
-        action: (row: Dashboard) => this.duplicateDashboard(row)
-      },
-      {
-        icon: 'bx bx-link-external',
-        tooltip: 'Abrir Dashboard',
-        action: (row: Dashboard) => this.openDashboard(row)
-      }
-    ]
-  };
-  schamaCard: ListConfig = {
+  protected listConfig: ListConfig = {
     display: {
-      title: 'Lista de dashboards',
+      title: 'Lista de Dashboards',
       subtitle: 'Veja todos os dashboards disponíveis'
     },
     actions: [
@@ -138,7 +93,6 @@ export class DashboardsPage implements OnInit {
   constructor(
     private dashboardService: DashboardService,
     private toast: ToastService,
-    private confirmationService: ConfirmationService,
     private router: Router
   ) {
   }

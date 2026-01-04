@@ -145,7 +145,6 @@ export class DashboardInvitationsComponent implements OnInit {
 
       // Você pode usar seu sistema de modal aqui
       this.toast.info('Estatísticas carregadas');
-      console.log('Stats:', stats);
     } catch (error) {
       this.toast.error(Utils.getErrorMessage(error, 'Erro ao carregar estatísticas'));
     }

@@ -1,12 +1,14 @@
 import {Component, OnInit} from '@angular/core';
 import {ContentComponent} from '../../components/content/content.component';
-import {TableComponent, TableConfig} from '../../components/table/table.component';
 import {UserService} from '../../services/user.service';
+import {ActivatedRoute, Router} from '@angular/router';
+import {ListConfig} from '../../components/list/list.types';
+import {UbListComponent} from '../../components/list/list.component';
 
 @Component({
   imports: [
     ContentComponent,
-    TableComponent
+    UbListComponent
   ],
   templateUrl: './users-page.component.html',
   standalone: true,
@@ -17,30 +19,69 @@ export class UsersPage implements OnInit {
   protected loading = false;
 
   data: any[] = [];
-  configTable: TableConfig = {
-    showExportButton: true,
-    columns: [
+  listConfig: ListConfig = {
+    display: {
+      title: 'Lista de Usuários',
+      subtitle: 'Veja todos os usuários cadastrados no sistema'
+    },
+    actions: [
       {
-        headerName: "ID",
-        field: "id",
-        width: 80
-      },
-      {
-        headerName: "Nome",
-        field: "name"
-      },
-      {
-        headerName: "Email",
-        field: "email"
+        label: 'Adicionar Usuário',
+        icon: 'bx bx-plus',
+        action: () => this.open()
       }
     ],
-    showAddButton: true,
-    showEditButton: true,
-    showDeleteButton: true,
-  };
+    itemActions: [
+      {
+        label: 'Editar',
+        icon: 'bx bx-edit',
+        action: (item: any) => this.open(item)
+      },
+      {
+        label: 'Excluir',
+        icon: 'bx bx-trash',
+        color: 'danger',
+        confirm: true,
+        action: (item: any) => this.delete(item)
+      }
+    ],
+    fields: [
+      {
+        label: 'ID',
+        key: 'id'
+      },
+      {
+        label: 'Nome',
+        key: 'name',
+        isTitleCard: true
+      },
+      {
+        label: 'Email',
+        key: 'email',
+        isSubtitleCard: true
+      },
+      {
+        label: 'Dt. Criação',
+        key: 'created_at',
+        type: 'date'
+      },
+      {
+        label: 'Dt. Atualização',
+        key: 'updated_at',
+        type: 'date'
+      },
+      {
+        label: 'Status',
+        key: 'status',
+        type: 'boolean',
+      }
+    ]
+  }
 
   constructor(
-    private userService: UserService
+    private userService: UserService,
+    private router: Router,
+    private route: ActivatedRoute
   ) {
   }
 
@@ -61,5 +102,10 @@ export class UsersPage implements OnInit {
     this.userService.deleteUser(event.id).then(response => {
       this.load();
     }).finally(() => this.loading = false);
+  }
+
+  open(item?: any) {
+    const commands = item ? ['manage', item.id] : ['manage'];
+    this.router.navigate(commands, {relativeTo: this.route});
   }
 }

@@ -41,12 +41,15 @@
     "apexcharts": "^4.5.0",
     "boxicons": "^2.1.4",
     "codemirror": "^6.0.2",
+    "jspdf": "^4.0.0",
+    "jspdf-autotable": "^5.0.7",
     "ng-apexcharts": "^1.16.0",
     "ngx-json-viewer": "^3.2.1",
     "primeflex": "^4.0.0",
     "quill": "^2.0.3",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
+    "xlsx": "^0.18.5",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
@@ -54,6 +57,7 @@
     "@angular/cli": "^20.0.5",
     "@angular/compiler-cli": "^20.0.6",
     "@types/jasmine": "~5.1.0",
+    "@types/node": "^25.0.3",
     "@types/quill": "^2.0.14",
     "jasmine-core": "~5.5.0",
     "karma": "~6.4.0",
