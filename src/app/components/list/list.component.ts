@@ -1,16 +1,17 @@
 // ub-list.component.ts
-import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, Output, EventEmitter, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ListConfig, ListField, ViewMode, FieldType } from './list.types';
-import {UbCardListComponent} from './card-list/card-list.component';
-import {UbTableListComponent} from './table-list/table-list.component';
-import {ConfirmationService} from '../confirmation-modal/confirmation-modal.service';
+import { UbCardListComponent } from './card-list/card-list.component';
+import { UbTableListComponent } from './table-list/table-list.component';
+import { ConfirmationService } from '../confirmation-modal/confirmation-modal.service';
+import {ActionButtonComponent, Action} from '../form/actionbutton/actionbutton.component';
 
 @Component({
   selector: 'ub-list',
   standalone: true,
-  imports: [CommonModule, FormsModule, UbCardListComponent, UbTableListComponent],
+  imports: [CommonModule, FormsModule, UbCardListComponent, UbTableListComponent, ActionButtonComponent],
   templateUrl: './list.component.html',
   styleUrls: ['./list.component.scss']
 })
@@ -23,6 +24,17 @@ export class UbListComponent implements OnInit, OnChanges {
   searchTerm = '';
   filteredData: any[] = [];
   processedFields: ListField[] = [];
+  mobileView = false;
+  exportActions: Action[] = [
+    { label: 'Exportar PDF', icon: 'bxs-file-pdf', handler: () => this.exportPDF() },
+    { label: 'Exportar Excel', icon: 'bxs-file', handler: () => this.exportExcel() },
+    { label: 'Exportar CSV', icon: 'bx-table', handler: () => this.exportCSV() }
+  ];
+
+  @HostListener('window:resize', ['$event'])
+  onResize(event: Event) {
+    this.checkMobileView();
+  }
 
   get hasRefreshListener(): boolean {
     return this.refresh.observed;
@@ -42,6 +54,7 @@ export class UbListComponent implements OnInit, OnChanges {
   }
 
   ngOnInit(): void {
+    this.checkMobileView();
     this.initialize();
   }
 
@@ -49,6 +62,10 @@ export class UbListComponent implements OnInit, OnChanges {
     if (changes['data'] || changes['config']) {
       this.initialize();
     }
+  }
+
+  private checkMobileView(): void {
+    this.mobileView = window.innerWidth < 768;
   }
 
   private initialize(): void {
@@ -147,6 +164,10 @@ export class UbListComponent implements OnInit, OnChanges {
       if (!confirmed) return;
     }
     action.action(item);
+  }
+
+  onExportAction(action: Action): void {
+    // A ação já é executada pelo handler definido no array
   }
 
   isActionVisible(action: any, item?: any): boolean {

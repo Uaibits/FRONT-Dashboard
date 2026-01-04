@@ -153,7 +153,7 @@ export class DashboardsPage implements OnInit {
   protected async loadData() {
     this.loading = true;
     try {
-      const response = await this.dashboardService.getDashboards(true);
+      const response = await this.dashboardService.getDashboards(false);
       this.data = response.data || [];
     } catch (error) {
       this.toast.error(Utils.getErrorMessage(error));

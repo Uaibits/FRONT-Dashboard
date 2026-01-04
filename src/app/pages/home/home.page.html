@@ -1,3 +1,82 @@
-@if (dashboardKey) {
-  <app-dashboard-view [dashboardKey]="dashboardKey"></app-dashboard-view>
+<!-- Estado de Loading Inicial -->
+@if (loading) {
+  <div class="home-loading-state">
+    <div class="loading-content">
+      <div class="spinner"></div>
+      <p>Carregando sua página inicial...</p>
+    </div>
+  </div>
+}
+
+<!-- Dashboard Principal Configurado -->
+@else if (dashboardKey && !showDashboardList) {
+  <app-dashboard-view
+    [dashboardKey]="dashboardKey"
+    [viewHeight]="100">
+  </app-dashboard-view>
+}
+
+<!-- Lista de Dashboards (quando não há principal ou usuário volta da visualização) -->
+@else if (showDashboardList && availableDashboards.length > 0) {
+  <div class="home-dashboard-list">
+    <div class="list-container">
+      <!-- Botão de voltar (se estiver visualizando algum dashboard) -->
+      @if (dashboardKey) {
+        <div class="back-section">
+          <button class="back-btn" (click)="backToDashboardList()">
+            <i class="bx bx-arrow-back"></i>
+            Voltar para lista
+          </button>
+        </div>
+      }
+
+      <app-dashboard-list
+        [autoLoad]="false"
+        [dashboards]="availableDashboards"
+        [showHeader]="true"
+        [columns]="3"
+        [allowSetHome]="true"
+        (dashboardSelected)="onDashboardSelected($event)"
+        (homeDashboardChanged)="onHomeDashboardChanged($event)">
+      </app-dashboard-list>
+    </div>
+  </div>
+}
+
+<!-- Estado: Nenhum Dashboard Disponível -->
+@else if (hasNoDashboards) {
+  <div class="home-empty-state">
+    <div class="empty-content">
+      <div class="empty-illustration">
+        <div class="illustration-circle">
+          <i class="bx bx-bar-chart-alt-2"></i>
+        </div>
+        <div class="illustration-dots">
+          <span class="dot"></span>
+          <span class="dot"></span>
+          <span class="dot"></span>
+        </div>
+      </div>
+
+      <div class="empty-message">
+        <h2 class="empty-title">Ops! Nada por aqui ainda...</h2>
+        <p class="empty-description">
+          Parece que você ainda não tem nenhum dashboard disponível para visualizar.
+        </p>
+        <p class="empty-hint">
+          Entre em contato com seu administrador para solicitar acesso aos dashboards ou aguarde até que novos dashboards sejam criados e compartilhados com você.
+        </p>
+      </div>
+
+      <div class="empty-actions">
+        <div class="info-card">
+          <i class="bx bx-info-circle"></i>
+          <div class="info-content">
+            <strong>O que são Dashboards?</strong>
+            <p>Painéis interativos que reúnem dados e métricas importantes em visualizações claras e objetivas.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 }

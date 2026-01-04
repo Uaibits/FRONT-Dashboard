@@ -1,7 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
-import { CustomRouteReuseStrategy } from '../custom-route-reuse-strategy';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
+import { TabReuseStrategy } from '../custom-route-reuse-strategy';
 
 export interface Tab {
   title: string;
@@ -14,6 +14,8 @@ export interface Tab {
 
 export interface TabOpen extends Tab {
   id: string;
+  lastRoute?: string; // Última rota acessada dentro desta tab
+  lastQueryParams?: any; // Últimos queryParams
 }
 
 @Injectable({
@@ -101,14 +103,17 @@ export class LayoutService {
   private open_tabs: TabOpen[] = [];
   private currentRoute: string = '';
 
+  private reuseStrategy?: TabReuseStrategy;
+
   constructor(
     private router: Router,
-    private routeReuseStrategy: CustomRouteReuseStrategy
+    private injector: Injector
   ) {
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
-        this.currentRoute = event.url;
+        this.currentRoute = event.url.split('?')[0];
         this.syncTabsWithRoute(event.url);
+        this.updateTabLastRoute(event.url);
       }
     });
 
@@ -116,6 +121,16 @@ export class LayoutService {
     if (open_tabs) {
       this.open_tabs = JSON.parse(open_tabs);
     }
+  }
+
+  private getReuseStrategy(): TabReuseStrategy {
+    if (!this.reuseStrategy) {
+      // Aguarda a inicialização para obter a estratégia
+      setTimeout(() => {
+        this.reuseStrategy = this.injector.get(TabReuseStrategy);
+      }, 0);
+    }
+    return this.reuseStrategy!;
   }
 
   public setOpenTabs(tabs: TabOpen[]): void {
@@ -162,53 +177,151 @@ export class LayoutService {
     }
   }
 
+  /**
+   * Extrai o path raiz de uma URL completa
+   * /users/manage/123 -> /users
+   */
+  private extractRootPath(fullPath: string): string {
+    const pathWithoutQuery = fullPath.split('?')[0];
+    const segments = pathWithoutQuery.split('/').filter(Boolean);
+    return segments.length > 0 ? '/' + segments[0] : pathWithoutQuery;
+  }
+
+  /**
+   * Atualiza a última rota acessada dentro de uma tab
+   */
+  private updateTabLastRoute(fullUrl: string): void {
+    const pathWithoutQuery = fullUrl.split('?')[0];
+    const rootPath = this.extractRootPath(pathWithoutQuery);
+
+    const tab = this.open_tabs.find(t => t.path === rootPath);
+    if (tab) {
+      tab.lastRoute = pathWithoutQuery;
+
+      // Extrai queryParams da URL
+      const urlParts = fullUrl.split('?');
+      if (urlParts.length > 1) {
+        const params = new URLSearchParams(urlParts[1]);
+        tab.lastQueryParams = Object.fromEntries(params.entries());
+      } else {
+        tab.lastQueryParams = {};
+      }
+
+      this.saveTabsToStorage();
+    }
+  }
+
   private syncTabsWithRoute(currentPath: string): void {
-    const existingTab = this.open_tabs.find((tab) => tab.path === currentPath);
+    const normalizedPath = currentPath.split('?')[0];
+    const rootPath = this.extractRootPath(normalizedPath);
+
+    const existingTab = this.open_tabs.find(tab => tab.path === rootPath);
     if (!existingTab) {
-      const route = this.availableRoutes.find((route) => route.path === currentPath);
+      const route = this.availableRoutes.find(r => r.path === rootPath);
       if (route) {
         this.addTab(route.path, route.title, false);
       }
     }
   }
 
+  /**
+   * Adiciona uma tab
+   * Se navigate = true, vai para a última rota conhecida ou para o path raiz
+   */
   addTab(path: string, title: string, navigate: boolean = true): void {
-    if (!this.open_tabs.some((tab) => tab.path === path)) {
-      const tab = this.availableRoutes.find((route) => route.path === path);
+    const rootPath = this.extractRootPath(path);
+
+    if (!this.open_tabs.some((tab) => tab.path === rootPath)) {
+      const tab = this.availableRoutes.find((route) => route.path === rootPath);
       if (tab) {
-        this.open_tabs.push({ id: this.generateUniqueId(), ...tab });
-        localStorage.setItem('open_tabs', JSON.stringify(this.open_tabs));
+        this.open_tabs.push({
+          id: this.generateUniqueId(),
+          ...tab,
+          lastRoute: rootPath,
+          lastQueryParams: {}
+        });
+        this.saveTabsToStorage();
       }
     }
 
     if (navigate) {
-      this.router.navigate([path]);
+      const openedTab = this.open_tabs.find(t => t.path === rootPath);
+      if (openedTab) {
+        this.navigateToTab(openedTab);
+      } else {
+        this.router.navigate([path]);
+      }
     }
   }
 
+  /**
+   * Navega para uma tab, restaurando a última rota acessada
+   */
+  navigateToTab(tab: TabOpen): void {
+    const targetRoute = tab.lastRoute || tab.path;
+    const queryParams = tab.lastQueryParams || {};
+
+    if (Object.keys(queryParams).length > 0) {
+      this.router.navigate([targetRoute], { queryParams });
+    } else {
+      this.router.navigate([targetRoute]);
+    }
+  }
+
+  /**
+   * Fecha uma tab e limpa seu cache
+   */
   closeTab(tabId: string): void {
-    const index = this.open_tabs.findIndex((tab) => tab.id === tabId);
+    const index = this.open_tabs.findIndex(tab => tab.id === tabId);
     if (index === -1) return;
 
-    const tabToClose = this.open_tabs[index];
-    const isActiveTab = tabToClose.path === this.currentRoute;
+    const tab = this.open_tabs[index];
+    const isActive = this.currentRoute.startsWith(tab.path);
 
+    // Remove a tab
     this.open_tabs.splice(index, 1);
-    localStorage.setItem('open_tabs', JSON.stringify(this.open_tabs));
+    this.saveTabsToStorage();
 
-    this.routeReuseStrategy.clearStoredRoute(tabToClose.path);
-
-    if (this.open_tabs.length > 0) {
-      if (isActiveTab) {
-        const newIndex = Math.max(0, index - 1);
-        this.router.navigate([this.open_tabs[newIndex].path]);
+    // Tenta limpar o cache apenas se a estratégia estiver disponível
+    try {
+      const reuseStrategy = this.getReuseStrategy();
+      console.log('Fehcando TAB | reuseStrategy', reuseStrategy);
+      if (reuseStrategy) {
+        reuseStrategy.clearClosedTabs();
       }
-    } else {
+    } catch (error) {
+      console.warn('Não foi possível limpar cache da tab:', error);
+    }
+
+    // Se estava ativa, navega para outra tab
+    if (isActive && this.open_tabs.length > 0) {
+      const nextTab = this.open_tabs[Math.max(0, index - 1)];
+      this.navigateToTab(nextTab);
+    } else if (this.open_tabs.length === 0) {
       this.router.navigate(['/']);
     }
   }
 
+  /**
+   * Salva tabs no localStorage
+   */
+  private saveTabsToStorage(): void {
+    localStorage.setItem('open_tabs', JSON.stringify(this.open_tabs));
+  }
+
   private generateUniqueId(): string {
     return Math.random().toString(36).substr(2, 9);
+  }
+
+  public isTabRoute(path: string): boolean {
+    return this.availableRoutes.some(route => route.path === path);
+  }
+
+  /**
+   * Obtém a tab ativa atualmente
+   */
+  public getActiveTab(): TabOpen | null {
+    const rootPath = this.extractRootPath(this.currentRoute);
+    return this.open_tabs.find(t => t.path === rootPath) || null;
   }
 }

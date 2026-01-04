@@ -13,18 +13,45 @@
             <span class="count-badge">{{ dashboards.length }}</span>
           }
         </div>
-        <p class="list-subtitle">
-          Olá <b>{{ auth.getUserName() }}</b>,<br>
-          Estes são os dashboards que você pode acessar.<br>
-          Defina um como principal para que ele seja carregado automaticamente na página inicial ou navegue entre os demais quando quiser.
-        </p>
 
-        <!-- Indicador de Dashboard Principal -->
-        @if (allowSetHome && hasHomeDashboard()) {
-          <div class="home-dashboard-indicator">
-            <i class="bx bx-star"></i>
-            <span>{{ getHomeDashboard()?.name }}</span>
+        <!-- Mensagem quando NÃO há dashboard principal -->
+        @if (!hasHomeDashboard() && allowSetHome && dashboards.length > 0) {
+          <div class="no-home-message">
+            <div class="message-content">
+              <p class="message-greeting">
+                Olá <strong>{{ auth.getUserName() }}</strong>! 👋
+              </p>
+              <p class="message-text">
+                Você tem <strong>{{ dashboards.length }} {{ dashboards.length === 1 ? 'dashboard disponível' : 'dashboards disponíveis' }}</strong>, mas ainda não definiu nenhum como principal.
+              </p>
+              <p class="message-tip">
+                <i class="bx bx-bulb"></i>
+                <span>Que tal escolher um para ser exibido automaticamente sempre que você acessar esta página? Basta clicar no ícone <i class="bx bx-star"></i> do dashboard que você mais utiliza!</span>
+              </p>
+            </div>
           </div>
+        }
+
+        <!-- Mensagem quando JÁ há dashboard principal -->
+        @else if (hasHomeDashboard() && allowSetHome) {
+          <p class="list-subtitle">
+            Estes são os dashboards que você pode acessar.<br>
+            Você pode alterar o dashboard principal a qualquer momento.
+          </p>
+
+          <!-- Indicador de Dashboard Principal -->
+          <div class="home-dashboard-indicator">
+            <i class="bx bxs-star"></i>
+            <span><strong>Dashboard Principal:</strong> {{ getHomeDashboard()?.name }}</span>
+          </div>
+        }
+
+        <!-- Mensagem padrão (sem allowSetHome) -->
+        @else {
+          <p class="list-subtitle">
+            Olá <b>{{ auth.getUserName() }}</b>,<br>
+            Estes são os dashboards que você pode acessar.
+          </p>
         }
       </div>
     </div>
@@ -57,7 +84,10 @@
   @else if (dashboards.length > 0) {
     <div class="dashboards-grid" [style.grid-template-columns]="getGridColumns()">
       @for (dashboard of dashboards; track dashboard.key) {
-        <div class="dashboard-card" [class.is-home]="dashboard.is_home" (click)="selectDashboard(dashboard)">
+        <div class="dashboard-card"
+             [class.is-home]="dashboard.is_home"
+             [class.highlight-star]="!hasHomeDashboard() && allowSetHome"
+             (click)="selectDashboard(dashboard)">
 
           <div class="card-header">
             <!-- Ícone e Badge Principal -->
@@ -73,6 +103,7 @@
               @if (allowSetHome && !dashboard.is_home) {
                 <button
                   class="set-home-btn"
+                  [class.pulsing]="!hasHomeDashboard()"
                   (click)="setAsHomeDashboard(dashboard, $event)"
                   [disabled]="settingHome[dashboard.key]"
                   title="Definir como principal">

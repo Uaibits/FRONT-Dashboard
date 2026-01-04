@@ -112,27 +112,21 @@ export const routes: Routes = [
       {
         path: 'groups',
         canActivate: [PermissionGuard],
-        data: {
-          permission: 'permission_group.view',
-        },
+        data: { permission: 'permission_group.view' },
         children: [
           {
-            path: "",
+            path: '',
             component: PermissionGroupsPage
           },
           {
-            path: "manage",
+            path: 'manage',
             component: ManagePermissionGroupPage,
-            data: {
-              permission: 'permission_group.create',
-            }
+            data: { permission: 'permission_group.create' }
           },
           {
-            path: "manage/:id",
+            path: 'manage/:id',
             component: ManagePermissionGroupPage,
-            data: {
-              permission: 'permission_group.edit',
-            }
+            data: { permission: 'permission_group.edit' }
           }
         ]
       },
@@ -142,12 +136,7 @@ export const routes: Routes = [
         data: {
           permission: 'parameter.view',
         },
-        children: [
-          {
-            path: '',
-            component: ParametersPage
-          }
-        ]
+        component: ParametersPage
       },
       {
         path: 'dynamic-queries',
@@ -155,12 +144,7 @@ export const routes: Routes = [
         data: {
           permission: 'dynamic_query.view',
         },
-        children: [
-          {
-            path: '',
-            component: DynamicQueriesPage
-          }
-        ]
+        component: DynamicQueriesPage
       },
       {
         path: 'dashboards',

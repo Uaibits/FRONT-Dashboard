@@ -1,7 +1,7 @@
-import {Component, OnInit, ViewChild, ElementRef, HostListener, AfterViewInit} from '@angular/core';
+import {Component, OnInit, ViewChild, ElementRef, HostListener, AfterViewInit, Injector} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {Router, RouterModule} from '@angular/router';
-import {LayoutService} from '../layout.service';
+import {LayoutService, TabOpen} from '../layout.service';
 import {AuthService} from '../../security/auth.service';
 import {SearchScreenComponent} from '../search-screen/search-screen.component';
 
@@ -26,8 +26,8 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 
   constructor(
     public router: Router,
-    public layoutService: LayoutService,
-    public auth: AuthService
+    public auth: AuthService,
+    public layout: LayoutService
   ) {}
 
   ngOnInit(): void {
@@ -61,15 +61,51 @@ export class NavbarComponent implements OnInit, AfterViewInit {
     this.isUserMenuOpen = !this.isUserMenuOpen;
   }
 
-  selectMobileTab(tab: any): void {
-    this.router.navigate([tab.path]);
+  /**
+   * Seleciona uma tab no mobile, navegando para a última rota conhecida
+   */
+  selectMobileTab(tab: TabOpen): void {
+    this.layout.navigateToTab(tab);
     this.toggleMobileMenu();
   }
 
+  /**
+   * Seleciona uma tab no desktop, navegando para a última rota conhecida
+   */
+  selectTab(tab: TabOpen, event?: Event): void {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    this.layout.navigateToTab(tab);
+  }
+
+  /**
+   * Fecha uma tab
+   */
   closeTab(id: string, event: Event): void {
     event.preventDefault();
     event.stopPropagation();
-    this.layoutService.closeTab(id);
+
+    this.layout.closeTab(id);
+  }
+
+  /**
+   * Verifica se uma tab está ativa
+   */
+  isTabActive(tab: TabOpen): boolean {
+    const currentRoute = this.layout.getCurrentRoute();
+    return currentRoute.startsWith(tab.path);
+  }
+
+  /**
+   * Retorna o título da tab com indicador de subrota
+   */
+  getTabTitle(tab: TabOpen): string {
+    if (tab.lastRoute && tab.lastRoute !== tab.path) {
+      return `${tab.title} •`; // Indicador visual de que está em uma subrota
+    }
+    return tab.title;
   }
 
   private checkTabsOverflow(): void {
