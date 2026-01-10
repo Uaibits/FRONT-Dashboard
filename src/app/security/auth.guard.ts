@@ -9,12 +9,17 @@ import {
 import { Observable, of } from 'rxjs';
 import { AuthService } from './auth.service';
 import { catchError, map, switchMap, timeout } from 'rxjs/operators';
+import {ClientNavigationService} from '../services/client-navigation.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthGuard implements CanActivate {
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private clientNavigation: ClientNavigationService
+  ) {}
 
   canActivate(
     route: ActivatedRouteSnapshot,
@@ -23,6 +28,7 @@ export class AuthGuard implements CanActivate {
 
     // Verifica se o usuário está autenticado
     if (this.authService.isAuthenticated()) {
+      this.loadContext();
       return true;
     }
 
@@ -47,10 +53,14 @@ export class AuthGuard implements CanActivate {
         if (this.authService.isAuthenticated()) {
           // Opcionalmente, atualiza os dados do usuário
           return this.authService.refreshUserData().pipe(
-            map(() => true),
+            map(() => {
+              this.loadContext();
+              return true;
+            }),
             catchError((error) => {
               console.warn('Failed to refresh user data after token refresh:', error);
               // Mesmo que falhe ao atualizar dados do usuário, permite acesso se o token é válido
+              this.loadContext();
               return of(true);
             })
           );
@@ -73,5 +83,15 @@ export class AuthGuard implements CanActivate {
     return this.router.createUrlTree(['/auth/logar'], {
       queryParams: { returnUrl }
     });
+  }
+
+  private async loadContext() {
+    if (this.clientNavigation.isInClientContext()) {
+      try {
+        await this.clientNavigation.loadCurrentClientFromUrl();
+      } catch (error) {
+        console.error('Erro ao carregar contexto do cliente:', error);
+      }
+    }
   }
 }

@@ -16,7 +16,6 @@ export interface Client {
   id: number;
   name: string;
   slug: string;
-  domain: string;
   active: boolean;
 }
 

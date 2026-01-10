@@ -4,10 +4,13 @@ import { Router } from '@angular/router';
 import { LayoutService, Tab } from '../layout.service';
 import { AuthService } from '../../security/auth.service';
 import { DashboardService } from '../../services/dashboard.service';
+import { ClientService } from '../../services/client.service';
+import { ClientNavigationService } from '../../services/client-navigation.service';
 import { Utils } from '../../services/utils.service';
 import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
+import { Client } from '../../models/user';
 
 interface SearchItem extends Tab {}
 
@@ -46,6 +49,14 @@ export class SearchScreenComponent implements OnInit, OnDestroy {
   selectedIndex = 0;
   activeTab: 'all' | 'favorites' | 'recent' = 'all';
 
+  // Controle de clientes
+  clients: Client[] = [];
+  filteredClients: Client[] = [];
+  currentClient: Client | null = null;
+  isClientDropdownOpen = false;
+  clientSearchQuery = '';
+  isLoadingClients = false;
+
   private readonly MAX_RECENT_SEARCHES = 8;
   private readonly DEBOUNCE_TIME = 300;
   private readonly STORAGE_KEYS = {
@@ -63,12 +74,15 @@ export class SearchScreenComponent implements OnInit, OnDestroy {
 
   private searchTimeout?: number;
   private routesSubscription?: Subscription;
+  private clientSubscription?: Subscription;
 
   constructor(
     private router: Router,
     protected layoutService: LayoutService,
     private auth: AuthService,
-    private dashboardService: DashboardService
+    private dashboardService: DashboardService,
+    private clientService: ClientService,
+    private clientNavigation: ClientNavigationService
   ) {}
 
   @HostListener('document:keydown', ['$event'])
@@ -79,17 +93,23 @@ export class SearchScreenComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (event.key === 'Escape' && this.isModalOpen) {
-      event.preventDefault();
-      this.closeModal();
-      return;
+    if (event.key === 'Escape') {
+      if (this.isClientDropdownOpen) {
+        event.preventDefault();
+        this.closeClientDropdown();
+        return;
+      }
+
+      if (this.isModalOpen) {
+        event.preventDefault();
+        this.closeModal();
+        return;
+      }
     }
 
-    if (!this.isModalOpen) return;
+    if (!this.isModalOpen || this.isClientDropdownOpen) return;
 
     const displayItems = this.getDisplayItems();
-
-    // Só navega se tiver itens para navegar
     if (displayItems.length === 0) return;
 
     switch (event.key) {
@@ -120,6 +140,8 @@ export class SearchScreenComponent implements OnInit, OnDestroy {
     await this.loadDashboardsNavigable();
     this.loadAllPages();
     this.subscribeToRouteChanges();
+    this.subscribeToClient();
+    await this.loadClients();
   }
 
   ngOnDestroy(): void {
@@ -129,6 +151,80 @@ export class SearchScreenComponent implements OnInit, OnDestroy {
     if (this.routesSubscription) {
       this.routesSubscription.unsubscribe();
     }
+    if (this.clientSubscription) {
+      this.clientSubscription.unsubscribe();
+    }
+  }
+
+  private subscribeToClient(): void {
+    this.clientSubscription = this.clientService.currentClient$.subscribe(client => {
+      this.currentClient = client;
+    });
+  }
+
+  private async loadClients(): Promise<void> {
+    try {
+      this.isLoadingClients = true;
+      const response = await this.clientService.getClients();
+      this.clients = response.data || [];
+      this.filteredClients = [...this.clients];
+    } catch (error) {
+      console.error('Erro ao carregar clientes:', error);
+      this.clients = [];
+      this.filteredClients = [];
+    } finally {
+      this.isLoadingClients = false;
+    }
+  }
+
+  filterClients(): void {
+    const query = Utils.prepareSearchQuery(this.clientSearchQuery.trim());
+
+    if (!query) {
+      this.filteredClients = [...this.clients];
+      return;
+    }
+
+    this.filteredClients = this.clients.filter(client => {
+      const nameMatch = Utils.prepareSearchQuery(client.name).includes(query);
+      const slugMatch = Utils.prepareSearchQuery(client.slug || '').includes(query);
+      return nameMatch || slugMatch;
+    });
+  }
+
+  async selectClient(client: Client, event?: Event): Promise<void> {
+    if (event) {
+      event.stopPropagation();
+    }
+
+    if (!client.active) {
+      return;
+    }
+
+    try {
+      await this.clientNavigation.switchClient(client);
+      this.closeClientDropdown();
+      this.closeModal();
+    } catch (error) {
+      console.error('Erro ao trocar cliente:', error);
+    }
+  }
+
+  toggleClientDropdown(): void {
+    this.isClientDropdownOpen = !this.isClientDropdownOpen;
+    if (this.isClientDropdownOpen) {
+      this.clientSearchQuery = '';
+      this.filteredClients = [...this.clients];
+      setTimeout(() => {
+        const input = document.querySelector('.client-search-input') as HTMLInputElement;
+        if (input) input.focus();
+      }, 100);
+    }
+  }
+
+  closeClientDropdown(): void {
+    this.isClientDropdownOpen = false;
+    this.clientSearchQuery = '';
   }
 
   private async loadDashboardsNavigable(): Promise<void> {
@@ -263,6 +359,11 @@ export class SearchScreenComponent implements OnInit, OnDestroy {
       event.stopPropagation();
     }
 
+    // Só permite navegar se tiver um cliente selecionado
+    if (!this.currentClient) {
+      return;
+    }
+
     const page = this.allPages.find(p => p.path === path);
     if (page) {
       this.addToRecentSearches(page);
@@ -293,7 +394,6 @@ export class SearchScreenComponent implements OnInit, OnDestroy {
     this.searchQuery = '';
     this.filteredResults = [];
     this.selectedIndex = 0;
-    // Mantém a última aba ativa ao abrir o modal
     setTimeout(() => this.focusSearchInput(), 100);
   }
 
@@ -303,6 +403,7 @@ export class SearchScreenComponent implements OnInit, OnDestroy {
     this.filteredResults = [];
     this.selectedIndex = 0;
     this.isSearching = false;
+    this.closeClientDropdown();
   }
 
   private focusSearchInput(): void {
@@ -340,11 +441,13 @@ export class SearchScreenComponent implements OnInit, OnDestroy {
   clearRecentSearches(): void {
     this.recentSearches = [];
     this.saveToLocalStorage();
+    this.setActiveTab('all');
   }
 
   clearFavorites(): void {
     this.favoritePages = [];
     this.saveToLocalStorage();
+    this.setActiveTab('all');
   }
 
   setActiveTab(tab: 'all' | 'favorites' | 'recent'): void {
@@ -364,8 +467,6 @@ export class SearchScreenComponent implements OnInit, OnDestroy {
       case 'recent':
         return this.recentSearches;
       default:
-        // Na tab 'all', não usamos lista mas sim o grid de categorias
-        // Então retornamos array vazio para navegação por teclado não interferir
         return [];
     }
   }
@@ -388,6 +489,14 @@ export class SearchScreenComponent implements OnInit, OnDestroy {
   }
 
   get showTabs(): boolean {
-    return !this.hasSearchQuery && (this.favoritePages.length > 0 || this.recentSearches.length > 0);
+    return !this.hasSearchQuery;
+  }
+
+  get hasClientSelected(): boolean {
+    return this.currentClient !== null;
+  }
+
+  get canNavigate(): boolean {
+    return this.hasClientSelected;
   }
 }

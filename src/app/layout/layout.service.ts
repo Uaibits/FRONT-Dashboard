@@ -1,8 +1,9 @@
-import { inject, Injectable } from '@angular/core';
-import { NavigationEnd, Router } from '@angular/router';
-import { BehaviorSubject } from 'rxjs';
-import { ReuseStrategyService } from '../services/reuse-strategy.service';
-import {ClientKeyService} from '../services/client-key.service';
+import {inject, Injectable, Injector} from '@angular/core';
+import {NavigationEnd, Router} from '@angular/router';
+import {BehaviorSubject} from 'rxjs';
+import {ReuseStrategyService} from '../services/reuse-strategy.service';
+import {DashboardService} from '../services/dashboard.service';
+import {ClientService} from '../services/client.service';
 
 export interface Tab {
   title: string;
@@ -111,9 +112,12 @@ export class LayoutService {
   private open_tabs: TabOpen[] = [];
   private currentRoute: string = '';
   private reuseStrategy = inject(ReuseStrategyService);
-  private clientKeyService = inject(ClientKeyService);
+  private dashboardService = inject(DashboardService);
+  private injector?: Injector;
 
-  constructor(private router: Router) {
+  constructor(private router: Router, injector: Injector) {
+    this.injector = injector;
+
     this.router.events.subscribe((event) => {
       if (event instanceof NavigationEnd) {
         this.currentRoute = event.url.split('?')[0];
@@ -161,35 +165,70 @@ export class LayoutService {
   }
 
   /**
+   * Remove rotas dinâmicas (dashboards) da lista
+   */
+  public removeDynamicRoutes(): void {
+    this.availableRoutes = this.availableRoutes.filter(r => r.category !== 'dashboard' || r.path === '/dashboards' || r.path === '/dashboard-templates');
+    this.availableRoutesSubject.next([...this.availableRoutes]);
+  }
+
+  /**
+   * Recarrega os dashboards navegáveis
+   */
+  public async reloadDashboards(): Promise<void> {
+    try {
+      // Remove dashboards antigos
+      this.removeDynamicRoutes();
+
+      // Carrega novos dashboards
+      const response = await this.dashboardService.getNavigableDashboards();
+
+      if (response && response.data) {
+        const dashboardRoutes: Tab[] = response.data.map((dash: any) => ({
+          title: dash.name,
+          description: dash.description || 'Dashboard personalizado',
+          icon: dash.icon ? 'bx ' + dash.icon : 'bx bx-bar-chart-alt-2',
+          path: `/dashboard/${dash.key}`,
+          category: 'dashboard' as const
+        }));
+
+        this.addMultipleRoutes(dashboardRoutes);
+      }
+    } catch (error) {
+      console.error('Erro ao recarregar dashboards:', error);
+    }
+  }
+
+  /**
    * Extrai o path raiz de uma URL completa, removendo o client_key se presente
-   * /:client_key/users/manage/123 -> /users
    */
   private extractRootPath(fullPath: string): string {
     const pathWithoutQuery = fullPath.split('?')[0];
     let segments = pathWithoutQuery.split('/').filter(Boolean);
 
-    // Remove o client_key se estiver presente (primeiro segmento)
-    const clientKey = this.clientKeyService.getClientKey();
-    if (clientKey && segments.length > 0 && segments[0] === clientKey) {
-      segments = segments.slice(1);
+    if (segments.length > 0) {
+      const firstSegment = segments[0];
+      const isKnownRoute = this.availableRoutes.some(r => r.path === '/' + firstSegment);
+      if (!isKnownRoute && segments.length > 1) {
+        segments = segments.slice(1);
+      }
     }
 
     return segments.length > 0 ? '/' + segments[0] : pathWithoutQuery;
   }
 
-  /**
-   * Atualiza a última rota acessada dentro de uma tab
-   */
   private updateTabLastRoute(fullUrl: string): void {
     const pathWithoutQuery = fullUrl.split('?')[0];
     const rootPath = this.extractRootPath(pathWithoutQuery);
 
     const tab = this.open_tabs.find(t => t.path === rootPath);
     if (tab) {
-      // Remove o client_key do lastRoute para manter apenas o path relativo
-      tab.lastRoute = this.clientKeyService.removeClientKeyFromPath(pathWithoutQuery);
+      const segments = pathWithoutQuery.split('/').filter(Boolean);
+      const isKnownRoute = this.availableRoutes.some(r => r.path === '/' + segments[0]);
+      tab.lastRoute = !isKnownRoute && segments.length > 1
+        ? '/' + segments.slice(1).join('/')
+        : pathWithoutQuery;
 
-      // Extrai queryParams da URL
       const urlParts = fullUrl.split('?');
       if (urlParts.length > 1) {
         const params = new URLSearchParams(urlParts[1]);
@@ -215,10 +254,6 @@ export class LayoutService {
     }
   }
 
-  /**
-   * Adiciona uma tab
-   * Se navigate = true, vai para a última rota conhecida ou para o path raiz
-   */
   addTab(path: string, navigate: boolean = true): void {
     const rootPath = this.extractRootPath(path);
 
@@ -240,20 +275,15 @@ export class LayoutService {
       if (openedTab) {
         this.navigateToTab(openedTab);
       } else {
-        this.navigateWithClientKey(path);
+        this.router.navigate([this.buildUrlWithClientKey(path)]);
       }
     }
   }
 
-  /**
-   * Navega para uma tab, restaurando a última rota acessada
-   */
   navigateToTab(tab: TabOpen): void {
     const targetRoute = tab.lastRoute || tab.path;
     const queryParams = tab.lastQueryParams || {};
-
-    // Adiciona o client_key à rota
-    const fullPath = this.clientKeyService.buildUrl(targetRoute);
+    const fullPath = this.buildUrlWithClientKey(targetRoute);
 
     if (Object.keys(queryParams).length > 0) {
       this.router.navigate([fullPath], { queryParams });
@@ -263,42 +293,102 @@ export class LayoutService {
   }
 
   /**
-   * Navega para um path adicionando o client_key
+   * Constrói a URL completa adicionando o client_key
+   * Prioridade: 1) URL atual, 2) ClientService
    */
-  private navigateWithClientKey(path: string, queryParams?: any): void {
-    const fullPath = this.clientKeyService.buildUrl(path);
+  private buildUrlWithClientKey(path: string): string {
+    // Tenta obter o client_key da URL atual primeiro
+    let clientKey = this.extractClientKeyFromCurrentUrl();
 
-    if (queryParams && Object.keys(queryParams).length > 0) {
-      this.router.navigate([fullPath], { queryParams });
-    } else {
-      this.router.navigate([fullPath]);
+    // Se não encontrou na URL, tenta obter do ClientService
+    if (!clientKey && this.injector) {
+      try {
+        const clientService = this.injector.get(ClientService);
+        const currentClient = clientService?.getCurrentClient();
+        clientKey = currentClient?.slug || null;
+      } catch (error) {
+        console.warn('Não foi possível obter ClientService:', error);
+      }
     }
+
+    if (!clientKey) {
+      return path;
+    }
+
+    const cleanPath = path.startsWith('/') ? path.substring(1) : path;
+
+    if (cleanPath.startsWith(clientKey + '/')) {
+      return '/' + cleanPath;
+    }
+
+    return `/${clientKey}/${cleanPath}`;
   }
 
   /**
-   * Fecha uma tab e limpa seu cache
+   * Extrai o client_key da URL atual do router
    */
+  private extractClientKeyFromCurrentUrl(): string | null {
+    const url = this.router.url;
+    const segments = url.split('/').filter(Boolean);
+
+    if (segments.length > 0) {
+      const firstSegment = segments[0].split('?')[0];
+
+      // Lista de rotas públicas conhecidas
+      const publicRoutes = ['auth', 'dashboard', 'home'];
+      const isKnownRoute = this.availableRoutes.some(r => r.path === '/' + firstSegment) ||
+        publicRoutes.includes(firstSegment);
+
+      if (!isKnownRoute) {
+        return firstSegment;
+      }
+    }
+
+    return null;
+  }
+
   closeTab(tabId: string): void {
     const index = this.open_tabs.findIndex(tab => tab.id === tabId);
     if (index === -1) return;
 
     const tab = this.open_tabs[index];
-    const currentRouteWithoutClientKey = this.clientKeyService.removeClientKeyFromPath(this.currentRoute);
-    const isActive = currentRouteWithoutClientKey.startsWith(tab.path);
+    const currentUrlSegments = this.currentRoute.split('/').filter(Boolean);
+    const isKnownRoute = this.availableRoutes.some(r => r.path === '/' + currentUrlSegments[0]);
+    const currentPathWithoutClientKey = !isKnownRoute && currentUrlSegments.length > 1
+      ? '/' + currentUrlSegments.slice(1).join('/')
+      : this.currentRoute;
 
-    // Remove a tab
+    const isActive = currentPathWithoutClientKey.startsWith(tab.path);
+
     this.open_tabs.splice(index, 1);
     this.saveTabsToStorage();
 
-    // Se estava ativa, navega para outra tab
     if (isActive && this.open_tabs.length > 0) {
       const nextTab = this.open_tabs[Math.max(0, index - 1)];
       this.navigateToTab(nextTab);
     } else if (this.open_tabs.length === 0) {
-      this.navigateWithClientKey('/home');
+      const clientKey = this.extractClientKeyFromCurrentUrl();
+      if (!clientKey && this.injector) {
+        try {
+          const clientService = this.injector.get(ClientService);
+          const currentClient = clientService?.getCurrentClient();
+          const slug = currentClient?.slug;
+          if (slug) {
+            this.router.navigate([slug, 'home']);
+            return;
+          }
+        } catch (error) {
+          console.warn('Erro ao obter cliente:', error);
+        }
+      }
+
+      if (clientKey) {
+        this.router.navigate([clientKey, 'home']);
+      } else {
+        this.router.navigate(['/home']);
+      }
     }
 
-    // Tenta limpar o cache apenas se a estratégia estiver disponível
     try {
       if (this.reuseStrategy) this.reuseStrategy.clearTabRoutes(tab.path);
     } catch (error) {
@@ -306,9 +396,6 @@ export class LayoutService {
     }
   }
 
-  /**
-   * Salva tabs no localStorage
-   */
   private saveTabsToStorage(): void {
     localStorage.setItem('open_tabs', JSON.stringify(this.open_tabs));
   }
@@ -321,9 +408,6 @@ export class LayoutService {
     return this.availableRoutes.some(route => route.path === path);
   }
 
-  /**
-   * Obtém a tab ativa atualmente
-   */
   public getActiveTab(): TabOpen | null {
     const rootPath = this.extractRootPath(this.currentRoute);
     return this.open_tabs.find(t => t.path === rootPath) || null;

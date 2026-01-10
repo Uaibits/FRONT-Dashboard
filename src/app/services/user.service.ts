@@ -73,4 +73,14 @@ export class UserService {
     }
   }
 
+  async me() {
+    try {
+      const response = await firstValueFrom(this.http.get<any>(`${this.API_URL}/me`));
+      return response.data as User;
+    } catch (err: any) {
+      this.toast.error(Utils.getErrorMessage(err));
+      return null;
+    }
+  }
+
 }

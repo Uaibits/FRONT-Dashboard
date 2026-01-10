@@ -1,33 +1,80 @@
-import {Component, OnInit, OnDestroy} from '@angular/core';
-import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {Router, ActivatedRoute} from '@angular/router';
-import {Subject, takeUntil} from 'rxjs';
-import {InputComponent} from '../../../components/form/input/input.component';
-import {PasswordComponent} from '../../../components/form/password/password.component';
-import {ButtonComponent} from '../../../components/form/button/button.component';
-import {FormErrorHandlerService} from "../../../components/form/form-error-handler.service";
-import {ToastService} from '../../../components/toast/toast.service';
-import {AuthService} from '../../../security/auth.service';
-import {Utils} from '../../../services/utils.service';
+import { Component, OnInit, OnDestroy, Output, EventEmitter } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router, ActivatedRoute } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
+import { CommonModule } from '@angular/common';
+import { InputComponent } from '../../../components/form/input/input.component';
+import { PasswordComponent } from '../../../components/form/password/password.component';
+import { ButtonComponent } from '../../../components/form/button/button.component';
+import { FormErrorHandlerService } from "../../../components/form/form-error-handler.service";
+import { ToastService } from '../../../components/toast/toast.service';
+import { AuthService } from '../../../security/auth.service';
+import { Utils } from '../../../services/utils.service';
 
 @Component({
-  selector: 'app-login',
+  selector: 'app-login-form',
+  standalone: true,
   imports: [
+    CommonModule,
     ReactiveFormsModule,
     InputComponent,
     PasswordComponent,
     ButtonComponent
   ],
-  templateUrl: './login.page.html',
-  standalone: true,
+  template: `
+    <form [formGroup]="loginForm" (ngSubmit)="onLoginSubmit()" class="auth-form">
+      <div class="form-fields">
+        <ub-input
+          label="Email"
+          type="email"
+          placeholder="seu@email.com"
+          formControlName="email"
+          [error]="FormErrorHandlerService.getError('email', errors)">
+        </ub-input>
+
+        <ub-password
+          label="Senha"
+          placeholder="Digite sua senha"
+          formControlName="password"
+          [error]="FormErrorHandlerService.getError('password', errors)">
+        </ub-password>
+      </div>
+
+      <div class="form-actions">
+        <ub-button
+          type="submit"
+          [disabled]="loginForm.invalid"
+          [loading]="loading">
+          <i class="bx bx-log-in"></i>
+          Entrar
+        </ub-button>
+      </div>
+
+      <div class="auth-footer">
+        <p class="switch-mode-text">
+          Não tem uma conta?
+          <a (click)="switchToRegister.emit()" class="switch-link">
+            Criar conta
+          </a>
+        </p>
+
+        <p class="help-text">
+          <i class="bx bx-help-circle"></i>
+          Problemas para acessar?
+          <a href="mailto:suporte@uaibits.com.br" class="support-link">Entre em contato</a>
+        </p>
+      </div>
+    </form>
+  `,
   styleUrl: '../auth.page.scss'
+
 })
-export class LoginPage implements OnInit, OnDestroy {
+export class LoginFormComponent implements OnInit, OnDestroy {
+  @Output() switchToRegister = new EventEmitter<void>();
 
   loginForm!: FormGroup;
   loading = false;
   errors: { [key: string]: string } = {};
-  currentYear: number = new Date().getFullYear();
 
   private destroy$ = new Subject<void>();
   private returnUrl: string = '/home';

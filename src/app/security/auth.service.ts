@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, firstValueFrom, Observable, throwError, EMPTY, timer } from 'rxjs';
 import { Router } from '@angular/router';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { environment } from '../../environments/environment';
 import { catchError, tap, switchMap } from 'rxjs/operators';
 import { LayoutService } from '../layout/layout.service';
-import { Client, User } from '../models/user';
+import { User } from '../models/user';
 import {ClientKeyService} from '../services/client-key.service';
+import {ClientService} from '../services/client.service';
 
 export interface LoginResponse {
   data: {
@@ -40,7 +41,8 @@ export class AuthService {
     private http: HttpClient,
     private router: Router,
     private layoutService: LayoutService,
-    private clientKeyService: ClientKeyService
+    private clientKeyService: ClientKeyService,
+    private clientService: ClientService
   ) {
     this.initializeAuth();
   }
@@ -70,11 +72,6 @@ export class AuthService {
    * Inicializa o client_key baseado no usuário
    */
   private initializeClientKey(user: User): void {
-    // Se não há client_key definido, usa o do usuário
-    if (!this.clientKeyService.hasClientKey() && user.client?.slug) {
-      this.clientKeyService.setClientKey(user.client.slug);
-    }
-
     const availableClients = user.available_clients || [];
     this.clientKeyService.setAvailableClients(availableClients);
   }
@@ -103,17 +100,14 @@ export class AuthService {
       this.storeUser(user);
       this.setAuthState(true, user);
 
-      // Define o client_key inicial do usuário
-      if (user.client?.slug) {
-        this.clientKeyService.setClientKey(user.client.slug);
-      }
+      // Armazena os clientes disponíveis
+      this.initializeClientKey(user);
 
       this.scheduleTokenRefresh();
 
-      // Navega para home com o client_key
-      const clientKey = this.clientKeyService.getClientKey();
-      if (clientKey) {
-        await this.router.navigate([clientKey, 'home']);
+      // Navega para home com o client_key do usuário
+      if (user.client?.slug) {
+        await this.router.navigate([user.client.slug, 'home']);
       } else {
         await this.router.navigate(['/home']);
       }
@@ -126,7 +120,7 @@ export class AuthService {
   /**
    * Faz registro de um novo usuário
    */
-  async register(userData: { name: string; email: string; password: string }): Promise<void> {
+  async register(userData: any): Promise<void> {
     try {
       const response = await firstValueFrom(
         this.http.post<LoginResponse>(`${environment.api}/auth/register`, userData)
@@ -138,17 +132,14 @@ export class AuthService {
       this.storeUser(user);
       this.setAuthState(true, user);
 
-      // Define o client_key inicial do usuário
-      if (user.client?.slug) {
-        this.clientKeyService.setClientKey(user.client.slug);
-      }
+      // Armazena os clientes disponíveis
+      this.initializeClientKey(user);
 
       this.scheduleTokenRefresh();
 
-      // Navega para home com o client_key
-      const clientKey = this.clientKeyService.getClientKey();
-      if (clientKey) {
-        await this.router.navigate([clientKey, 'home']);
+      // Navega para home com o client_key do usuário
+      if (user.client?.slug) {
+        await this.router.navigate([user.client.slug, 'home']);
       } else {
         await this.router.navigate(['/home']);
       }
@@ -185,8 +176,11 @@ export class AuthService {
     // Limpa dados locais primeiro
     this.clearAuthData();
 
-    // Limpa o client_key
-    this.clientKeyService.clearClientKey();
+    // Limpa os clientes disponíveis
+    this.clientKeyService.clearClients();
+
+    // Limpa o cliente atual
+    this.clientService.clearCurrentClient();
 
     // Notifica sobre logout
     this.setAuthState(false, null);

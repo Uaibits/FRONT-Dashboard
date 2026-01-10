@@ -15,5 +15,8 @@ export class ReuseStrategyService {
     this.strategy.clearTabRoutes(path);
   }
 
+  clearAll() {
+    this.strategy.clearAll();
+  }
 
 }

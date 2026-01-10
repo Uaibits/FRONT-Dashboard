@@ -1,10 +1,6 @@
-import {
-  RouteReuseStrategy,
-  ActivatedRouteSnapshot,
-  DetachedRouteHandle
-} from '@angular/router';
-import { Injectable, Injector } from '@angular/core';
-import { LayoutService } from './layout/layout.service';
+import {ActivatedRouteSnapshot, DetachedRouteHandle, RouteReuseStrategy} from '@angular/router';
+import {Injectable, Injector} from '@angular/core';
+import {LayoutService} from './layout/layout.service';
 
 interface StoredRoute {
   handle: DetachedRouteHandle;
@@ -25,9 +21,6 @@ export class TabReuseStrategy implements RouteReuseStrategy {
     return this.layoutService;
   }
 
-  /**
-   * Obtém o path raiz da tab
-   */
   private getTabRootPath(route: ActivatedRouteSnapshot): string | null {
     let current: ActivatedRouteSnapshot | null = route;
     let depth = 0;
@@ -48,9 +41,6 @@ export class TabReuseStrategy implements RouteReuseStrategy {
     return null;
   }
 
-  /**
-   * Gera chave única para a rota
-   */
   private getRouteKey(route: ActivatedRouteSnapshot): string {
     const segments: string[] = [];
     let current: ActivatedRouteSnapshot | null = route;
@@ -77,17 +67,10 @@ export class TabReuseStrategy implements RouteReuseStrategy {
     return path;
   }
 
-  /**
-   * Extrai o path sem query params de uma URL
-   */
   private getPathWithoutQuery(url: string): string {
     return url.split('?')[0];
   }
 
-  /**
-   * Verifica se deve fazer detach da rota
-   * CORRIGIDO: Verifica se a tab ainda está aberta
-   */
   shouldDetach(route: ActivatedRouteSnapshot): boolean {
     if (!route.component) {
       return false;
@@ -98,24 +81,16 @@ export class TabReuseStrategy implements RouteReuseStrategy {
       return false;
     }
 
-    // ✅ Verifica se a tab ainda está aberta
     const openTabs = this.layout.getOpenTabs();
-    const isTabOpen = openTabs.some(tab => tab.path === tabRoot);
-
-    return isTabOpen;
+    return openTabs.some(tab => tab.path === tabRoot);
   }
 
-  /**
-   * Armazena o handle da rota
-   * CORRIGIDO: Verifica se a tab ainda está aberta antes de armazenar
-   */
   store(route: ActivatedRouteSnapshot, handle: DetachedRouteHandle | null): void {
     if (!handle || !route.component) return;
 
     const tabRoot = this.getTabRootPath(route);
     if (!tabRoot || !this.layout.isTabRoute(tabRoot)) return;
 
-    // ✅ CRÍTICO: Verifica se a tab ainda está aberta
     const openTabs = this.layout.getOpenTabs();
     const isTabOpen = openTabs.some(tab => tab.path === tabRoot);
 
@@ -129,9 +104,6 @@ export class TabReuseStrategy implements RouteReuseStrategy {
     });
   }
 
-  /**
-   * Verifica se deve anexar uma rota armazenada
-   */
   shouldAttach(route: ActivatedRouteSnapshot): boolean {
     if (!route.component) {
       return false;
@@ -144,9 +116,6 @@ export class TabReuseStrategy implements RouteReuseStrategy {
     return this.storedRoutes.has(routeKey);
   }
 
-  /**
-   * Recupera o handle armazenado
-   */
   retrieve(route: ActivatedRouteSnapshot): DetachedRouteHandle | null {
     if (!route.component) return null;
 
@@ -159,9 +128,6 @@ export class TabReuseStrategy implements RouteReuseStrategy {
     return stored?.handle || null;
   }
 
-  /**
-   * CRÍTICO: Este método é chamado para CADA nível da hierarquia de rotas
-   */
   shouldReuseRoute(
     future: ActivatedRouteSnapshot,
     curr: ActivatedRouteSnapshot
@@ -178,9 +144,6 @@ export class TabReuseStrategy implements RouteReuseStrategy {
     return sameConfig && sameParams && sameQuery;
   }
 
-  /**
-   * Limpa cache de tabs fechadas
-   */
   clearClosedTabs(): void {
     const openTabs = this.layout.getOpenTabs();
     const openPaths = openTabs.map(t => t.path);
@@ -202,18 +165,11 @@ export class TabReuseStrategy implements RouteReuseStrategy {
     keysToDelete.forEach(key => this.storedRoutes.delete(key));
   }
 
-  /**
-   * Limpa rotas de uma tab específica
-   * CORRIGIDO: Agora remove corretamente rotas com query params
-   */
   clearTabRoutes(tabPath: string): void {
     const keysToDelete: string[] = [];
 
     this.storedRoutes.forEach((stored, key) => {
-      // Remove o query string da URL armazenada para comparação
       const storedPath = this.getPathWithoutQuery(stored.url);
-
-      // Verifica se é a rota exata OU uma rota filha
       const isExactMatch = storedPath === tabPath;
       const isChildRoute = storedPath.startsWith(tabPath + '/');
 
@@ -223,4 +179,10 @@ export class TabReuseStrategy implements RouteReuseStrategy {
     keysToDelete.forEach(key => this.storedRoutes.delete(key));
   }
 
+  /**
+   * Limpa todo o cache de rotas (usado ao trocar de cliente)
+   */
+  clearAll(): void {
+    this.storedRoutes.clear();
+  }
 }
