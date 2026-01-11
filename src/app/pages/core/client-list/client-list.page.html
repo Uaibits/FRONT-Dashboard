@@ -67,6 +67,30 @@
 
         <div class="card-content">
           <h3 class="card-title">{{ client.name }}</h3>
+
+          <!-- Informações Adicionais -->
+          <div class="card-info">
+            @if (client.role) {
+              <div class="info-item role-info"
+                   [class.role-owner]="client.role === 'Proprietário'"
+                   [class.role-collaborator]="client.role === 'Colaborador'"
+                   [class.role-reseller]="client.role === 'Revendedor'">
+                <i class="bx" [ngClass]="{
+                  'bx-crown': client.role === 'Proprietário',
+                  'bx-user-check': client.role === 'Colaborador',
+                  'bx-store': client.role === 'Revendedor'
+                }"></i>
+                <span>{{ client.role }}</span>
+              </div>
+            }
+
+            @if (client.plan_name) {
+              <div class="info-item plan-info" [class.inactive-plan]="!client.has_active_plan">
+                <i class="bx" [ngClass]="client.has_active_plan ? 'bx-check-shield' : 'bx-shield-x'"></i>
+                <span>{{ client.plan_name }}</span>
+              </div>
+            }
+          </div>
         </div>
 
         <!-- Indicador de seleção -->

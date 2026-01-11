@@ -1,11 +1,11 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, firstValueFrom, Observable, throwError, EMPTY, timer } from 'rxjs';
-import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../environments/environment';
-import { catchError, tap, switchMap } from 'rxjs/operators';
-import { LayoutService } from '../layout/layout.service';
-import { User } from '../models/user';
+import {Injectable} from '@angular/core';
+import {BehaviorSubject, firstValueFrom, Observable, throwError, EMPTY, timer} from 'rxjs';
+import {Router} from '@angular/router';
+import {HttpClient} from '@angular/common/http';
+import {environment} from '../../environments/environment';
+import {catchError, tap, switchMap} from 'rxjs/operators';
+import {LayoutService} from '../layout/layout.service';
+import {User} from '../models/user';
 import {ClientService} from '../services/client.service';
 
 export interface LoginResponse {
@@ -89,7 +89,7 @@ export class AuthService {
         this.http.post<LoginResponse>(`${environment.api}/auth`, credentials)
       );
 
-      const { access_token, refresh_token, access_token_expires_in, user } = response.data;
+      const {access_token, refresh_token, access_token_expires_in, user} = response.data;
 
       this.storeTokens(access_token, refresh_token, access_token_expires_in);
       this.storeUser(user);
@@ -114,7 +114,7 @@ export class AuthService {
         this.http.post<LoginResponse>(`${environment.api}/auth/register`, userData)
       );
 
-      const { access_token, refresh_token, access_token_expires_in, user } = response.data;
+      const {access_token, refresh_token, access_token_expires_in, user} = response.data;
 
       this.storeTokens(access_token, refresh_token, access_token_expires_in);
       this.storeUser(user);
@@ -149,7 +149,7 @@ export class AuthService {
   /**
    * Faz logout e remove os tokens
    */
-  logout(): void {
+  logout(redirect: boolean = true): void {
     // Cancela timer de refresh automático
     this.cancelAutoRefresh();
 
@@ -168,7 +168,7 @@ export class AuthService {
     });
 
     // Navega para login
-    this.router.navigate(['/auth/logar']);
+    if (redirect) this.router.navigate(['/auth/logar']);
 
     // Limpa as abas abertas
     this.layoutService.setOpenTabs([]);
@@ -227,7 +227,7 @@ export class AuthService {
           `${environment.api}/auth/refresh`,
           {},
           {
-            headers: { Token: refreshToken }
+            headers: {Token: refreshToken}
           }
         )
       );

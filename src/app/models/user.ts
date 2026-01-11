@@ -21,6 +21,9 @@ export interface Client {
   name: string;
   slug: string;
   active: boolean;
+  role: string | null;
+  plan_name: string | null;
+  has_active_plan: boolean;
 }
 
 export interface PermissionGroup {

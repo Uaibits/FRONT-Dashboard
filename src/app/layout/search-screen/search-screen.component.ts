@@ -193,18 +193,13 @@ export class SearchScreenComponent implements OnInit, OnDestroy {
   }
 
   async selectClient(client: Client, event?: Event): Promise<void> {
-    if (event) {
-      event.stopPropagation();
-    }
+    if (event) event.stopPropagation();
 
-    if (!client.active) {
-      return;
-    }
+    if (!client.active) return;
 
     try {
-      await this.clientNavigation.switchClient(client);
+      await this.clientNavigation.switchClient(client, false);
       this.closeClientDropdown();
-      this.closeModal();
     } catch (error) {
       console.error('Erro ao trocar cliente:', error);
     }

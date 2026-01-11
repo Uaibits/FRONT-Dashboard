@@ -1,0 +1,128 @@
+<div class="invite-container">
+  <div class="background-wrapper">
+    <!-- Ícones flutuantes -->
+    <div class="floating-icons">
+      <div class="icon-box icon-1 primary">
+        <i class='bx bx-group'></i>
+      </div>
+      <div class="icon-box icon-2 secondary">
+        <i class='bx bx-envelope'></i>
+      </div>
+      <div class="icon-box icon-3 primary">
+        <i class='bx bx-user-plus'></i>
+      </div>
+      <div class="icon-box icon-4 secondary">
+        <i class='bx bx-briefcase'></i>
+      </div>
+      <div class="icon-box icon-5 muted">
+        <i class='bx bx-shield-alt-2'></i>
+      </div>
+      <div class="icon-box icon-6 primary">
+        <i class='bx bx-check-circle'></i>
+      </div>
+      <div class="icon-box icon-7 secondary">
+        <i class='bx bx-buildings'></i>
+      </div>
+      <div class="icon-box icon-8 muted">
+        <i class='bx bx-network-chart'></i>
+      </div>
+    </div>
+
+    <!-- Card de convite -->
+    <div class="invite-card-wrapper">
+      <div class="invite-card">
+        <!-- Logo -->
+        <div class="logo-container">
+          <img src="assets/uaibits.png" alt="UaiBits Logo" class="company-logo">
+        </div>
+
+        <!-- Loading State -->
+        @if (loading) {
+          <div class="loading-state">
+            <div class="spinner"></div>
+            <p class="loading-text">Carregando convite...</p>
+          </div>
+        }
+
+        <!-- Error State -->
+        @if (error && !loading) {
+          <div class="error-state">
+            <div class="error-icon">
+              <i class='bx bx-error-circle'></i>
+            </div>
+            <h2 class="error-title">Ops! Algo deu errado</h2>
+            <p class="error-message">{{ error }}</p>
+            <button class="btn-retry" (click)="loadInvite()">
+              <i class='bx bx-refresh'></i>
+              Tentar Novamente
+            </button>
+          </div>
+        }
+
+        <!-- Success State - Invitation Info -->
+        @if (infoData && !loading && !error) {
+          <div class="invite-content">
+            <div class="invite-icon">
+              <i class='bx bx-envelope-open'></i>
+            </div>
+
+            <h1 class="invite-title">Você foi convidado!</h1>
+
+            <div class="invite-details">
+              <div class="detail-item">
+                <div class="detail-icon">
+                  <i class='bx bx-buildings'></i>
+                </div>
+                <div class="detail-info">
+                  <span class="detail-label">Empresa</span>
+                  <span class="detail-value">{{ infoData.client_name }}</span>
+                </div>
+              </div>
+
+              <div class="detail-item">
+                <div class="detail-icon">
+                  <i class='bx bx-envelope'></i>
+                </div>
+                <div class="detail-info">
+                  <span class="detail-label">E-mail convidado</span>
+                  <span class="detail-value">{{ infoData.invited_email }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="invite-message">
+              @if (!infoData.existing_user) {
+                <p>
+                  <i class='bx bx-info-circle'></i>
+                  Como você ainda não possui uma conta, precisamos que se registre primeiro.
+                </p>
+              }
+              @if (infoData.existing_user) {
+                <p>
+                  <i class='bx bx-info-circle'></i>
+                  Faça login para aceitar o convite e acessar o projeto.
+                </p>
+              }
+            </div>
+
+            <div class="action-buttons">
+              @if (infoData.is_authenticated) {
+                <button
+                  class="btn-accept"
+                  (click)="acceptInvite()">
+                  <i class='bx bx-check'></i>
+                  Aceitar Convite
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Copyright -->
+    <div class="copyright">
+      <p>© {{ currentYear }} UaiBits. Todos os direitos reservados.</p>
+    </div>
+  </div>
+</div>

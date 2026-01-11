@@ -10,7 +10,6 @@ import {ClientService} from '../../services/client.service';
 import {Utils} from '../../services/utils.service';
 import {ToastService} from '../../components/toast/toast.service';
 import {Router} from '@angular/router';
-import {ButtonComponent} from '../../components/form/button/button.component';
 import {ToggleSwitchComponent} from '../../components/form/toggle-switch/toggle-switch.component';
 
 @Component({
@@ -18,7 +17,6 @@ import {ToggleSwitchComponent} from '../../components/form/toggle-switch/toggle-
   imports: [
     ReactiveFormsModule,
     InputComponent,
-    ButtonComponent,
     ToggleSwitchComponent
   ],
   templateUrl: './new-project.modal.html',

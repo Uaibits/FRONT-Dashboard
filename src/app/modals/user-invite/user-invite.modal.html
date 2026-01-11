@@ -1,0 +1,84 @@
+<div class="invite-modal">
+
+  @if (status === 'open') {
+    <!-- Formulário -->
+    <div class="form-container">
+      <ub-input
+        type="email"
+        label="Email do usuário"
+        placeholder="exemplo@empresa.com"
+        [(ngModel)]="data.email"
+      ></ub-input>
+
+      <ub-dropdown
+        label="Grupo de Acesso (Opcional)"
+        placeholder="Selecione o grupo de acesso"
+        [clearable]="true"
+        [options]="groups"
+        optionLabel="description"
+        optionValue="id"
+        [(value)]="data.group_id">
+      </ub-dropdown>
+
+      <p class="field-hint">
+        <i class="bx bx-info-circle"></i>
+        Caso selecionado, o grupo será atribuído automaticamente ao usuário
+      </p>
+    </div>
+
+    <!-- Explicações -->
+    <div class="info-box">
+      <i class="bx bx-mail-send"></i>
+      <p class="info-text">
+        O convite será enviado por e-mail para o usuário. Após aceitar,
+        o projeto aparecerá automaticamente na listagem de projetos dele no portal.
+      </p>
+    </div>
+
+    <div class="warning-box">
+      <i class="bx bx-time-five"></i>
+      <span>O convite expira em 24 horas</span>
+    </div>
+
+    <!-- Ações -->
+    <div class="modal-actions">
+      <button class="btn-cancel" (click)="modalRef.close()">
+        Cancelar
+      </button>
+      <ub-button
+        [loading]="loading"
+        icon="bx bx-send"
+        (click)="inviteUser()"
+        [disabled]="!data.email">
+        Enviar Convite
+      </ub-button>
+    </div>
+  }
+
+  @else if (status === 'sent') {
+    <!-- Tela de sucesso -->
+    <div class="success-container">
+      <div class="success-content">
+        <div class="success-icon">
+          <i class="bx bx-check-circle"></i>
+        </div>
+        <h3 class="success-title">Convite Enviado!</h3>
+        <p class="success-message">
+          O convite foi enviado para <strong>{{ data.email }}</strong>
+        </p>
+
+        <p class="success-info">
+          O usuário receberá um e-mail de notificação. Após aceitar o convite,
+          o projeto estará disponível na listagem dele.
+        </p>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-close" (click)="modalRef.close()">
+          Concluir
+        </button>
+      </div>
+    </div>
+  }
+
+</div>

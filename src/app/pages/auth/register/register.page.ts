@@ -1,6 +1,6 @@
 import {Component, OnInit, OnDestroy, Output, EventEmitter} from '@angular/core';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from '@angular/forms';
-import {Router} from '@angular/router';
+import {ActivatedRoute, Router} from '@angular/router';
 import {Subject, takeUntil} from 'rxjs';
 import {CommonModule} from '@angular/common';
 import {InputComponent} from '../../../components/form/input/input.component';
@@ -318,6 +318,7 @@ export class RegisterFormComponent implements OnInit, OnDestroy {
   loading = false;
   errors: { [key: string]: string } = {};
   personType: 'fisica' | 'juridica' = 'fisica';
+  private returnUrl: string = '/home';
 
   private destroy$ = new Subject<void>();
 
@@ -326,13 +327,15 @@ export class RegisterFormComponent implements OnInit, OnDestroy {
     private toast: ToastService,
     private authService: AuthService,
     private utils: Utils,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     this.initializeForm();
   }
 
   ngOnInit(): void {
     this.setupFormValidation();
+    this.getReturnUrl();
   }
 
   ngOnDestroy(): void {
@@ -440,7 +443,7 @@ export class RegisterFormComponent implements OnInit, OnDestroy {
       this.toast.success('Conta criada com sucesso!');
 
       setTimeout(() => {
-        this.router.navigate(['/home']);
+        this.navigateToReturnUrl();
       }, 100);
 
     } catch (error: any) {
@@ -463,6 +466,14 @@ export class RegisterFormComponent implements OnInit, OnDestroy {
     } finally {
       this.loading = false;
     }
+  }
+
+  private getReturnUrl(): void {
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/home';
+  }
+
+  private navigateToReturnUrl(): void {
+    this.router.navigate([this.returnUrl]);
   }
 
   protected readonly FormErrorHandlerService = FormErrorHandlerService;

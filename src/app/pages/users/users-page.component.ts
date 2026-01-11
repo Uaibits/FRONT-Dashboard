@@ -26,9 +26,9 @@ export class UsersPage implements OnInit {
     },
     actions: [
       {
-        label: 'Adicionar Usuário',
+        label: 'Convidar Usuário',
         icon: 'bx bx-plus',
-        action: () => this.open()
+        action: () => this.userService.openInviteUser()
       }
     ],
     itemActions: [

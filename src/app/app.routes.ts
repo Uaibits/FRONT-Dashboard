@@ -13,7 +13,6 @@ import {ParametersPage} from './pages/parameters/parameters.page';
 import {DynamicQueriesPage} from './pages/dynamic-queries/dynamic-queries.page';
 import {IntegrationsPage} from './pages/integrations/integrations.page';
 import {LogsSystemPage} from './pages/logs-system/logs-system.page';
-import {SystemPerformancePage} from './pages/system-performance/system-performance.page';
 import {DashboardsPage} from './pages/dashboards/dashboards.page';
 import {DashboardViewPage} from './pages/dashboards/dashboard-view/dashboard-view.page';
 import {DashboardInvitePage} from './pages/dashboards/dashboard-invite/dashboard-invite.page';
@@ -21,6 +20,7 @@ import {DashboardTemplatesPage} from './pages/dashboards/dashboard-templates/das
 import {ClientListPage} from './pages/core/client-list/client-list.page';
 import {AuthPage} from './pages/auth/auth.page';
 import {PlansPage} from './pages/core/plans/plans.page';
+import {AcceptProjectInvitationPage} from './pages/accept-project-invitation/accept-project-invitation.page';
 
 export const routes: Routes = [
   {
@@ -35,6 +35,10 @@ export const routes: Routes = [
         component: AuthPage,
       },
     ],
+  },
+  {
+    path: 'invite/accept/:inviteCode',
+    component: AcceptProjectInvitationPage
   },
   {
     path: '',
@@ -189,14 +193,6 @@ export const routes: Routes = [
               permission: 'log.view',
             },
             component: LogsSystemPage
-          },
-          {
-            path: 'system-permormance',
-            canActivate: [PermissionGuard],
-            data: {
-              permission: 'system_performance.view',
-            },
-            component: SystemPerformancePage
           }
         ],
       }

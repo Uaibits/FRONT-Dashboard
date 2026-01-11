@@ -6,11 +6,11 @@ import {Client} from '../../../models/user';
 import {ToastService} from '../../../components/toast/toast.service';
 import {Utils} from '../../../services/utils.service';
 import {AuthService} from '../../../security/auth.service';
-import {ContentComponent} from '../../../components/content/content.component';
+import {ClientNavigationService} from '../../../services/client-navigation.service';
 
 @Component({
   selector: 'app-client-list',
-  imports: [CommonModule, ContentComponent],
+  imports: [CommonModule],
   templateUrl: './client-list.page.html',
   standalone: true,
   styleUrl: './client-list.page.scss'
@@ -25,7 +25,8 @@ export class ClientListPage implements OnInit {
     private clientService: ClientService,
     private router: Router,
     private toast: ToastService,
-    protected auth: AuthService
+    protected auth: AuthService,
+    private clientNavigation: ClientNavigationService
   ) {
   }
 
@@ -51,7 +52,7 @@ export class ClientListPage implements OnInit {
 
   onClientSelect(client: Client): void {
     if (!client.active) return;
-    this.router.navigate([`/${client.slug}/home`]);
+    this.clientNavigation.switchClient(client);
   }
 
   onNewProject() {

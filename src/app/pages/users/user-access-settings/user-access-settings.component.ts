@@ -71,6 +71,7 @@ export class UserAccessSettingsComponent implements OnInit, OnDestroy, OnChanges
     try {
       this.setLoading(true);
       this.permissions = await this.permissionService.getPermissions();
+      this.groups = await this.permissionService.getPermissionsGroup();
 
       this.groupId = this.user.group ? this.user.group.id : null;
       this.selectedPermissions = this.user.permissions.reduce(

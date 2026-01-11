@@ -6,6 +6,8 @@ import {firstValueFrom} from 'rxjs';
 import {AuthService} from '../security/auth.service';
 import {User} from '../models/user';
 import {Utils} from './utils.service';
+import {ModalService} from '../modals/modal/modal.service';
+import {UserInviteModal} from '../modals/user-invite/user-invite.modal';
 
 @Injectable(
   {providedIn: 'root'}
@@ -16,7 +18,8 @@ export class UserService {
 
   constructor(
     private http: HttpClient,
-    private toast: ToastService
+    private toast: ToastService,
+    private modalService: ModalService
   ) {
   }
 
@@ -83,4 +86,23 @@ export class UserService {
     }
   }
 
+  openInviteUser() {
+    this.modalService.open({
+      component: UserInviteModal,
+      title: 'Convidar Usuário',
+      size: 'md'
+    })
+  }
+
+  inviteUser(data: { email: string, group_id: number | null }) {
+    return firstValueFrom(this.http.post<any>(`${this.API_URL}/user/invite`, data));
+  }
+
+  getInvite(code: string) {
+    return firstValueFrom(this.http.get<any>(`${this.API_URL}/user/invite/info?code=${code}`));
+  }
+
+  acceptInvite(code: string) {
+    return firstValueFrom(this.http.post<any>(`${this.API_URL}/user/invite/accept`, {code}));
+  }
 }

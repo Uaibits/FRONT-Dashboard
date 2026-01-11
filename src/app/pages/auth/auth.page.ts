@@ -68,15 +68,17 @@ import {RegisterFormComponent} from './register/register.page';
             </div>
 
             <!-- Formulários -->
-            <app-login-form
-              *ngIf="!isRegisterMode"
-              (switchToRegister)="switchMode('register')">
-            </app-login-form>
+            @if (!isRegisterMode) {
+              <app-login-form
+                (switchToRegister)="switchMode('register')">
+              </app-login-form>
+            }
 
-            <app-register-form
-              *ngIf="isRegisterMode"
-              (switchToLogin)="switchMode('login')">
-            </app-register-form>
+            @if (isRegisterMode) {
+              <app-register-form
+                (switchToLogin)="switchMode('login')">
+              </app-register-form>
+            }
           </div>
         </div>
 
@@ -92,6 +94,7 @@ import {RegisterFormComponent} from './register/register.page';
 export class AuthPage implements OnInit {
   isRegisterMode = false;
   currentYear: number = new Date().getFullYear();
+  returnUrl: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -99,6 +102,11 @@ export class AuthPage implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // Captura o returnUrl dos query params
+    this.route.queryParams.subscribe(params => {
+      this.returnUrl = params['returnUrl'] || null;
+    });
+
     // Detecta a rota atual para saber qual modo exibir
     this.route.url.subscribe(segments => {
       const path = segments[0]?.path || '';
@@ -109,6 +117,12 @@ export class AuthPage implements OnInit {
   switchMode(mode: 'login' | 'register'): void {
     this.isRegisterMode = mode === 'register';
     const newPath = mode === 'register' ? '/auth/registrar' : '/auth/logar';
-    this.router.navigate([newPath]);
+
+    // Preserva o returnUrl ao trocar de modo
+    const navigationExtras = this.returnUrl
+      ? { queryParams: { returnUrl: this.returnUrl } }
+      : {};
+
+    this.router.navigate([newPath], navigationExtras);
   }
 }

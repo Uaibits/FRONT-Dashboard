@@ -24,7 +24,7 @@ export class ClientNavigationService {
   /**
    * Troca o cliente atual e realiza todas as atualizações necessárias
    */
-  async switchClient(client: Client): Promise<void> {
+  async switchClient(client: Client, navigate: boolean = true): Promise<void> {
     try {
       // 1. Define o novo cliente
       this.clientService.setCurrentClient(client);
@@ -44,8 +44,10 @@ export class ClientNavigationService {
       // 5. Recarrega os dashboards navegáveis
       await this.layoutService.reloadDashboards();
 
-      // 6. Navega para a home do cliente
-      await this.router.navigate([`/${client.slug}/home`]);
+      if (navigate) {
+        // 6. Navega para a home do cliente
+        await this.router.navigate([`/${client.slug}/home`]);
+      }
 
     } catch (error) {
       console.error('Erro ao trocar cliente:', error);

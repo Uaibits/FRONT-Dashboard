@@ -1,0 +1,425 @@
+.invite-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--background-color) 0%, #e8e8e8 100%);
+  padding: var(--spacing-large);
+  position: relative;
+  overflow: hidden;
+}
+
+.background-wrapper {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+// Ícones flutuantes
+.floating-icons {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 0;
+
+  .icon-box {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    animation: float 6s ease-in-out infinite;
+
+    i {
+      font-size: 36px;
+    }
+
+    &.primary {
+      background: rgba(var(--primary-color-rgb), 0.05);
+      border: 1px solid rgba(var(--primary-color-rgb), 0.1);
+      i { color: var(--primary-color); }
+    }
+
+    &.secondary {
+      background: rgba(var(--secondary-color-rgb), 0.05);
+      border: 1px solid rgba(var(--secondary-color-rgb), 0.1);
+      i { color: var(--secondary-color); }
+    }
+
+    &.muted {
+      background: rgba(108, 117, 125, 0.05);
+      border: 1px solid rgba(108, 117, 125, 0.1);
+      i { color: var(--text-muted); }
+    }
+
+    // Posicionamento
+    &.icon-1 { top: 10%; left: 8%; animation-delay: 0s; }
+    &.icon-2 { top: 20%; right: 10%; animation-delay: 1s; }
+    &.icon-3 { top: 45%; left: 5%; animation-delay: 2s; }
+    &.icon-4 { top: 60%; right: 8%; animation-delay: 0.5s; }
+    &.icon-5 { bottom: 15%; left: 12%; animation-delay: 1.5s; }
+    &.icon-6 { bottom: 25%; right: 15%; animation-delay: 2.5s; }
+    &.icon-7 { top: 70%; left: 50%; animation-delay: 1.8s; }
+    &.icon-8 { top: 15%; left: 50%; animation-delay: 0.8s; }
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(5deg);
+  }
+}
+
+// Card de convite
+.invite-card-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+  position: relative;
+  z-index: 2;
+}
+
+.invite-card {
+  background: var(--bg-white);
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  padding: 3rem;
+  width: 100%;
+  max-width: 550px;
+  position: relative;
+  animation: slideIn 0.5s ease-out;
+
+  @media (max-width: 768px) {
+    padding: 2rem;
+    border-radius: 16px;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Logo
+.logo-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+
+  .company-logo {
+    height: 50px;
+    width: auto;
+    padding: 12px 24px;
+    background: var(--primary-color);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.2);
+  }
+}
+
+// Loading State
+.loading-state {
+  text-align: center;
+  padding: 3rem 0;
+
+  .spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid var(--background-color);
+    border-top-color: var(--secondary-color);
+    border-radius: 50%;
+    margin: 0 auto 1.5rem;
+    animation: spin 0.8s linear infinite;
+  }
+
+  .loading-text {
+    color: var(--text-muted);
+    font-size: 16px;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// Error State
+.error-state {
+  text-align: center;
+  padding: 2rem 0;
+
+  .error-icon {
+    margin-bottom: 1.5rem;
+
+    i {
+      font-size: 64px;
+      color: var(--danger-color);
+    }
+  }
+
+  .error-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 1rem;
+  }
+
+  .error-message {
+    color: var(--text-muted);
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+  }
+
+  .btn-retry {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 12px 32px;
+    border-radius: var(--border-radius);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-speed) ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+
+    i {
+      font-size: 18px;
+    }
+
+    &:hover {
+      background: var(--primary-color-light);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.3);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+}
+
+// Invite Content
+.invite-content {
+  text-align: center;
+
+  .invite-icon {
+    margin-bottom: 1.5rem;
+
+    i {
+      font-size: 64px;
+      color: var(--secondary-color);
+      animation: bounce 2s ease-in-out infinite;
+    }
+  }
+
+  .invite-title {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--text-color);
+    margin-bottom: 2rem;
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+// Detalhes do convite
+.invite-details {
+  background: var(--background-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  text-align: left;
+
+  .detail-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: white;
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    .detail-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--secondary-color), var(--secondary-color-light));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+
+      i {
+        font-size: 20px;
+        color: white;
+      }
+    }
+
+    .detail-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      .detail-label {
+        font-size: 12px;
+        color: var(--text-muted);
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .detail-value {
+        font-size: 15px;
+        color: var(--text-color);
+        font-weight: 600;
+        word-break: break-all;
+      }
+    }
+  }
+}
+
+// Mensagem informativa
+.invite-message {
+  background: rgba(var(--info-color-rgb), 0.1);
+  border: 1px solid rgba(var(--info-color-rgb), 0.2);
+  border-radius: var(--border-radius);
+  padding: 1rem 1.25rem;
+  margin-bottom: 2rem;
+
+  p {
+    margin: 0;
+    color: var(--text-color);
+    font-size: 14px;
+    line-height: 1.6;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+
+    i {
+      font-size: 18px;
+      color: var(--info-color);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+  }
+}
+
+// Botões de ação
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  .btn-accept {
+    background: linear-gradient(135deg, var(--success-color), var(--success-color-dark));
+    color: white;
+    border: none;
+    padding: 14px 32px;
+    border-radius: var(--border-radius);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-speed) ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(var(--success-color-rgb), 0.3);
+
+    i {
+      font-size: 20px;
+    }
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(var(--success-color-rgb), 0.4);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+}
+
+// Copyright
+.copyright {
+  text-align: center;
+  padding: 2rem 0;
+  position: relative;
+  z-index: 2;
+
+  p {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin: 0;
+  }
+}
+
+// Responsividade
+@media (max-width: 768px) {
+  .invite-container {
+    padding: var(--spacing-medium);
+  }
+
+  .invite-card {
+    padding: 1.5rem;
+  }
+
+  .invite-content {
+    .invite-title {
+      font-size: 24px;
+    }
+
+    .invite-icon i {
+      font-size: 48px;
+    }
+  }
+
+  .floating-icons .icon-box {
+    width: 60px;
+    height: 60px;
+
+    i {
+      font-size: 28px;
+    }
+  }
+}
+
+// Adiciona variável para ano
+.invite-card-wrapper {
+  .currentYear {
+    display: none;
+  }
+}
