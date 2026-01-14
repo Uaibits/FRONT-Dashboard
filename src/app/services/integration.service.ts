@@ -16,6 +16,7 @@ export interface Integration {
   description: string;
   version: string;
   parameters: DynamicParams;
+  is_configured: boolean
 }
 
 @Injectable(
@@ -32,9 +33,22 @@ export class IntegrationService {
   ) {
   }
 
-  async getIntegrations(): Promise<Integration[]> {
+  async getIntegrations(filters?: {
+    [key: string]: any
+  }): Promise<any> {
+    const params: any = {};
+
     try {
-      const response = await firstValueFrom(this.http.get<any>(`${this.API_URL}/integration`));
+
+      if (filters) {
+        Object.keys(filters).forEach(key => {
+          if (filters[key] !== null && filters[key] !== undefined) {
+            params[key] = filters[key];
+          }
+        });
+      }
+
+      const response = await firstValueFrom(this.http.get<any>(`${this.API_URL}/integration`, { params }));
       return response.data as Integration[];
     } catch (err: any) {
       this.toast.error(Utils.getErrorMessage(err));
@@ -99,5 +113,18 @@ export class IntegrationService {
 
   async testIntegration(integrationId: number) {
     return firstValueFrom(this.http.get<any>(`${this.API_URL}/integration/${integrationId}/test-connection`));
+  }
+
+  async deleteIntegration(id: number) {
+    return firstValueFrom(this.http.delete<any>(`${this.API_URL}/integration/${id}/delete`));
+  }
+
+  async sendIntegrationSuggestion(suggestionForm: {
+    integration_name: string;
+    purpose: string;
+    priority: string
+    features: string | null;
+  }) {
+    return firstValueFrom(this.http.post<any>(`${this.API_URL}/integration/suggestion`, suggestionForm));
   }
 }

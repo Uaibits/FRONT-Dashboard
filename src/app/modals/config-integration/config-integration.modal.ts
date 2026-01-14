@@ -124,4 +124,16 @@ export class ConfigIntegrationModal implements OnInit {
 
     this.integrationService.openTestIntegrationModal(this.integration, this.configIntegration.id);
   }
+
+  async removeIntegration() {
+    this.loading = true;
+    try {
+      await this.integrationService.deleteIntegration(this.configIntegration.id);
+      this.toast.success('Integração removida com sucesso');
+      this.configIntegration = null;
+      this.modalRef.close();
+    } catch (responseError: any) {
+      this.toast.error(responseError.error.message || 'Erro ao remover integração');
+    }
+  }
 }

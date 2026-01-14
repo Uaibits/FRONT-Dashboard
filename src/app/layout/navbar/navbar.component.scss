@@ -410,10 +410,11 @@
 
         .user-role {
           font-size: 0.75rem;
-          color: var(--text-secondary);
+          color: var(--primary-color);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
+          font-weight: 600;
         }
       }
 

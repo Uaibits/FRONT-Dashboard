@@ -4,6 +4,8 @@ import {Router, RouterModule} from '@angular/router';
 import {LayoutService, TabOpen} from '../layout.service';
 import {AuthService} from '../../security/auth.service';
 import {SearchScreenComponent} from '../search-screen/search-screen.component';
+import {ClientNavigationService} from '../../services/client-navigation.service';
+import {ClientService} from '../../services/client.service';
 
 @Component({
   selector: 'app-navbar',
@@ -27,7 +29,8 @@ export class NavbarComponent implements OnInit, AfterViewInit {
   constructor(
     public router: Router,
     public auth: AuthService,
-    public layout: LayoutService
+    public layout: LayoutService,
+    public clientService: ClientService
   ) {}
 
   ngOnInit(): void {
@@ -142,9 +145,9 @@ export class NavbarComponent implements OnInit, AfterViewInit {
   }
 
   groupDescription() {
-    const user = this.auth.getUser();
-    if (user && user.group) return user.group.description;
-    return "";
+    const client = this.clientService.getCurrentClient();
+    if (client) return client.name;
+    return 'UaiBits';
   }
 
   goHome() {

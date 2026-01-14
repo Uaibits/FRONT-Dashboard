@@ -16,10 +16,18 @@
             </div>
 
             <!-- Botão Testar -->
-            <button class="btn-test" (click)="testIntegration()">
-              <i class="bx bx-plug"></i>
-              <span>Testar Integração</span>
-            </button>
+            <div class="btn-groups">
+              @if (integration.is_configured) {
+                <button class="btn-remove" (click)="removeIntegration()">
+                  <i class="bx bx-trash"></i>
+                  <span>Remover</span>
+                </button>
+              }
+              <button class="btn-test" (click)="testIntegration()">
+                <i class="bx bx-plug"></i>
+                <span>Testar Integração</span>
+              </button>
+            </div>
           </div>
         </div>
 

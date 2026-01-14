@@ -1,61 +1,265 @@
-<ub-content [loading]="loading">
+<ub-content title="Integrações Disponíveis"
+            description="Conecte seu sistema com as principais plataformas do mercado e amplifique suas possibilidades">
 
-  <!-- Header Section -->
-  <div class="integrations-header">
-    <h2 class="page-title">Integrações Disponíveis</h2>
-    <p class="page-subtitle">Conecte seu sistema com as principais plataformas do mercado e amplifique suas
-      possibilidades</p>
-  </div>
+  <div class="integrations-marketplace">
 
-  <!-- Empty State -->
-  @if (!loading && integrations.length === 0) {
-    <div class="empty-state">
-      <div class="empty-icon">
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path
-            d="M13 16H12V12H11M12 8H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
-            stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+    <!-- Overlay para mobile -->
+    @if (sidebarOpen) {
+      <div class="sidebar-overlay" (click)="toggleSidebar()"></div>
+    }
+
+    <!-- Sidebar de Filtros -->
+    <aside class="filters-sidebar" [class.open]="sidebarOpen">
+      <div class="sidebar-header">
+        <h3>
+          <i class="bx bx-filter-alt"></i>
+          Filtros
+        </h3>
+        <button class="btn-close-sidebar" (click)="toggleSidebar()">
+          <i class="bx bx-x"></i>
+        </button>
       </div>
-      <h3 class="empty-title">Nenhuma integração encontrada</h3>
-      <p class="empty-description">Não foi possível carregar as integrações disponíveis no momento. Tente novamente em
-        alguns instantes.</p>
-    </div>
-  }
 
-  <!-- Integrations Grid -->
-  @if (!loading && integrations.length > 0) {
-    <div class="integrations-grid" [class.loading]="loading">
-      @for (integration of integrations; track integration.integration_name) {
-        <div class="integration-card" (click)="onConfigureIntegration(integration)">
+      <div class="sidebar-content">
 
-          <div class="card-content">
-            <!-- Card Header -->
-            <div class="card-header">
-              <div class="integration-logo">
-                <img [src]="integration.img"
-                     [alt]="integration.name + ' logo'"
-                     (error)="onImageError($event)"
-                     loading="lazy">
-              </div>
-              <div class="integration-info">
-                <div class="infos">
-                  <h3 class="integration-name">{{ integration.name }}</h3>
-                  <span class="integration-version">v{{ integration.version }}</span>
+        <!-- Busca -->
+        <div class="filter-section">
+          <label class="filter-label">
+            <i class="bx bx-search"></i>
+            Buscar Integrações
+          </label>
+          <div class="search-input-wrapper">
+            <input
+              type="text"
+              class="search-input"
+              placeholder="Digite para buscar..."
+              [value]="searchTerm"
+              (input)="onSearchChange($any($event.target).value)">
+            @if (searchTerm) {
+              <button class="btn-clear-search" (click)="onSearchChange('')">
+                <i class="bx bx-x"></i>
+              </button>
+            }
+          </div>
+        </div>
+
+        <!-- Status de Configuração -->
+        <div class="filter-section">
+          <label class="filter-label">
+            <i class="bx bx-cog"></i>
+            Status de Configuração
+          </label>
+          <div class="filter-list">
+            <button
+              class="filter-item"
+              [class.active]="configFilter === 'all'"
+              (click)="selectConfigFilter('all')">
+              <i class="bx bx-list-ul"></i>
+              <span>Todas</span>
+              @if (configFilter === 'all') {
+                <i class="bx bx-check check-icon"></i>
+              }
+            </button>
+
+            <button
+              class="filter-item"
+              [class.active]="configFilter === 'configured'"
+              (click)="selectConfigFilter('configured')">
+              <i class="bx bx-check-circle"></i>
+              <span>Configuradas</span>
+              <span class="count-badge">{{ getConfiguredCount() }}</span>
+              @if (configFilter === 'configured') {
+                <i class="bx bx-check check-icon"></i>
+              }
+            </button>
+
+            <button
+              class="filter-item"
+              [class.active]="configFilter === 'not_configured'"
+              (click)="selectConfigFilter('not_configured')">
+              <i class="bx bx-x-circle"></i>
+              <span>Não Configuradas</span>
+              <span class="count-badge">{{ getNotConfiguredCount() }}</span>
+              @if (configFilter === 'not_configured') {
+                <i class="bx bx-check check-icon"></i>
+              }
+            </button>
+          </div>
+        </div>
+
+        <!-- Botão Limpar Filtros -->
+        @if (hasActiveFilters()) {
+          <div class="filter-section">
+            <button class="btn-clear-filters" (click)="clearFilters()">
+              <i class="bx bx-reset"></i>
+              <span>Limpar Filtros</span>
+            </button>
+          </div>
+        }
+      </div>
+    </aside>
+
+    <!-- Conteúdo Principal -->
+    <main class="integrations-content">
+
+      <!-- Header com botão de filtros mobile -->
+      <div class="content-header">
+        <button class="btn-toggle-filters" (click)="toggleSidebar()">
+          <i class="bx bx-filter-alt"></i>
+          <span>Filtros</span>
+          @if (hasActiveFilters()) {
+            <span class="filter-badge">{{ (searchTerm ? 1 : 0) + (configFilter !== 'all' ? 1 : 0) }}</span>
+          }
+        </button>
+
+        @if (integrations.length > 0) {
+          <div class="results-count">
+            <span>{{ integrations.length }} {{ integrations.length === 1 ? 'integração encontrada' : 'integrações encontradas' }}</span>
+          </div>
+        }
+      </div>
+
+      <!-- Grid de integrações -->
+      @if (integrations.length > 0) {
+        <div class="integrations-grid" [class.loading]="loading">
+          @for (integration of integrations; track integration.integration_name) {
+            <div class="integration-card" (click)="onConfigureIntegration(integration)">
+              <div class="card-content">
+
+                <!-- Card Header -->
+                <div class="card-header">
+                  <div class="integration-logo">
+                    <img
+                      [src]="integration.img"
+                      [alt]="integration.name + ' logo'"
+                      (error)="onImageError($event)"
+                      loading="lazy">
+                  </div>
+                  <div class="integration-info">
+                    <div class="infos">
+                      <h3 class="integration-name">{{ integration.name }}</h3>
+                      <div class="info-badges">
+                        <span class="integration-version">v{{ integration.version }}</span>
+                        @if ($any(integration).is_configured) {
+                          <span class="status-badge configured">
+                            <i class="bx bx-check-circle"></i>
+                          </span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Card Body -->
+                <div class="card-body">
+                  <p class="integration-description">{{ integration.description }}</p>
                 </div>
               </div>
             </div>
-
-            <!-- Card Body -->
-            <div class="card-body">
-              <p class="integration-description">{{ integration.description }}</p>
-            </div>
-
-          </div>
-
+          }
         </div>
       }
-    </div>
-  }
+
+      <!-- Estado vazio -->
+      @if (integrations.length === 0 && !loading) {
+        <div class="empty-state">
+          <!-- Formulário de sugestão -->
+          <div class="suggestion-container">
+            <div class="suggestion-header">
+              <div class="header-icon">
+                <i class="bx bx-bulb"></i>
+              </div>
+              <h3>Não encontrou a integração que precisa?</h3>
+              <p>Ajude-nos a melhorar! Sugira uma nova integração que você gostaria de ver na plataforma.</p>
+            </div>
+
+            <form class="suggestion-form" (submit)="submitSuggestion($event)">
+              <div class="form-row">
+
+                <div class="form-group">
+                  <label for="integration-name">
+                    <i class="bx bx-plug"></i>
+                    Nome da Integração
+                    <span class="required">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="integration-name"
+                    name="integrationName"
+                    [(ngModel)]="suggestionForm.integration_name"
+                    placeholder="Ex: Salesforce, HubSpot, Slack..."
+                    required>
+                </div>
+
+                <div class="form-group">
+                  <label for="priority">
+                    <i class="bx bx-bar-chart-alt"></i>
+                    Prioridade
+                    <span class="required">*</span>
+                  </label>
+                  <select
+                    id="priority"
+                    name="priority"
+                    [(ngModel)]="suggestionForm.priority"
+                    required>
+                    <option value="">Selecione...</option>
+                    <option value="low">Baixa - Seria interessante ter</option>
+                    <option value="medium">Média - Facilitaria bastante</option>
+                    <option value="high">Alta - É essencial para meu negócio</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="purpose">
+                  <i class="bx bx-target-lock"></i>
+                  Finalidade da Integração
+                  <span class="required">*</span>
+                </label>
+                <textarea
+                  id="purpose"
+                  name="purpose"
+                  [(ngModel)]="suggestionForm.purpose"
+                  placeholder="Descreva como você pretende usar essa integração e quais problemas ela resolveria..."
+                  rows="3"
+                  required></textarea>
+              </div>
+
+              <div class="form-group">
+                <label for="features">
+                  <i class="bx bx-list-check"></i>
+                  Recursos Esperados
+                </label>
+                <textarea
+                  id="features"
+                  name="features"
+                  [(ngModel)]="suggestionForm.features"
+                  placeholder="Liste os principais recursos que você gostaria de ter (ex: sincronização de dados, automações, relatórios...)"
+                  rows="3"></textarea>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" class="btn-submit" [disabled]="submittingSuggestion">
+                  @if (submittingSuggestion) {
+                    <i class="bx bx-loader-alt bx-spin"></i>
+                    <span>Enviando...</span>
+                  } @else {
+                    <i class="bx bx-send"></i>
+                    <span>Enviar Sugestão</span>
+                  }
+                </button>
+              </div>
+
+              <p class="form-note">
+                <i class="bx bx-info-circle"></i>
+                Todas as sugestões são analisadas pela nossa equipe e priorizadas de acordo com a demanda.
+              </p>
+            </form>
+          </div>
+        </div>
+      }
+
+    </main>
+  </div>
 
 </ub-content>
