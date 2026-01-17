@@ -34,7 +34,7 @@ export class ClientNavigationService {
       this.layoutService.setOpenTabs([]);
 
       // 4. Atualiza informações do usuário
-      this.authService.refreshUserData();
+      this.authService.refreshUserDataSync();
 
       // 5. Recarrega os dashboards navegáveis
       await this.layoutService.reloadDashboards();
@@ -67,7 +67,7 @@ export class ClientNavigationService {
 
       if (client) {
         // Atualiza informações do usuário
-        this.authService.refreshUserData();
+        this.authService.refreshUserDataSync();
 
         // Recarrega dashboards
         await this.layoutService.reloadDashboards();

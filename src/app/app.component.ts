@@ -30,7 +30,7 @@ export class AppComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     if (this.auth.isAuthenticated()) {
-      this.auth.refreshUserData();
+      this.auth.refreshUserDataSync();
     }
   }
 

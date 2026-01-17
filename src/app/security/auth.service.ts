@@ -136,8 +136,20 @@ export class AuthService {
       catchError((error) => {
         console.error('Failed to refresh user data:', error);
         return throwError(() => error);
-      })
+      }),
     );
+  }
+
+  refreshUserDataSync(): Promise<void> {
+    return firstValueFrom(
+      this.http.get<{ data: User }>(`${environment.api}/profile`)
+    ).then(response => {
+      this.storeUser(response.data);
+      this.userSubject.next(response.data);
+    }).catch(error => {
+      console.error('Failed to refresh user data (sync):', error);
+      throw error;
+    });
   }
 
   /**

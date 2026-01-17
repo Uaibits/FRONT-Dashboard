@@ -35,10 +35,26 @@
                       [provider]="getOAuthProvider(param)"
                       [disabled]="disabled"
                       [integrationName]="integrationName || ''"
-                      (connected)="onOAuthConnected($event, param)"
                       (disconnected)="onOAuthDisconnected(param)"
-                      (resourcesUpdated)="onResourcesUpdated($event)"
                     ></ub-oauth-connect>
+                  }
+
+                  <!-- Dynamic Select -->
+                  @if (param.type === 'dynamic_select') {
+                    <ub-dynamic-select
+                      [label]="param.label || getDefaultLabel(param.name)"
+                      [placeholder]="param.placeholder || getDefaultPlaceholder(param)"
+                      [formControlName]="param.name"
+                      [required]="param.required"
+                      [disabled]="disabled"
+                      [helpText]="param.description || ''"
+                      [error]="getFieldError(param.name)"
+                      [url]="param.url || ''"
+                      [listPath]="param.listPath || 'data'"
+                      [fieldValue]="param.fieldValue || 'id'"
+                      [fieldLabel]="param.fieldLabel || 'name'"
+                      [reloadTriggers]="param.reloadTriggers || []"
+                    ></ub-dynamic-select>
                   }
 
                   <!-- Input de Texto/URL/Email -->

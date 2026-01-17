@@ -1,4 +1,4 @@
-import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges} from '@angular/core';
+import {Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChildren, QueryList} from '@angular/core';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule} from '@angular/forms';
 import {ToastService} from '../toast/toast.service';
 import {Utils} from '../../services/utils.service';
@@ -14,6 +14,7 @@ import {ColumnMappingComponent} from '../column-mapping/column-mapping.component
 import {SeriesConfigComponent} from '../series-config/series-config.component';
 import {ColorPickerComponent} from '../color-picker/color-picker.component';
 import {OauthConnectComponent} from './ub-oauth-connect.component';
+import {DynamicSelectComponent} from './ub-dynamic-select.component';
 
 export interface DynamicParameter {
   name: string;
@@ -30,6 +31,11 @@ export interface DynamicParameter {
   sensitive: boolean;
   dependsOn?: string[] | { [key: string]: any };
   arrayItemType?: any;
+  url?: string;
+  listPath?: string;
+  fieldValue?: string;
+  fieldLabel?: string;
+  reloadTriggers?: string[]; // Novo: lista de campos que disparam reload
 }
 
 export interface DynamicParams {
@@ -52,6 +58,7 @@ export interface DynamicParams {
     SeriesConfigComponent,
     ColumnMappingComponent,
     OauthConnectComponent,
+    DynamicSelectComponent,
     ReactiveFormsModule
   ],
   templateUrl: './dynamic-parameters.component.html',
@@ -72,8 +79,10 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
   @Output() formChange = new EventEmitter<any>();
   @Output() formValid = new EventEmitter<boolean>();
 
+  @ViewChildren(DynamicSelectComponent) dynamicSelects!: QueryList<DynamicSelectComponent>;
+
   form!: FormGroup;
-  oauthResources: any = null;
+  private previousFormValues: any = {};
 
   constructor(
     private fb: FormBuilder,
@@ -127,6 +136,7 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
     const formControls: { [key: string]: any } = {};
 
     Object.values(this.dynamicParams).flat().forEach(param => {
+      if (param.type === 'oauth_connect') return;
       const defaultValue = this.getDefaultValue(param);
       formControls[param.name] = [defaultValue, this.getValidators(param)];
     });
@@ -140,6 +150,7 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
   private setupFormSubscriptions() {
     this.form.valueChanges.subscribe(value => {
       this.formChange.emit(value);
+      this.handleReloadTriggers(value);
     });
 
     this.form.statusChanges.subscribe(status => {
@@ -147,11 +158,69 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
     });
   }
 
+  /**
+   * Verifica se algum campo que é trigger de reload foi alterado
+   * e dispara o reload dos dynamic_selects correspondentes
+   */
+  private handleReloadTriggers(currentFormValues: any) {
+    if (!this.dynamicSelects || this.dynamicSelects.length === 0) {
+      return;
+    }
+
+    // Procura por parâmetros dynamic_select que têm reloadTriggers
+    Object.values(this.dynamicParams).flat().forEach(param => {
+      if (param.type === 'dynamic_select' && param.reloadTriggers && param.reloadTriggers.length > 0) {
+        // Verifica se algum dos triggers foi alterado
+        const shouldReload = param.reloadTriggers.some(triggerField => {
+          const previousValue = this.previousFormValues[triggerField];
+          const currentValue = currentFormValues[triggerField];
+
+          // Verifica se houve mudança significativa
+          if (previousValue !== currentValue) {
+            // Para OAuth, verifica se foi de false para true (conectou)
+            if (triggerField.includes('oauth') && currentValue === true && previousValue !== true) {
+              return true;
+            }
+            // Para outros campos, qualquer mudança dispara
+            if (!triggerField.includes('oauth') && currentValue) {
+              return true;
+            }
+          }
+          return false;
+        });
+
+        if (shouldReload) {
+          // Encontra o componente dynamic-select correspondente e recarrega
+          const selectComponent = this.dynamicSelects.find(
+            ds => ds.label === (param.label || this.getDefaultLabel(param.name))
+          );
+
+          if (selectComponent) {
+            console.log(`Recarregando ${param.name} devido a mudança em triggers:`, param.reloadTriggers);
+
+            // Limpa o valor atual antes de recarregar
+            this.form.patchValue({ [param.name]: '' }, { emitEvent: false });
+
+            // Dispara reload após um pequeno delay para garantir que a API tenha os dados atualizados
+            setTimeout(() => {
+              selectComponent.reload();
+            }, 300);
+          }
+        }
+      }
+    });
+
+    // Atualiza os valores anteriores para próxima comparação
+    this.previousFormValues = { ...currentFormValues };
+  }
+
   private updateFormValues() {
     if (this.paramsValue && this.form) {
       this.form.patchValue(this.paramsValue, {emitEvent: false});
+      this.previousFormValues = { ...this.paramsValue };
     } else {
       this.form.reset({});
+      this.previousFormValues = {};
     }
   }
 
@@ -170,7 +239,6 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
       case 'boolean':
         return param.defaultValue ?? false;
       case 'oauth_connect':
-        // OAuth sempre começa como false até conectar
         return false;
       case 'array':
       case 'multiselect':
@@ -179,6 +247,8 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
         return param.defaultValue ?? [];
       case 'object':
         return param.defaultValue ? param.defaultValue : {};
+      case 'dynamic_select':
+        return param.defaultValue ?? '';
       default:
         return param.defaultValue ?? '';
     }
@@ -187,7 +257,6 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
   private getValidators(param: DynamicParameter): any[] {
     const validators: any[] = [];
 
-    // OAuth connect não precisa de validação required tradicional
     if (param.type === 'oauth_connect') {
       return validators;
     }
@@ -261,7 +330,7 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
   }
 
   getColumnClass(param: DynamicParameter): string {
-    if (['object', 'array', 'sql', 'javascript', 'column_mapping', 'series_config', 'oauth_connect'].includes(param.type)) {
+    if (['object', 'array', 'sql', 'javascript', 'column_mapping', 'series_config', 'oauth_connect', 'dynamic_select'].includes(param.type)) {
       return 'col-12';
     }
     if (param.type === 'color') {
@@ -302,27 +371,14 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
         return 'Digite um número';
       case 'date':
         return 'dd/mm/aaaa';
+      case 'dynamic_select':
+        return 'Selecione uma opção';
       default:
         return `Digite ${this.getDefaultLabel(param.name).toLowerCase()}`;
     }
   }
 
   getSelectOptions(param: DynamicParameter): any[] {
-    // Se tem recursos OAuth e o parâmetro depende deles, atualiza as opções
-    if (this.oauthResources && param.dependsOn && Array.isArray(param.dependsOn)) {
-      const dependsOnOAuth = param.dependsOn.some(dep => dep.includes('oauth'));
-      if (dependsOnOAuth && this.oauthResources.ad_accounts) {
-        const options: any[] = [];
-        this.oauthResources.ad_accounts.forEach((account: any) => {
-          options.push({
-            label: `${account.name} (${account.id})`,
-            value: account.id
-          });
-        });
-        return options;
-      }
-    }
-
     if (Array.isArray(param.options)) {
       return param.options.map(option =>
         typeof option === 'string' ?
@@ -397,27 +453,7 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
     return param.validation?.provider || 'oauth';
   }
 
-  // Handlers para eventos OAuth
-  onOAuthConnected(resources: any, param: DynamicParameter) {
-    this.oauthResources = resources;
-    this.form.patchValue({ [param.name]: true });
-
-    // Se tem Ad Accounts, seleciona automaticamente a primeira se não houver seleção
-    if (resources?.ad_accounts?.length > 0) {
-      const adAccountControl = this.form.get('ad_account_id');
-      if (adAccountControl && !adAccountControl.value) {
-        adAccountControl.setValue(resources.ad_accounts[0].id);
-      }
-    }
-
-    this.toast.success('Conectado! Recursos disponíveis atualizados.');
-  }
-
   onOAuthDisconnected(param: DynamicParameter) {
-    this.oauthResources = null;
-    this.form.patchValue({ [param.name]: false });
-
-    // Limpa campos dependentes
     const dependentFields = Object.values(this.dynamicParams)
       .flat()
       .filter(p => p.dependsOn && Array.isArray(p.dependsOn) && p.dependsOn.includes(param.name));
@@ -427,11 +463,6 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
     });
 
     this.toast.info('Desconectado. Campos dependentes foram limpos.');
-  }
-
-  onResourcesUpdated(resources: any) {
-    this.oauthResources = resources;
-    this.toast.success('Recursos atualizados!');
   }
 
   onSubmit() {
@@ -450,7 +481,7 @@ export class DynamicParametersComponent implements OnInit, OnChanges {
   public resetForm(): void {
     this.form.reset();
     this.updateFormValues();
-    this.oauthResources = null;
+    this.previousFormValues = {};
   }
 
   public markAllAsTouched(): void {
